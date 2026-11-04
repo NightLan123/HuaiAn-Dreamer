@@ -1,0 +1,142 @@
+{
+  "kind": "deterministic same-candidate policy comparison",
+  "model_calls_each": 0,
+  "cases": 6,
+  "passed": 6,
+  "real_model_or_human_blind_evaluation": false,
+  "limits": "仅验证裁剪、信息保留与停止规则；不能推断真实模型的自然度或质量提升比例。",
+  "results": [
+    {
+      "case": "tentative",
+      "input": "最近有点想玩胡闹厨房",
+      "same_supplied_candidate": [
+        "可以啊。",
+        "你想玩几关？"
+      ],
+      "h2_output": [
+        "可以啊。",
+        "你想玩几关？"
+      ],
+      "cbm_output": [
+        "可以啊。"
+      ],
+      "new_strategy": "RESPOND_AND_YIELD",
+      "sufficiency_target": "minimal",
+      "check": {
+        "status": "trimmed",
+        "removed_chars": 6,
+        "source_type": "engineering_check_uncalibrated"
+      }
+    },
+    {
+      "case": "invite",
+      "input": "要不要一起玩胡闹厨房？",
+      "same_supplied_candidate": [
+        "行啊。",
+        "你想玩？"
+      ],
+      "h2_output": [
+        "行啊。",
+        "你想玩？"
+      ],
+      "cbm_output": [
+        "行啊。"
+      ],
+      "new_strategy": "RESPOND_AND_YIELD",
+      "sufficiency_target": "minimal",
+      "check": {
+        "status": "trimmed",
+        "removed_chars": 4,
+        "source_type": "engineering_check_uncalibrated"
+      }
+    },
+    {
+      "case": "time",
+      "input": "我打算今晚八点开胡闹厨房，你来吗",
+      "same_supplied_candidate": [
+        "好，八点见。",
+        "你想玩几关？"
+      ],
+      "h2_output": [
+        "好，八点见。",
+        "你想玩几关？"
+      ],
+      "cbm_output": [
+        "好，八点见。"
+      ],
+      "new_strategy": "RESPOND_AND_YIELD",
+      "sufficiency_target": "minimal",
+      "check": {
+        "status": "trimmed",
+        "removed_chars": 6,
+        "source_type": "engineering_check_uncalibrated"
+      }
+    },
+    {
+      "case": "complaint",
+      "input": "我打工累死了",
+      "same_supplied_candidate": [
+        "先歇歇。",
+        "你明天几点上班？"
+      ],
+      "h2_output": [
+        "先歇歇。",
+        "你明天几点上班？"
+      ],
+      "cbm_output": [
+        "先歇歇。"
+      ],
+      "new_strategy": "RESPOND_AND_YIELD",
+      "sufficiency_target": "minimal",
+      "check": {
+        "status": "trimmed",
+        "removed_chars": 8,
+        "source_type": "engineering_check_uncalibrated"
+      }
+    },
+    {
+      "case": "question",
+      "input": "这游戏怎么联机？",
+      "same_supplied_candidate": [
+        "打开联机菜单。",
+        "一方建房，另一方输入房间码。"
+      ],
+      "h2_output": [
+        "打开联机菜单。",
+        "一方建房，另一方输入房间码。"
+      ],
+      "cbm_output": [
+        "打开联机菜单。\n一方建房，另一方输入房间码。"
+      ],
+      "new_strategy": "MINIMAL_REPLY",
+      "sufficiency_target": "complete",
+      "check": {
+        "status": "unchanged",
+        "removed_chars": 0,
+        "source_type": "engineering_check_uncalibrated"
+      }
+    },
+    {
+      "case": "closing",
+      "input": "我先去忙了",
+      "same_supplied_candidate": [
+        "好。",
+        "什么时候回来？"
+      ],
+      "h2_output": [
+        "好。",
+        "什么时候回来？"
+      ],
+      "cbm_output": [
+        "好。"
+      ],
+      "new_strategy": "RESPOND_AND_YIELD",
+      "sufficiency_target": "minimal",
+      "check": {
+        "status": "trimmed",
+        "removed_chars": 7,
+        "source_type": "engineering_check_uncalibrated"
+      }
+    }
+  ]
+}

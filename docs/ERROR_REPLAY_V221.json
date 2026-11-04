@@ -1,0 +1,1051 @@
+{
+  "version": "2.2.1",
+  "kind": "synthetic_equivalent_fault_injection",
+  "live_qq": false,
+  "live_model": false,
+  "original_failed_http_body_available": false,
+  "interpretation": "原日志只证明阶段、耗时和候选字符数。此处重建同类故障，不声称重放了缺失的原始响应或确认了旧故障的具体坏字段。",
+  "original_timing_evidence": "FAILURE_EVIDENCE_REDACTED.json",
+  "cases": [
+    {
+      "case": "test_failure_fixture_single_path_repairs_once_then_blocks",
+      "passed": true,
+      "fixture_runtime_ms": 71,
+      "injected_first_candidate_chars": null,
+      "remote_send_invocations": 0,
+      "committed_turns": 0,
+      "stored_assistant_messages": 0,
+      "stored_memory_count": 0,
+      "trace": {
+        "turn_id": "3608d5d3a4814f14ba70777914bc08d6",
+        "trace_id": "442ac05b2d184cd0b95e2adc5c68a6e4",
+        "persona_id": "f9979ef329594b05b177d9d76f224b58",
+        "session_id": "3e4f3e33dea040f0bbbed98bdaa6ec03",
+        "status": "VALIDATION_FAILED",
+        "started_at": 1793076787.1496727,
+        "ended_at": 1793076787.2012908,
+        "stages": [
+          {
+            "phase": "准备",
+            "started_at": 1793076787.1496727,
+            "ended_at": 1793076787.1716225,
+            "duration_ms": 5,
+            "status": "completed"
+          },
+          {
+            "phase": "1 / 6 · 大模型理解消息",
+            "started_at": 1793076787.1550813,
+            "ended_at": 1793076787.1765003,
+            "duration_ms": 5,
+            "status": "completed"
+          },
+          {
+            "phase": "2 / 6 · PMM 检索并解码人格条件",
+            "started_at": 1793076787.1599603,
+            "ended_at": 1793076787.1907384,
+            "duration_ms": 14,
+            "status": "completed"
+          },
+          {
+            "phase": "3 / 6 · PMM 单路径决策",
+            "started_at": 1793076787.1741986,
+            "ended_at": 1793076787.2012956,
+            "duration_ms": 11,
+            "status": "failed"
+          }
+        ],
+        "validation": [
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {}
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 1,
+            "validation": {
+              "schema_version": "pmm-prepare/1",
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "invalid",
+            "duration_ms": 0,
+            "code": "VALIDATION_FAILED",
+            "schema_version": "action-assessment/single/1",
+            "validator": "assessment",
+            "issues": [
+              {
+                "path": "/views/0/utilities/reply",
+                "expected": "finite number in [0,1]",
+                "actual_type": "missing",
+                "reason": "invalid_utility"
+              }
+            ],
+            "expected_view_ids": [
+              "v0"
+            ],
+            "received_view_ids": [
+              "v0"
+            ],
+            "action_enum": [
+              "reply",
+              "unknown",
+              "clarify",
+              "disagree",
+              "decline",
+              "silence"
+            ],
+            "received_utility_keys": [
+              [
+                "clarify",
+                "decline",
+                "disagree",
+                "silence",
+                "unknown"
+              ]
+            ]
+          },
+          {
+            "attempt": 1,
+            "status": "invalid",
+            "duration_ms": 0,
+            "code": "VALIDATION_FAILED",
+            "schema_version": "action-assessment/single/1",
+            "validator": "assessment",
+            "issues": [
+              {
+                "path": "/views/0/utilities/reply",
+                "expected": "finite number in [0,1]",
+                "actual_type": "missing",
+                "reason": "invalid_utility"
+              }
+            ],
+            "expected_view_ids": [
+              "v0"
+            ],
+            "received_view_ids": [
+              "v0"
+            ],
+            "action_enum": [
+              "reply",
+              "unknown",
+              "clarify",
+              "disagree",
+              "decline",
+              "silence"
+            ],
+            "received_utility_keys": [
+              [
+                "clarify",
+                "decline",
+                "disagree",
+                "silence",
+                "unknown"
+              ]
+            ]
+          }
+        ],
+        "candidate_status": "NOT_GENERATED",
+        "delivery_status": "NOT_ATTEMPTED",
+        "memory_commit_status": "NOT_COMMITTED",
+        "error": {
+          "exception_type": "ValidationFailure",
+          "frames": [
+            {
+              "module": "engine.py",
+              "line": 203,
+              "function": "turn"
+            },
+            {
+              "module": "engine.py",
+              "line": 287,
+              "function": "_turn"
+            },
+            {
+              "module": "validation.py",
+              "line": 74,
+              "function": "validated_call"
+            },
+            {
+              "module": "validation.py",
+              "line": 67,
+              "function": "validated_call"
+            },
+            {
+              "module": "engine.py",
+              "line": 287,
+              "function": "<lambda>"
+            },
+            {
+              "module": "deliberation.py",
+              "line": 91,
+              "function": "validate_assessment"
+            },
+            {
+              "module": "validation.py",
+              "line": 52,
+              "function": "assessment"
+            }
+          ],
+          "details": {
+            "code": "VALIDATION_FAILED",
+            "schema_version": "action-assessment/single/1",
+            "validator": "assessment",
+            "issues": [
+              {
+                "path": "/views/0/utilities/reply",
+                "expected": "finite number in [0,1]",
+                "actual_type": "missing",
+                "reason": "invalid_utility"
+              }
+            ],
+            "expected_view_ids": [
+              "v0"
+            ],
+            "received_view_ids": [
+              "v0"
+            ],
+            "action_enum": [
+              "reply",
+              "unknown",
+              "clarify",
+              "disagree",
+              "decline",
+              "silence"
+            ],
+            "received_utility_keys": [
+              [
+                "clarify",
+                "decline",
+                "disagree",
+                "silence",
+                "unknown"
+              ]
+            ],
+            "repair_attempts": 1
+          }
+        },
+        "calls": [
+          {
+            "stage": "[UNDERSTAND_V3]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[API_PMM_PREPARE_V2]",
+            "model": "pmm-fixture",
+            "duration_ms": 1
+          }
+        ],
+        "schema_version": "execution/1",
+        "action_state": "REPLY",
+        "cognitive_id": null,
+        "input_event_refs": [
+          "36c1317ab0e35562"
+        ]
+      }
+    },
+    {
+      "case": "test_candidate_mismatch_limited_regeneration_no_ghost_memory",
+      "passed": true,
+      "fixture_runtime_ms": 104,
+      "injected_first_candidate_chars": 25,
+      "remote_send_invocations": 0,
+      "committed_turns": 0,
+      "stored_assistant_messages": 0,
+      "stored_memory_count": 0,
+      "trace": {
+        "turn_id": "273a5e19a1694519b92d5fb0d7740000",
+        "trace_id": "722ee35fa80f4eb09aa3a7bd8cf12ebc",
+        "persona_id": "cece9f380bfe4ce5bb24d298742230af",
+        "session_id": "050db6f53d304787989d35a653d2ca27",
+        "decision_id": "8fce1d48c0414099a3189029854bfa44",
+        "decision_revision": 1,
+        "selected_action": "decline",
+        "status": "VALIDATION_FAILED",
+        "started_at": 1793076787.3982773,
+        "ended_at": 1793076787.4807065,
+        "stages": [
+          {
+            "phase": "准备",
+            "started_at": 1793076787.3982773,
+            "ended_at": 1793076787.4280593,
+            "duration_ms": 9,
+            "status": "completed"
+          },
+          {
+            "phase": "1 / 6 · 大模型理解消息",
+            "started_at": 1793076787.4068365,
+            "ended_at": 1793076787.4329038,
+            "duration_ms": 5,
+            "status": "completed"
+          },
+          {
+            "phase": "2 / 6 · PMM 检索并解码人格条件",
+            "started_at": 1793076787.4116814,
+            "ended_at": 1793076787.4440856,
+            "duration_ms": 11,
+            "status": "completed"
+          },
+          {
+            "phase": "3 / 6 · PMM 单路径决策",
+            "started_at": 1793076787.4228632,
+            "ended_at": 1793076787.4546444,
+            "duration_ms": 11,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 按行动与个人风格生成",
+            "started_at": 1793076787.4334219,
+            "ended_at": 1793076787.4677896,
+            "duration_ms": 13,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 检查已冻结行动与候选回复",
+            "started_at": 1793076787.4465663,
+            "ended_at": 1793076787.4730427,
+            "duration_ms": 5,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 修复候选表达（最多一次）",
+            "started_at": 1793076787.4518201,
+            "ended_at": 1793076787.48071,
+            "duration_ms": 8,
+            "status": "failed"
+          }
+        ],
+        "validation": [
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {}
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "pmm-prepare/1",
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "action-assessment/single/1",
+              "normalizations": [],
+              "expected_view_ids": [
+                "v0"
+              ],
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "candidate-action-check/1",
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "candidate-action-check/1",
+              "status": "valid"
+            }
+          }
+        ],
+        "candidate_status": "GENERATED",
+        "delivery_status": "NOT_ATTEMPTED",
+        "memory_commit_status": "NOT_COMMITTED",
+        "error": {
+          "exception_type": "ValidationFailure",
+          "frames": [
+            {
+              "module": "engine.py",
+              "line": 203,
+              "function": "turn"
+            },
+            {
+              "module": "engine.py",
+              "line": 344,
+              "function": "_turn"
+            }
+          ],
+          "details": {
+            "code": "VALIDATION_FAILED",
+            "schema_version": "candidate-action-check/1",
+            "validator": "candidate_check",
+            "issues": [
+              {
+                "path": "/candidate",
+                "expected": "decline",
+                "actual_type": "string",
+                "reason": "ACTION_MISMATCH"
+              }
+            ],
+            "expected_action": "decline",
+            "detected_action": "reply",
+            "evidence_spans": [
+              {
+                "start": 0,
+                "end": 1
+              }
+            ]
+          }
+        },
+        "calls": [
+          {
+            "stage": "[UNDERSTAND_V3]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[API_PMM_PREPARE_V2]",
+            "model": "pmm-fixture",
+            "duration_ms": 1
+          }
+        ],
+        "schema_version": "execution/1",
+        "candidate_digest": "c8c95c9407e87c0d0f04b1cfe2888752f169515ac061e0c9c05f0aa8f4866564",
+        "candidate_chars": 4,
+        "candidate_check": {
+          "decision_id": "8fce1d48c0414099a3189029854bfa44",
+          "decision_revision": 1,
+          "expected_action": "decline",
+          "detected_action": "reply",
+          "compliant": false,
+          "failure_code": "ACTION_MISMATCH",
+          "_validation": {
+            "schema_version": "candidate-action-check/1",
+            "status": "valid"
+          },
+          "spans": [
+            {
+              "start": 0,
+              "end": 1
+            }
+          ]
+        },
+        "action_state": "REFUSE",
+        "regenerations": 1,
+        "learning_status": "QUEUED",
+        "cognitive_id": null,
+        "input_event_refs": [
+          "36c1317ab0e35562"
+        ]
+      }
+    },
+    {
+      "case": "test_receipt_survives_commit_crash_and_restart_recovers_once",
+      "passed": true,
+      "fixture_runtime_ms": 398,
+      "injected_first_candidate_chars": null,
+      "remote_send_invocations": 1,
+      "committed_turns": 1,
+      "stored_assistant_messages": 1,
+      "stored_memory_count": 1,
+      "trace": {
+        "turn_id": "cbd9e070a70e42b68cc36720828908f7",
+        "trace_id": "d0f8ce7187f3496ba8864bb3d2f39260",
+        "persona_id": "dd4f35d1f2c248bb80e93fd943d8f543",
+        "session_id": "f6565867d947443691114b9437aafbbb",
+        "decision_id": "a9a8a109a3a4401fb1303b0f8a5cb35c",
+        "decision_revision": 1,
+        "selected_action": "reply",
+        "status": "COMPLETED",
+        "started_at": 1793076787.6547468,
+        "ended_at": 1793076787.8740735,
+        "stages": [
+          {
+            "phase": "准备",
+            "started_at": 1793076787.6547468,
+            "ended_at": 1793076787.6765838,
+            "duration_ms": 6,
+            "status": "completed"
+          },
+          {
+            "phase": "1 / 6 · 大模型理解消息",
+            "started_at": 1793076787.660972,
+            "ended_at": 1793076787.6807952,
+            "duration_ms": 4,
+            "status": "completed"
+          },
+          {
+            "phase": "2 / 6 · PMM 检索并解码人格条件",
+            "started_at": 1793076787.6651838,
+            "ended_at": 1793076787.6925144,
+            "duration_ms": 12,
+            "status": "completed"
+          },
+          {
+            "phase": "3 / 6 · PMM 单路径决策",
+            "started_at": 1793076787.6769025,
+            "ended_at": 1793076787.703989,
+            "duration_ms": 11,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 按行动与个人风格生成",
+            "started_at": 1793076787.6883774,
+            "ended_at": 1793076787.7134528,
+            "duration_ms": 9,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 检查已冻结行动与候选回复",
+            "started_at": 1793076787.697841,
+            "ended_at": 1793076787.7246377,
+            "duration_ms": 11,
+            "status": "completed"
+          },
+          {
+            "phase": "5 / 6 · 构建发送与后台任务计划",
+            "started_at": 1793076787.709026,
+            "ended_at": 1793076787.868268,
+            "duration_ms": 144,
+            "status": "completed"
+          },
+          {
+            "phase": "6 / 6 · 保存发送结果与即时状态",
+            "started_at": 1793076787.852656,
+            "ended_at": 1793076787.874253,
+            "duration_ms": 6,
+            "status": "failed"
+          }
+        ],
+        "validation": [
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {}
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "pmm-prepare/1",
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "action-assessment/single/1",
+              "normalizations": [],
+              "expected_view_ids": [
+                "v0"
+              ],
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "candidate-action-check/1",
+              "status": "valid"
+            }
+          }
+        ],
+        "candidate_status": "VALIDATED",
+        "pre_send_status": "VALID",
+        "delivery_status": "COMMITTED",
+        "memory_commit_status": "COMMITTED",
+        "outbox_id": "cbd9e070a70e42b68cc36720828908f7",
+        "qq_message_id": 91,
+        "error": {
+          "exception_type": "RuntimeError",
+          "frames": [
+            {
+              "module": "engine.py",
+              "line": 203,
+              "function": "turn"
+            },
+            {
+              "module": "engine.py",
+              "line": 437,
+              "function": "_turn"
+            },
+            {
+              "module": "mock.py",
+              "line": 1139,
+              "function": "__call__"
+            },
+            {
+              "module": "mock.py",
+              "line": 1143,
+              "function": "_mock_call"
+            },
+            {
+              "module": "mock.py",
+              "line": 1198,
+              "function": "_execute_mock_call"
+            }
+          ],
+          "details": {}
+        },
+        "calls": [
+          {
+            "stage": "[UNDERSTAND_V3]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[REALIZE_V3]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[ACTION_CHECK_V221]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[API_PMM_PREPARE_V2]",
+            "model": "pmm-fixture",
+            "duration_ms": 1
+          }
+        ],
+        "schema_version": "execution/1",
+        "timing": {
+          "first_ack_ms": 208
+        },
+        "candidate_digest": "8014d340a9122d1197a8b5ace3b4a13c46884f7764dfe0488e811f8e8714e2f3",
+        "candidate_chars": 2,
+        "candidate_check": {
+          "decision_id": "a9a8a109a3a4401fb1303b0f8a5cb35c",
+          "decision_revision": 1,
+          "expected_action": "reply",
+          "detected_action": "reply",
+          "compliant": true,
+          "failure_code": "NONE",
+          "_validation": {
+            "schema_version": "candidate-action-check/1",
+            "status": "valid"
+          },
+          "spans": []
+        },
+        "action_state": "REPLY",
+        "regenerations": 0,
+        "learning_status": "QUEUED",
+        "cognitive_id": null,
+        "input_event_refs": [
+          "36c1317ab0e35562"
+        ]
+      }
+    },
+    {
+      "case": "test_crash_after_local_commit_is_idempotent",
+      "passed": true,
+      "fixture_runtime_ms": 381,
+      "injected_first_candidate_chars": null,
+      "remote_send_invocations": 1,
+      "committed_turns": 1,
+      "stored_assistant_messages": 1,
+      "stored_memory_count": 1,
+      "trace": {
+        "turn_id": "75426b3a01b64cd39f170d46efba755f",
+        "trace_id": "572086993a204a86853a7bcf3fdbfb1b",
+        "persona_id": "69a28a844c8845bb8e54b2f7d896ae61",
+        "session_id": "9db870efe02443edb86b1a5e0ec91af2",
+        "decision_id": "a72d52c01c994826b018846d36c14421",
+        "decision_revision": 1,
+        "selected_action": "reply",
+        "status": "COMPLETED",
+        "started_at": 1793076788.204048,
+        "ended_at": 1793076788.4627006,
+        "stages": [
+          {
+            "phase": "准备",
+            "started_at": 1793076788.204048,
+            "ended_at": 1793076788.2249117,
+            "duration_ms": 6,
+            "status": "completed"
+          },
+          {
+            "phase": "1 / 6 · 大模型理解消息",
+            "started_at": 1793076788.2098486,
+            "ended_at": 1793076788.2299845,
+            "duration_ms": 5,
+            "status": "completed"
+          },
+          {
+            "phase": "2 / 6 · PMM 检索并解码人格条件",
+            "started_at": 1793076788.2149217,
+            "ended_at": 1793076788.2439399,
+            "duration_ms": 14,
+            "status": "completed"
+          },
+          {
+            "phase": "3 / 6 · PMM 单路径决策",
+            "started_at": 1793076788.2288775,
+            "ended_at": 1793076788.2623773,
+            "duration_ms": 18,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 按行动与个人风格生成",
+            "started_at": 1793076788.2473147,
+            "ended_at": 1793076788.2775881,
+            "duration_ms": 15,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 检查已冻结行动与候选回复",
+            "started_at": 1793076788.262525,
+            "ended_at": 1793076788.289636,
+            "duration_ms": 12,
+            "status": "completed"
+          },
+          {
+            "phase": "5 / 6 · 构建发送与后台任务计划",
+            "started_at": 1793076788.274573,
+            "ended_at": 1793076788.4103582,
+            "duration_ms": 121,
+            "status": "completed"
+          },
+          {
+            "phase": "6 / 6 · 保存发送结果与即时状态",
+            "started_at": 1793076788.3952951,
+            "ended_at": 1793076788.462721,
+            "duration_ms": 52,
+            "status": "failed"
+          }
+        ],
+        "validation": [
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 1,
+            "validation": {}
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "pmm-prepare/1",
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "action-assessment/single/1",
+              "normalizations": [],
+              "expected_view_ids": [
+                "v0"
+              ],
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 1,
+            "validation": {
+              "schema_version": "candidate-action-check/1",
+              "status": "valid"
+            }
+          }
+        ],
+        "candidate_status": "VALIDATED",
+        "pre_send_status": "VALID",
+        "delivery_status": "COMMITTED",
+        "memory_commit_status": "COMMITTED",
+        "outbox_id": "75426b3a01b64cd39f170d46efba755f",
+        "qq_message_id": 91,
+        "error": {
+          "exception_type": "RuntimeError",
+          "frames": [
+            {
+              "module": "engine.py",
+              "line": 203,
+              "function": "turn"
+            },
+            {
+              "module": "engine.py",
+              "line": 437,
+              "function": "_turn"
+            },
+            {
+              "module": "engine.py",
+              "line": 483,
+              "function": "commit_plan"
+            },
+            {
+              "module": "mock.py",
+              "line": 1139,
+              "function": "__call__"
+            },
+            {
+              "module": "mock.py",
+              "line": 1143,
+              "function": "_mock_call"
+            },
+            {
+              "module": "mock.py",
+              "line": 1198,
+              "function": "_execute_mock_call"
+            }
+          ],
+          "details": {}
+        },
+        "calls": [
+          {
+            "stage": "[UNDERSTAND_V3]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[REALIZE_V3]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[ACTION_CHECK_V221]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[API_PMM_PREPARE_V2]",
+            "model": "pmm-fixture",
+            "duration_ms": 1
+          }
+        ],
+        "schema_version": "execution/1",
+        "timing": {
+          "first_ack_ms": 203
+        },
+        "candidate_digest": "8014d340a9122d1197a8b5ace3b4a13c46884f7764dfe0488e811f8e8714e2f3",
+        "candidate_chars": 2,
+        "candidate_check": {
+          "decision_id": "a72d52c01c994826b018846d36c14421",
+          "decision_revision": 1,
+          "expected_action": "reply",
+          "detected_action": "reply",
+          "compliant": true,
+          "failure_code": "NONE",
+          "_validation": {
+            "schema_version": "candidate-action-check/1",
+            "status": "valid"
+          },
+          "spans": []
+        },
+        "action_state": "REPLY",
+        "regenerations": 0,
+        "learning_status": "QUEUED",
+        "cognitive_id": null,
+        "input_event_refs": [
+          "36c1317ab0e35562"
+        ]
+      }
+    },
+    {
+      "case": "test_background_failure_keeps_sent_fact_then_retry_only_learning",
+      "passed": true,
+      "fixture_runtime_ms": 314,
+      "injected_first_candidate_chars": null,
+      "remote_send_invocations": 1,
+      "committed_turns": 1,
+      "stored_assistant_messages": 1,
+      "stored_memory_count": 2,
+      "trace": {
+        "turn_id": "aaeb7b2df9754368b905e902bf48ee85",
+        "trace_id": "7a82326bbcbd42e1964ce74dfc4ff0af",
+        "persona_id": "7c0e74a0a7d74aec89c412283b9e9a8e",
+        "session_id": "fd74ce5a883a4508b54669c7cc1c500c",
+        "decision_id": "dd225e0f8faa458380ddb81013ce67cc",
+        "decision_revision": 1,
+        "selected_action": "reply",
+        "status": "COMPLETED",
+        "started_at": 1793076788.726984,
+        "ended_at": 1793076788.9726686,
+        "stages": [
+          {
+            "phase": "准备",
+            "started_at": 1793076788.726984,
+            "ended_at": 1793076788.7504206,
+            "duration_ms": 5,
+            "status": "completed"
+          },
+          {
+            "phase": "1 / 6 · 大模型理解消息",
+            "started_at": 1793076788.73221,
+            "ended_at": 1793076788.7553644,
+            "duration_ms": 5,
+            "status": "completed"
+          },
+          {
+            "phase": "2 / 6 · PMM 检索并解码人格条件",
+            "started_at": 1793076788.7371538,
+            "ended_at": 1793076788.7736738,
+            "duration_ms": 18,
+            "status": "completed"
+          },
+          {
+            "phase": "3 / 6 · PMM 单路径决策",
+            "started_at": 1793076788.755463,
+            "ended_at": 1793076788.7868361,
+            "duration_ms": 13,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 按行动与个人风格生成",
+            "started_at": 1793076788.7686253,
+            "ended_at": 1793076788.795288,
+            "duration_ms": 8,
+            "status": "completed"
+          },
+          {
+            "phase": "4 / 6 · 检查已冻结行动与候选回复",
+            "started_at": 1793076788.7770772,
+            "ended_at": 1793076788.8023467,
+            "duration_ms": 7,
+            "status": "completed"
+          },
+          {
+            "phase": "5 / 6 · 构建发送与后台任务计划",
+            "started_at": 1793076788.7841358,
+            "ended_at": 1793076788.8962526,
+            "duration_ms": 94,
+            "status": "completed"
+          },
+          {
+            "phase": "6 / 6 · 保存发送结果与即时状态",
+            "started_at": 1793076788.8780415,
+            "ended_at": 1793076788.972738,
+            "duration_ms": 76,
+            "status": "completed"
+          }
+        ],
+        "validation": [
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {}
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 1,
+            "validation": {
+              "schema_version": "pmm-prepare/1",
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "action-assessment/single/1",
+              "normalizations": [],
+              "expected_view_ids": [
+                "v0"
+              ],
+              "status": "valid"
+            }
+          },
+          {
+            "attempt": 0,
+            "status": "valid",
+            "duration_ms": 0,
+            "validation": {
+              "schema_version": "candidate-action-check/1",
+              "status": "valid"
+            }
+          }
+        ],
+        "candidate_status": "VALIDATED",
+        "pre_send_status": "VALID",
+        "delivery_status": "COMMITTED",
+        "memory_commit_status": "COMMITTED",
+        "outbox_id": "aaeb7b2df9754368b905e902bf48ee85",
+        "qq_message_id": 91,
+        "calls": [
+          {
+            "stage": "[UNDERSTAND_V3]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[REALIZE_V3]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[ACTION_CHECK_V221]",
+            "model": "general-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[API_PMM_PREPARE_V2]",
+            "model": "pmm-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[CONSOLIDATE_V212]",
+            "model": "pmm-fixture",
+            "duration_ms": 1
+          },
+          {
+            "stage": "[CONSOLIDATE_V212]",
+            "model": "pmm-fixture",
+            "duration_ms": 1
+          }
+        ],
+        "schema_version": "execution/1",
+        "timing": {
+          "first_ack_ms": 167,
+          "total_ms": 228
+        },
+        "candidate_digest": "8014d340a9122d1197a8b5ace3b4a13c46884f7764dfe0488e811f8e8714e2f3",
+        "candidate_chars": 2,
+        "candidate_check": {
+          "decision_id": "dd225e0f8faa458380ddb81013ce67cc",
+          "decision_revision": 1,
+          "expected_action": "reply",
+          "detected_action": "reply",
+          "compliant": true,
+          "failure_code": "NONE",
+          "_validation": {
+            "schema_version": "candidate-action-check/1",
+            "status": "valid"
+          },
+          "spans": []
+        },
+        "action_state": "REPLY",
+        "regenerations": 0,
+        "learning_status": "COMPLETED",
+        "background_error": "ProviderError",
+        "cognitive_id": null,
+        "input_event_refs": [
+          "36c1317ab0e35562"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,2895 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Persona Dialogue PMM HTTP API",
+    "version": "2.1.0",
+    "description": "PMM HTTP/1 with registry learned-pmm/2.1, learned-pmm/2 and legacy pmm/3 checkpoints. This service computes numeric PMM; API-PMM uses the independently configured LLM provider."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8766"
+    }
+  ],
+  "security": [
+    {
+      "PMMKey": []
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "operationId": "models",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pmm/execute": {
+      "post": {
+        "operationId": "execute",
+        "description": "Stateless computation on the supplied checkpoint. Writes return a candidate. Learned adapter updates must preserve the shared core.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecuteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "合约 / 参数错误"
+          },
+          "401": {
+            "description": "认证失败"
+          },
+          "413": {
+            "description": "请求超过32MB"
+          },
+          "429": {
+            "description": "并发容量已满"
+          },
+          "500": {
+            "description": "计算失败"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "PMMKey": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Checkpoint": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/LegacyCheckpoint"
+          },
+          {
+            "$ref": "#/components/schemas/LearnedCheckpoint"
+          },
+          {
+            "$ref": "#/components/schemas/RegistryCheckpoint"
+          }
+        ]
+      },
+      "RegistryCore": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "pmm-core/2.1"
+          },
+          "dimension": {
+            "const": 370
+          },
+          "latent": {
+            "const": 64
+          },
+          "registry_contract": {
+            "const": {
+              "registry_hash": "45f01f24d7735c169b618ccaf6c7c5f3cca4e42af15ff02212fc5f91165a7894",
+              "encoder_version": "registry-masked/1",
+              "state_schema_version": "2.1.0",
+              "feature_order": [
+                "hexaco.h.sincerity",
+                "hexaco.h.fairness",
+                "hexaco.h.greed_avoidance",
+                "hexaco.h.modesty",
+                "hexaco.e.fearfulness",
+                "hexaco.e.anxiety",
+                "hexaco.e.dependence",
+                "hexaco.e.sentimentality",
+                "hexaco.x.social_self_esteem",
+                "hexaco.x.social_boldness",
+                "hexaco.x.sociability",
+                "hexaco.x.liveliness",
+                "hexaco.a.forgivingness",
+                "hexaco.a.gentleness",
+                "hexaco.a.flexibility",
+                "hexaco.a.patience",
+                "hexaco.c.organization",
+                "hexaco.c.diligence",
+                "hexaco.c.perfectionism",
+                "hexaco.c.prudence",
+                "hexaco.o.aesthetic_appreciation",
+                "hexaco.o.inquisitiveness",
+                "hexaco.o.creativity",
+                "hexaco.o.unconventionality",
+                "hexaco.interstitial.altruism",
+                "value.self_direction_thought",
+                "value.self_direction_action",
+                "value.stimulation",
+                "value.hedonism",
+                "value.achievement",
+                "value.power_dominance",
+                "value.power_resources",
+                "value.face",
+                "value.security_personal",
+                "value.security_societal",
+                "value.tradition",
+                "value.conformity_rules",
+                "value.conformity_interpersonal",
+                "value.humility",
+                "value.benevolence_dependability",
+                "value.benevolence_caring",
+                "value.universalism_tolerance",
+                "value.universalism_concern",
+                "value.universalism_nature",
+                "affect.vad.valence",
+                "affect.vad.arousal",
+                "affect.vad.dominance",
+                "affect.label.joy",
+                "affect.label.sadness",
+                "affect.label.anger",
+                "affect.label.fear",
+                "affect.label.disgust",
+                "affect.label.surprise",
+                "affect.label.interest",
+                "affect.label.shame",
+                "affect.label.guilt",
+                "affect.label.gratitude",
+                "affect.label.pride",
+                "affect.label.frustration",
+                "affect.appraisal.novelty",
+                "affect.appraisal.intrinsic_pleasantness",
+                "affect.appraisal.goal_relevance",
+                "affect.appraisal.agency_attribution",
+                "affect.appraisal.outcome_likelihood",
+                "affect.appraisal.goal_conduciveness",
+                "affect.appraisal.urgency",
+                "affect.appraisal.control",
+                "affect.appraisal.power",
+                "affect.appraisal.adjustment_capacity",
+                "affect.appraisal.internal_norm_compatibility",
+                "affect.appraisal.external_norm_compatibility",
+                "affect.regulation.situation_selection",
+                "affect.regulation.situation_modification",
+                "affect.regulation.attentional_deployment",
+                "affect.regulation.cognitive_change",
+                "affect.regulation.response_modulation",
+                "social.agency",
+                "social.communion",
+                "style.brevity",
+                "style.fragmentation",
+                "style.formality",
+                "style.directness",
+                "style.humor",
+                "style.irony",
+                "style.teasing",
+                "style.empathy_expression",
+                "style.proactive_reply",
+                "style.emoji_frequency",
+                "style.punctuation_density",
+                "style.slang_frequency",
+                "style.topic_extension",
+                "style.question_back",
+                "style.length_variability"
+              ]
+            }
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "E": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "array",
+                  "minItems": 370,
+                  "maxItems": 370,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "eb": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "D": {
+                "type": "array",
+                "minItems": 370,
+                "maxItems": 370,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "db": {
+                "type": "array",
+                "minItems": 370,
+                "maxItems": 370,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "S": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "sb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "Y": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "yb": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "A": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "ab": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              }
+            },
+            "required": [
+              "E",
+              "eb",
+              "D",
+              "db",
+              "S",
+              "sb",
+              "Y",
+              "yb",
+              "A",
+              "ab"
+            ],
+            "additionalProperties": false
+          },
+          "extra": {
+            "type": "object",
+            "properties": {
+              "T": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "G": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "gb": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "L": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "lb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "P": {
+                "type": "array",
+                "minItems": 30,
+                "maxItems": 30,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "pb": {
+                "type": "array",
+                "minItems": 30,
+                "maxItems": 30,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "F": {
+                "type": "array",
+                "minItems": 93,
+                "maxItems": 93,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "fb": {
+                "type": "array",
+                "minItems": 93,
+                "maxItems": 93,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "W": {
+                "type": "array",
+                "minItems": 94,
+                "maxItems": 94,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "wb": {
+                "type": "array",
+                "minItems": 94,
+                "maxItems": 94,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              }
+            },
+            "required": [
+              "T",
+              "G",
+              "gb",
+              "L",
+              "lb",
+              "P",
+              "pb",
+              "F",
+              "fb",
+              "W",
+              "wb"
+            ],
+            "additionalProperties": false
+          },
+          "feature_steps": {
+            "type": "array",
+            "minItems": 93,
+            "maxItems": 93,
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "required": [
+          "format",
+          "dimension",
+          "latent",
+          "registry_contract",
+          "parameters",
+          "extra",
+          "feature_steps"
+        ]
+      },
+      "RegistryAdapter": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "personal-adapter/2.1"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "identity_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "core_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "rank": {
+            "const": 8
+          },
+          "registry_contract": {
+            "const": {
+              "registry_hash": "45f01f24d7735c169b618ccaf6c7c5f3cca4e42af15ff02212fc5f91165a7894",
+              "encoder_version": "registry-masked/1",
+              "state_schema_version": "2.1.0",
+              "feature_order": [
+                "hexaco.h.sincerity",
+                "hexaco.h.fairness",
+                "hexaco.h.greed_avoidance",
+                "hexaco.h.modesty",
+                "hexaco.e.fearfulness",
+                "hexaco.e.anxiety",
+                "hexaco.e.dependence",
+                "hexaco.e.sentimentality",
+                "hexaco.x.social_self_esteem",
+                "hexaco.x.social_boldness",
+                "hexaco.x.sociability",
+                "hexaco.x.liveliness",
+                "hexaco.a.forgivingness",
+                "hexaco.a.gentleness",
+                "hexaco.a.flexibility",
+                "hexaco.a.patience",
+                "hexaco.c.organization",
+                "hexaco.c.diligence",
+                "hexaco.c.perfectionism",
+                "hexaco.c.prudence",
+                "hexaco.o.aesthetic_appreciation",
+                "hexaco.o.inquisitiveness",
+                "hexaco.o.creativity",
+                "hexaco.o.unconventionality",
+                "hexaco.interstitial.altruism",
+                "value.self_direction_thought",
+                "value.self_direction_action",
+                "value.stimulation",
+                "value.hedonism",
+                "value.achievement",
+                "value.power_dominance",
+                "value.power_resources",
+                "value.face",
+                "value.security_personal",
+                "value.security_societal",
+                "value.tradition",
+                "value.conformity_rules",
+                "value.conformity_interpersonal",
+                "value.humility",
+                "value.benevolence_dependability",
+                "value.benevolence_caring",
+                "value.universalism_tolerance",
+                "value.universalism_concern",
+                "value.universalism_nature",
+                "affect.vad.valence",
+                "affect.vad.arousal",
+                "affect.vad.dominance",
+                "affect.label.joy",
+                "affect.label.sadness",
+                "affect.label.anger",
+                "affect.label.fear",
+                "affect.label.disgust",
+                "affect.label.surprise",
+                "affect.label.interest",
+                "affect.label.shame",
+                "affect.label.guilt",
+                "affect.label.gratitude",
+                "affect.label.pride",
+                "affect.label.frustration",
+                "affect.appraisal.novelty",
+                "affect.appraisal.intrinsic_pleasantness",
+                "affect.appraisal.goal_relevance",
+                "affect.appraisal.agency_attribution",
+                "affect.appraisal.outcome_likelihood",
+                "affect.appraisal.goal_conduciveness",
+                "affect.appraisal.urgency",
+                "affect.appraisal.control",
+                "affect.appraisal.power",
+                "affect.appraisal.adjustment_capacity",
+                "affect.appraisal.internal_norm_compatibility",
+                "affect.appraisal.external_norm_compatibility",
+                "affect.regulation.situation_selection",
+                "affect.regulation.situation_modification",
+                "affect.regulation.attentional_deployment",
+                "affect.regulation.cognitive_change",
+                "affect.regulation.response_modulation",
+                "social.agency",
+                "social.communion",
+                "style.brevity",
+                "style.fragmentation",
+                "style.formality",
+                "style.directness",
+                "style.humor",
+                "style.irony",
+                "style.teasing",
+                "style.empathy_expression",
+                "style.proactive_reply",
+                "style.emoji_frequency",
+                "style.punctuation_density",
+                "style.slang_frequency",
+                "style.topic_extension",
+                "style.question_back",
+                "style.length_variability"
+              ]
+            }
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "C": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "array",
+                  "minItems": 186,
+                  "maxItems": 186,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "U": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "V": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "S": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "sb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "Y": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "yb": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "A": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "ab": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "T": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "G": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "gb": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "L": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "lb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "P": {
+                "type": "array",
+                "minItems": 30,
+                "maxItems": 30,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "pb": {
+                "type": "array",
+                "minItems": 30,
+                "maxItems": 30,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "F": {
+                "type": "array",
+                "minItems": 93,
+                "maxItems": 93,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "fb": {
+                "type": "array",
+                "minItems": 93,
+                "maxItems": 93,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "W": {
+                "type": "array",
+                "minItems": 94,
+                "maxItems": 94,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "wb": {
+                "type": "array",
+                "minItems": 94,
+                "maxItems": 94,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              }
+            },
+            "required": [
+              "C",
+              "U",
+              "V",
+              "S",
+              "sb",
+              "Y",
+              "yb",
+              "A",
+              "ab",
+              "T",
+              "G",
+              "gb",
+              "L",
+              "lb",
+              "P",
+              "pb",
+              "F",
+              "fb",
+              "W",
+              "wb"
+            ],
+            "additionalProperties": false
+          },
+          "feature_steps": {
+            "type": "array",
+            "minItems": 93,
+            "maxItems": 93,
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "required": [
+          "format",
+          "id",
+          "identity_id",
+          "core_sha256",
+          "rank",
+          "registry_contract",
+          "revision",
+          "steps",
+          "parameters",
+          "feature_steps"
+        ]
+      },
+      "RegistryCheckpoint": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "learned-pmm/2.1"
+          },
+          "registry_contract": {
+            "const": {
+              "registry_hash": "45f01f24d7735c169b618ccaf6c7c5f3cca4e42af15ff02212fc5f91165a7894",
+              "encoder_version": "registry-masked/1",
+              "state_schema_version": "2.1.0",
+              "feature_order": [
+                "hexaco.h.sincerity",
+                "hexaco.h.fairness",
+                "hexaco.h.greed_avoidance",
+                "hexaco.h.modesty",
+                "hexaco.e.fearfulness",
+                "hexaco.e.anxiety",
+                "hexaco.e.dependence",
+                "hexaco.e.sentimentality",
+                "hexaco.x.social_self_esteem",
+                "hexaco.x.social_boldness",
+                "hexaco.x.sociability",
+                "hexaco.x.liveliness",
+                "hexaco.a.forgivingness",
+                "hexaco.a.gentleness",
+                "hexaco.a.flexibility",
+                "hexaco.a.patience",
+                "hexaco.c.organization",
+                "hexaco.c.diligence",
+                "hexaco.c.perfectionism",
+                "hexaco.c.prudence",
+                "hexaco.o.aesthetic_appreciation",
+                "hexaco.o.inquisitiveness",
+                "hexaco.o.creativity",
+                "hexaco.o.unconventionality",
+                "hexaco.interstitial.altruism",
+                "value.self_direction_thought",
+                "value.self_direction_action",
+                "value.stimulation",
+                "value.hedonism",
+                "value.achievement",
+                "value.power_dominance",
+                "value.power_resources",
+                "value.face",
+                "value.security_personal",
+                "value.security_societal",
+                "value.tradition",
+                "value.conformity_rules",
+                "value.conformity_interpersonal",
+                "value.humility",
+                "value.benevolence_dependability",
+                "value.benevolence_caring",
+                "value.universalism_tolerance",
+                "value.universalism_concern",
+                "value.universalism_nature",
+                "affect.vad.valence",
+                "affect.vad.arousal",
+                "affect.vad.dominance",
+                "affect.label.joy",
+                "affect.label.sadness",
+                "affect.label.anger",
+                "affect.label.fear",
+                "affect.label.disgust",
+                "affect.label.surprise",
+                "affect.label.interest",
+                "affect.label.shame",
+                "affect.label.guilt",
+                "affect.label.gratitude",
+                "affect.label.pride",
+                "affect.label.frustration",
+                "affect.appraisal.novelty",
+                "affect.appraisal.intrinsic_pleasantness",
+                "affect.appraisal.goal_relevance",
+                "affect.appraisal.agency_attribution",
+                "affect.appraisal.outcome_likelihood",
+                "affect.appraisal.goal_conduciveness",
+                "affect.appraisal.urgency",
+                "affect.appraisal.control",
+                "affect.appraisal.power",
+                "affect.appraisal.adjustment_capacity",
+                "affect.appraisal.internal_norm_compatibility",
+                "affect.appraisal.external_norm_compatibility",
+                "affect.regulation.situation_selection",
+                "affect.regulation.situation_modification",
+                "affect.regulation.attentional_deployment",
+                "affect.regulation.cognitive_change",
+                "affect.regulation.response_modulation",
+                "social.agency",
+                "social.communion",
+                "style.brevity",
+                "style.fragmentation",
+                "style.formality",
+                "style.directness",
+                "style.humor",
+                "style.irony",
+                "style.teasing",
+                "style.empathy_expression",
+                "style.proactive_reply",
+                "style.emoji_frequency",
+                "style.punctuation_density",
+                "style.slang_frequency",
+                "style.topic_extension",
+                "style.question_back",
+                "style.length_variability"
+              ]
+            }
+          },
+          "core": {
+            "$ref": "#/components/schemas/RegistryCore"
+          },
+          "core_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "core_steps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "core_origin": {
+            "type": "string"
+          },
+          "adapter": {
+            "$ref": "#/components/schemas/RegistryAdapter"
+          },
+          "migration": {
+            "type": "object"
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "learned_samples": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "samples": {
+            "type": "array",
+            "maxItems": 512,
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "retrieval_weights": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "retrieval_labels": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "format",
+          "registry_contract",
+          "core",
+          "core_sha256",
+          "core_steps",
+          "core_origin",
+          "adapter",
+          "migration",
+          "steps",
+          "learned_samples",
+          "samples",
+          "metrics",
+          "retrieval_weights",
+          "retrieval_labels"
+        ]
+      },
+      "LegacyCheckpoint": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "pmm/3"
+          },
+          "dimension": {
+            "const": 184
+          },
+          "latent": {
+            "const": 64
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "E": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "array",
+                  "minItems": 184,
+                  "maxItems": 184,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "eb": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "D": {
+                "type": "array",
+                "minItems": 184,
+                "maxItems": 184,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "db": {
+                "type": "array",
+                "minItems": 184,
+                "maxItems": 184,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "S": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "sb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "Y": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "yb": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "A": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "ab": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              }
+            },
+            "required": [
+              "E",
+              "eb",
+              "D",
+              "db",
+              "S",
+              "sb",
+              "Y",
+              "yb",
+              "A",
+              "ab"
+            ],
+            "additionalProperties": false
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "learned_samples": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "samples": {
+            "type": "array",
+            "maxItems": 512,
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "retrieval_weights": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "retrieval_labels": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "format",
+          "dimension",
+          "latent",
+          "parameters",
+          "steps",
+          "learned_samples",
+          "samples",
+          "metrics",
+          "retrieval_weights",
+          "retrieval_labels"
+        ]
+      },
+      "SharedCore": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "pmm-core/2"
+          },
+          "dimension": {
+            "const": 184
+          },
+          "latent": {
+            "const": 64
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "E": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "array",
+                  "minItems": 184,
+                  "maxItems": 184,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "eb": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "D": {
+                "type": "array",
+                "minItems": 184,
+                "maxItems": 184,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "db": {
+                "type": "array",
+                "minItems": 184,
+                "maxItems": 184,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "S": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "sb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "Y": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "yb": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "A": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "ab": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              }
+            },
+            "required": [
+              "E",
+              "eb",
+              "D",
+              "db",
+              "S",
+              "sb",
+              "Y",
+              "yb",
+              "A",
+              "ab"
+            ],
+            "additionalProperties": false
+          },
+          "extra": {
+            "type": "object",
+            "properties": {
+              "T": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "G": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "gb": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "L": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "lb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "P": {
+                "type": "array",
+                "minItems": 30,
+                "maxItems": 30,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "pb": {
+                "type": "array",
+                "minItems": 30,
+                "maxItems": 30,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              }
+            },
+            "required": [
+              "T",
+              "G",
+              "gb",
+              "L",
+              "lb",
+              "P",
+              "pb"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "format",
+          "dimension",
+          "latent",
+          "parameters",
+          "extra"
+        ]
+      },
+      "PersonalAdapter": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "personal-adapter/2"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "identity_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "core_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "rank": {
+            "const": 8
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "U": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "V": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "S": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "sb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "Y": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "yb": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "A": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "ab": {
+                "type": "array",
+                "minItems": 6,
+                "maxItems": 6,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "T": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "G": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "gb": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "L": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "lb": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "P": {
+                "type": "array",
+                "minItems": 30,
+                "maxItems": 30,
+                "items": {
+                  "type": "array",
+                  "minItems": 64,
+                  "maxItems": 64,
+                  "items": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              "pb": {
+                "type": "array",
+                "minItems": 30,
+                "maxItems": 30,
+                "items": {
+                  "type": "number",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              }
+            },
+            "required": [
+              "U",
+              "V",
+              "S",
+              "sb",
+              "Y",
+              "yb",
+              "A",
+              "ab",
+              "T",
+              "G",
+              "gb",
+              "L",
+              "lb",
+              "P",
+              "pb"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "format",
+          "id",
+          "identity_id",
+          "core_sha256",
+          "rank",
+          "revision",
+          "steps",
+          "parameters"
+        ]
+      },
+      "LearnedCheckpoint": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "const": "learned-pmm/2"
+          },
+          "core": {
+            "$ref": "#/components/schemas/SharedCore"
+          },
+          "core_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "core_steps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "core_origin": {
+            "type": "string"
+          },
+          "adapter": {
+            "$ref": "#/components/schemas/PersonalAdapter"
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "learned_samples": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "samples": {
+            "type": "array",
+            "maxItems": 512,
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "retrieval_weights": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "retrieval_labels": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "format",
+          "core",
+          "core_sha256",
+          "core_steps",
+          "core_origin",
+          "adapter",
+          "steps",
+          "learned_samples",
+          "samples",
+          "metrics",
+          "retrieval_weights",
+          "retrieval_labels"
+        ]
+      },
+      "ExecuteRequest": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "pmm-mlp-v3"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LegacyCheckpoint"
+              },
+              "operation": {
+                "const": "encode"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "vectors": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 512,
+                    "items": {
+                      "type": "array",
+                      "minItems": 184,
+                      "maxItems": 184,
+                      "items": {
+                        "type": "number",
+                        "minimum": -4,
+                        "maximum": 4
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "vectors"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "pmm-mlp-v3"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LegacyCheckpoint"
+              },
+              "operation": {
+                "const": "decode"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "array",
+                    "minItems": 184,
+                    "maxItems": 184,
+                    "items": {
+                      "type": "number",
+                      "minimum": -4,
+                      "maximum": 4
+                    }
+                  },
+                  "memory_vectors": {
+                    "type": "array",
+                    "maxItems": 40,
+                    "items": {
+                      "type": "array",
+                      "minItems": 184,
+                      "maxItems": 184,
+                      "items": {
+                        "type": "number",
+                        "minimum": -4,
+                        "maximum": 4
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "x"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "pmm-mlp-v3"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LegacyCheckpoint"
+              },
+              "operation": {
+                "const": "train"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "epochs": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 150
+                  }
+                },
+                "required": []
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "pmm-mlp-v3"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LegacyCheckpoint"
+              },
+              "operation": {
+                "const": "rank_feedback"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "components": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "relevant": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "components",
+                  "relevant"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "pmm-mlp-v3"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LegacyCheckpoint"
+              },
+              "operation": {
+                "const": "inspect"
+              },
+              "arguments": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v2"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LearnedCheckpoint"
+              },
+              "operation": {
+                "const": "encode"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "vectors": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 512,
+                    "items": {
+                      "type": "array",
+                      "minItems": 184,
+                      "maxItems": 184,
+                      "items": {
+                        "type": "number",
+                        "minimum": -4,
+                        "maximum": 4
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "vectors"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v2"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LearnedCheckpoint"
+              },
+              "operation": {
+                "const": "decode"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "array",
+                    "minItems": 184,
+                    "maxItems": 184,
+                    "items": {
+                      "type": "number",
+                      "minimum": -4,
+                      "maximum": 4
+                    }
+                  },
+                  "memory_vectors": {
+                    "type": "array",
+                    "maxItems": 40,
+                    "items": {
+                      "type": "array",
+                      "minItems": 184,
+                      "maxItems": 184,
+                      "items": {
+                        "type": "number",
+                        "minimum": -4,
+                        "maximum": 4
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "x"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v2"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LearnedCheckpoint"
+              },
+              "operation": {
+                "const": "train"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "epochs": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 150
+                  },
+                  "target": {
+                    "enum": [
+                      "adapter",
+                      "core"
+                    ],
+                    "default": "adapter"
+                  }
+                },
+                "required": []
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v2"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LearnedCheckpoint"
+              },
+              "operation": {
+                "const": "rank_feedback"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "components": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "relevant": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "components",
+                  "relevant"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v2"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/LearnedCheckpoint"
+              },
+              "operation": {
+                "const": "inspect"
+              },
+              "arguments": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v21"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/RegistryCheckpoint"
+              },
+              "operation": {
+                "const": "encode"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "vectors": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 512,
+                    "items": {
+                      "type": "array",
+                      "minItems": 370,
+                      "maxItems": 370,
+                      "items": {
+                        "type": "number",
+                        "minimum": -4,
+                        "maximum": 4
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "vectors"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v21"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/RegistryCheckpoint"
+              },
+              "operation": {
+                "const": "decode"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "array",
+                    "minItems": 370,
+                    "maxItems": 370,
+                    "items": {
+                      "type": "number",
+                      "minimum": -4,
+                      "maximum": 4
+                    }
+                  },
+                  "memory_vectors": {
+                    "type": "array",
+                    "maxItems": 40,
+                    "items": {
+                      "type": "array",
+                      "minItems": 370,
+                      "maxItems": 370,
+                      "items": {
+                        "type": "number",
+                        "minimum": -4,
+                        "maximum": 4
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "x"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v21"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/RegistryCheckpoint"
+              },
+              "operation": {
+                "const": "train"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "epochs": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 150
+                  },
+                  "target": {
+                    "enum": [
+                      "adapter",
+                      "core"
+                    ],
+                    "default": "adapter"
+                  }
+                },
+                "required": []
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v21"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/RegistryCheckpoint"
+              },
+              "operation": {
+                "const": "rank_feedback"
+              },
+              "arguments": {
+                "type": "object",
+                "properties": {
+                  "components": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "relevant": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "components",
+                  "relevant"
+                ]
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contract": {
+                "const": "pmm-http/1"
+              },
+              "request_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "identity_id": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "checkpoint_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "model": {
+                "const": "learned-pmm-v21"
+              },
+              "checkpoint": {
+                "$ref": "#/components/schemas/RegistryCheckpoint"
+              },
+              "operation": {
+                "const": "inspect"
+              },
+              "arguments": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "contract",
+              "request_id",
+              "identity_id",
+              "checkpoint_sha256",
+              "model",
+              "checkpoint",
+              "operation",
+              "arguments"
+            ]
+          }
+        ]
+      },
+      "ExecuteResponse": {
+        "type": "object",
+        "properties": {
+          "contract": {
+            "const": "pmm-http/1"
+          },
+          "request_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "identity_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "checkpoint_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model": {
+            "enum": [
+              "pmm-mlp-v3",
+              "learned-pmm-v2",
+              "learned-pmm-v21"
+            ]
+          },
+          "result": {},
+          "checkpoint": {
+            "$ref": "#/components/schemas/Checkpoint"
+          },
+          "next_checkpoint_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "contract",
+          "request_id",
+          "identity_id",
+          "checkpoint_sha256",
+          "model",
+          "result"
+        ]
+      }
+    }
+  }
+}

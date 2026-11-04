@@ -1,0 +1,21 @@
+test_factorial_and_independent_interventions (test_de_gate2.JointCases.test_factorial_and_independent_interventions) ... FAIL
+test_no_purpose_no_burst_and_no_questions_from_emotion (test_de_gate2.JointCases.test_no_purpose_no_burst_and_no_questions_from_emotion) ... ok
+test_old_observation_keeps_unknown_instead_of_manufactured_trace (test_de_gate2.JointCases.test_old_observation_keeps_unknown_instead_of_manufactured_trace) ... ok
+test_partial_qq_reconciles_prefix_without_duplicate_state_or_feedback (test_de_gate2.JointCases.test_partial_qq_reconciles_prefix_without_duplicate_state_or_feedback) ... ok
+
+======================================================================
+FAIL: test_factorial_and_independent_interventions (test_de_gate2.JointCases.test_factorial_and_independent_interventions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/659f3a8d9af1/huai_an_dreamer_v260/tests/test_de_gate2.py", line 80, in test_factorial_and_independent_interventions
+    def test_factorial_and_independent_interventions(self):experiment()
+                                                           ^^^^^^^^^^^^
+  File "/workspace/scratch/659f3a8d9af1/huai_an_dreamer_v260/tests/test_de_gate2.py", line 76, in experiment
+    assert cases['baseline']['parts']!=cases['D_only']['parts'] and cases['baseline']['parts']!=cases['E_only']['parts'];assert cases['D_only']['strategy']==b['strategy']!=cases['E_only']['strategy'];assert cases['E_only']['tone']==b['tone']!=cases['D_only']['tone'];assert changed_d['strategy']!=b['strategy'] and changed_d['emotion']==b['emotion'];assert changed_e['tone']!=b['tone'] and changed_e['strategy']==b['strategy'] and changed_e['effective_language_evidence']==b['effective_language_evidence'];assert api['planned']==api['confirmed']==api['actual_expression_count'];assert all(r['planned']==r['confirmed']==r['actual_expression_count'] and r['frozen_action']=='reply' for r in cases.values());assert all(r['checkpoint_before']==facts['checkpoint'] for r in cases.values());assert len({r['trait_version'] for r in cases.values()})==1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+----------------------------------------------------------------------
+Ran 4 tests in 31.783s
+
+FAILED (failures=1)

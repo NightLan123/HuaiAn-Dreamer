@@ -1,0 +1,38 @@
+test_cmd_bootstrap_is_ascii_crlf_and_self_wraps (test_v220.DeliveryTests.test_cmd_bootstrap_is_ascii_crlf_and_self_wraps) ... ok
+test_existing_broken_venv_reports_recovery_not_false_success (test_v220.DeliveryTests.test_existing_broken_venv_reports_recovery_not_false_success) ... ok
+test_launcher_captures_unicode_child_failure_and_exit_code (test_v220.DeliveryTests.test_launcher_captures_unicode_child_failure_and_exit_code) ... ok
+test_source_export_excludes_runtime_data_and_symlink_escape (test_v220.DeliveryTests.test_source_export_excludes_runtime_data_and_symlink_escape) ... ok
+test_source_export_includes_real_code_with_verifiable_lines_and_hash (test_v220.DeliveryTests.test_source_export_includes_real_code_with_verifiable_lines_and_hash) ... ok
+test_actions_depend_on_completion_and_uncertainty (test_v220.HeadTests.test_actions_depend_on_completion_and_uncertainty) ... ok
+test_evidence_and_finite_numbers_required (test_v220.HeadTests.test_evidence_and_finite_numbers_required) ... ok
+test_human_targets_change_weights_and_heldout_never_trains (test_v220.HeadTests.test_human_targets_change_weights_and_heldout_never_trains) ... ok
+test_same_cues_change_with_known_personality (test_v220.HeadTests.test_same_cues_change_with_known_personality) ... ok
+test_invalid_annotations_and_sent_retries_are_rejected (test_v220.InterfaceTests.test_invalid_annotations_and_sent_retries_are_rejected) ... ok
+test_source_and_diagnostic_download_endpoints (test_v220.InterfaceTests.test_source_and_diagnostic_download_endpoints) ... ok
+test_context_matching_changes_retrieval_order (test_v220.MemoryTests.test_context_matching_changes_retrieval_order) ... ok
+test_contextual_activation_depends_on_salience_not_fixed_half_life (test_v220.MemoryTests.test_contextual_activation_depends_on_salience_not_fixed_half_life) ... ok
+test_cross_scope_link_rejected_before_write (test_v220.MemoryTests.test_cross_scope_link_rejected_before_write) ... ok
+test_event_boundaries_segment_consolidation_batches (test_v220.MemoryTests.test_event_boundaries_segment_consolidation_batches) ... ok
+test_only_evidence_selected_memories_are_rehearsed (test_v220.MemoryTests.test_only_evidence_selected_memories_are_rehearsed) ... ok
+test_reconsolidation_preserves_conflicting_old_text_and_sources (test_v220.MemoryTests.test_reconsolidation_preserves_conflicting_old_text_and_sources) ... ok
+test_api_and_numeric_have_different_inputs_and_real_update (test_v220.ProspectiveTests.test_api_and_numeric_have_different_inputs_and_real_update) ... ok
+test_api_feedback_does_not_claim_numeric_weight_update (test_v220.ProspectiveTests.test_api_feedback_does_not_claim_numeric_weight_update) ... ok
+test_clarification_reaches_generation (test_v220.ProspectiveTests.test_clarification_reaches_generation) ... ok
+test_continuity_and_snapshot_keep_validated_cognition (test_v220.ProspectiveTests.test_continuity_and_snapshot_keep_validated_cognition) ... ok
+test_default_new_and_old_configs_enable_adaptive (test_v220.ProspectiveTests.test_default_new_and_old_configs_enable_adaptive) ... ok
+test_elapsed_wait_never_forces_reply_and_new_input_resumes (test_v220.ProspectiveTests.test_elapsed_wait_never_forces_reply_and_new_input_resumes) ... ok
+test_failure_does_not_change_personality_or_relationship (test_v220.ProspectiveTests.test_failure_does_not_change_personality_or_relationship) ... ok
+test_group_every_n_sampling_is_inactive_and_budget_remains (test_v220.ProspectiveTests.test_group_every_n_sampling_is_inactive_and_budget_remains) ... ok
+test_invalid_evidence_is_audited_and_retry_safe (test_v220.ProspectiveTests.test_invalid_evidence_is_audited_and_retry_safe) ... ok
+test_reply_audit_exists_before_realize_and_links_to_commit (test_v220.ProspectiveTests.test_reply_audit_exists_before_realize_and_links_to_commit) ... ok
+test_semantic_incompletion_waits_without_generation (test_v220.ProspectiveTests.test_semantic_incompletion_waits_without_generation) ... ok
+test_superseded_input_cannot_commit_old_decision (test_v220.ProspectiveTests.test_superseded_input_cannot_commit_old_decision) ... ok
+test_unmentioned_permission_still_blocks_send (test_v220.ProspectiveTests.test_unmentioned_permission_still_blocks_send) ... ok
+test_waiting_sources_survive_restart (test_v220.ProspectiveTests.test_waiting_sources_survive_restart) ... ok
+test_support_export_omits_secrets_and_raw_messages (test_v220.SupportTests.test_support_export_omits_secrets_and_raw_messages) ... ok
+test_flat_pages_and_live_js_bindings (test_v220.UIContractTests.test_flat_pages_and_live_js_bindings) ... ok
+
+----------------------------------------------------------------------
+Ran 33 tests in 4.617s
+
+OK

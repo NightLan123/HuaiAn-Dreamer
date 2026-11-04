@@ -1,0 +1,72 @@
+[
+  {
+    "file": "docs/V26_INDEPENDENT_AUDIT_20261031.md",
+    "before": null,
+    "after": "c41d424317de59164086779b17d274c6b3f172a127b99f20ccd4b33995fd5daa"
+  },
+  {
+    "file": "docs/V27_DEVELOPMENT_SPEC.md",
+    "before": null,
+    "after": "b3f54622bd02f59cfbd377bb60ccba87d2fed1ec004b2248bb3e880fec38c2a8"
+  },
+  {
+    "file": "docs/V27_PRIOR_TASKS_20261031.md",
+    "before": null,
+    "after": "cb6b3827f4c6abc6bb3c36caf7c2634e60a968b28833d47d2d636c50c488cacb"
+  },
+  {
+    "file": "persona/consolidation.py",
+    "before": "6c73e73de246f544c81d291c9a1d6857f89ead537139780a9201ce1fa44cffa5",
+    "after": "cf2e296704346b82622ff02a2685e6e58a7d6e6c94cba7f7f8e92f9943d3810f"
+  },
+  {
+    "file": "persona/engine.py",
+    "before": "29cf4a3c429365c75681065a4cda0559920abc7cb4da396460cb39db192a715e",
+    "after": "45688f7eeae311cce9658f74843afa70aecdd44c1c66c111095579e15b6b2841"
+  },
+  {
+    "file": "persona/evidence.py",
+    "before": null,
+    "after": "979f46bf46163563f270c204569b35afab6c357e7ff5118c839f1965e16cf406"
+  },
+  {
+    "file": "persona/learning.py",
+    "before": "000ec5bcf32e1e1755f22882da28d7cfdd0b8ec3dcef445b4358a7820a4c14cc",
+    "after": "27afb5e1bdb608e9f8d1d67be4952024fbefbe8b8458a597ac4f31564bcfd96e"
+  },
+  {
+    "file": "persona/memory_lifecycle.py",
+    "before": "5a28ae7c1fd74e1898ffd3eb3887380f63ee5bf0134d9ce9d8682ba833811be9",
+    "after": "6e2edbe9e39374b27b752c7b874d29b2898178541dff9638360659cd0df1b9db"
+  },
+  {
+    "file": "persona/packages.py",
+    "before": "1551fe1d7a2b9d47f652dfd694736205eb2d83141694f7f2b7ffb51e30228a91",
+    "after": "fcde81186c1affc484d943508189906998fafbf5e20787dec7648f52f921a80c"
+  },
+  {
+    "file": "persona/server.py",
+    "before": "03037c730a7c74cebb8d9b9f3c07d1b3f2873596c444cf53516719a0ae939741",
+    "after": "82affe64c6c4cfaa5b3ec15ea62e697137956919647850069ca52678a835d08d"
+  },
+  {
+    "file": "persona/storage.py",
+    "before": "af3fcff14217ccf9a6169a04fae253c4471dd4349b7ce3c634f98f5f4e9c1d6b",
+    "after": "61522ee48fc2a585bac4a5f88e00850e341c57400f3f46e765c2e7d4040585fc"
+  },
+  {
+    "file": "persona/traits.py",
+    "before": "77b1f7325e799c9b0c85ed7d1b07f74395eb9df66f79c7e9bad4ea716c79130d",
+    "after": "45bf11808f000e754fde40d2b5ed6e7ef6ad4a40ed5ab5b85649c002a04b2854"
+  },
+  {
+    "file": "tests/test_v27_stage1.py",
+    "before": null,
+    "after": "88f5b820139c410d3ae1941b8318e08c57f4a635ac97e7d15c2d308cb60721bb"
+  },
+  {
+    "file": "tests/upgrade_v27.py",
+    "before": null,
+    "after": "f9b1d5dd235fa6c5a4658bddc2db9dd2335b9132ab3de586aa924255c62537c5"
+  }
+]

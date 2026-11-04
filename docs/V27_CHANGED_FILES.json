@@ -1,0 +1,367 @@
+[
+  {
+    "file": "README.md",
+    "before": "a66544c77241fd7effb928933361b92a711e6d71a2fdf0c1ec6cae964d3af0cb",
+    "after": "39ac73d77600900a540d924b001161cea69a09f7956a4569a7986155f55888ca"
+  },
+  {
+    "file": "RELEASE.json",
+    "before": "50b66846358753b03d4824f0410105220335a43e3ffcc0dcf562d63f3f7aba53",
+    "after": "e3bbe22b623c9a4e95aaee25edcda9e03d44d0b1872b979cfcb438984a2fcd64"
+  },
+  {
+    "file": "docs/APP_API.md",
+    "before": "7d75111a9272ec986d14dd43bbfd6be27cf1b595997a8a7b7e89fd1ddfc1b89d",
+    "after": "57f45dcd14728721dab001ecaee9285ae0689348e68617ddbe4d2e884136a95a"
+  },
+  {
+    "file": "docs/CHANGELOG.md",
+    "before": "1b0387d01ef7103efbbfcfe783ba879b7ac81bc6d9e0abbfa71b4aca77aae5dd",
+    "after": "2907e3ff7dd584d5551adb1a4c812f51b1df80896968cd3eb7ec88e6179e7f1a"
+  },
+  {
+    "file": "docs/IMPLEMENTATION_STATUS.md",
+    "before": "25b5102f6bbe1323216a485fc38d571a54cc6f476309799bc322ca313ee719bb",
+    "after": "b2b2d6246162f8f80b6ff1d52e937b21b29f68d90986abc6a2c0cfc2cb4e6ae3"
+  },
+  {
+    "file": "docs/IMPLEMENTATION_STATUS_V26.md",
+    "before": null,
+    "after": "25b5102f6bbe1323216a485fc38d571a54cc6f476309799bc322ca313ee719bb"
+  },
+  {
+    "file": "docs/MIGRATION_NOTES.md",
+    "before": "958969192801c6239e69a2249f3892301779436a8fdb5fdad9b8dd2ee778603b",
+    "after": "e4b8adee0266014a47aa1874e481a2dfaff5c8ff396ff0da89bcf9df1597a5a4"
+  },
+  {
+    "file": "docs/MIGRATION_NOTES_V26.md",
+    "before": null,
+    "after": "958969192801c6239e69a2249f3892301779436a8fdb5fdad9b8dd2ee778603b"
+  },
+  {
+    "file": "docs/NEXT_STEPS.md",
+    "before": "07a94184ce842b2549f657dfb115efec8bb4e1a28cde6fdf05d9e32f23925f5b",
+    "after": "0d9096f674f56cb4a356954ef86de0b11e85bced466d7c27f167507cbc8abf15"
+  },
+  {
+    "file": "docs/NEXT_STEPS_V26.md",
+    "before": null,
+    "after": "07a94184ce842b2549f657dfb115efec8bb4e1a28cde6fdf05d9e32f23925f5b"
+  },
+  {
+    "file": "docs/README_V26.md",
+    "before": null,
+    "after": "a66544c77241fd7effb928933361b92a711e6d71a2fdf0c1ec6cae964d3af0cb"
+  },
+  {
+    "file": "docs/TEST_REPORT.md",
+    "before": "f49f3a2b8849bdbbb25029f9a0f100f2023a45170ff5caced3bd2b42e8242ff3",
+    "after": "517ce01912abdf71bdccf8092c117ef3b4c8563a7c5eb1d50be5cdafc75fef1c"
+  },
+  {
+    "file": "docs/TEST_REPORT_V26.md",
+    "before": null,
+    "after": "f49f3a2b8849bdbbb25029f9a0f100f2023a45170ff5caced3bd2b42e8242ff3"
+  },
+  {
+    "file": "docs/V26_INDEPENDENT_AUDIT_20261031.md",
+    "before": null,
+    "after": "c41d424317de59164086779b17d274c6b3f172a127b99f20ccd4b33995fd5daa"
+  },
+  {
+    "file": "docs/V27_ABLATION.json",
+    "before": null,
+    "after": "dfa68ded7b530246e2d6e61ce325e30f65d525beb01ff43874472bf2d33dfde0"
+  },
+  {
+    "file": "docs/V27_ABLATION_REPORT.md",
+    "before": null,
+    "after": "1e8ef0d70b78ae261545078b59fe52618ee51cd51c19c0c39a59e34ba4621b97"
+  },
+  {
+    "file": "docs/V27_ACTIVE_ABLATION_TESTS.txt",
+    "before": null,
+    "after": "9999fe245f1af41e216c6ed5327c4675ceacf086c503b47b0ed309c85704df03"
+  },
+  {
+    "file": "docs/V27_DEVELOPMENT_SPEC.md",
+    "before": null,
+    "after": "b3f54622bd02f59cfbd377bb60ccba87d2fed1ec004b2248bb3e880fec38c2a8"
+  },
+  {
+    "file": "docs/V27_EXPERIMENT_RUN.txt",
+    "before": null,
+    "after": "9cd1e92abe26c15b53bcddb718d2764195351bb017cbdc071f1364d347dc1290"
+  },
+  {
+    "file": "docs/V27_FINAL_UPGRADE.json",
+    "before": null,
+    "after": "b189ead8690da70004c9246e7eeacd61667acb0ae333cf4da5ce2aeafe6294bf"
+  },
+  {
+    "file": "docs/V27_FULL_REGRESSION.txt",
+    "before": null,
+    "after": "669d53721e8f68abb2cdac8182466ec307eecfda8c1a1efb4b5883648eca6ffa"
+  },
+  {
+    "file": "docs/V27_HTTP_DOM.txt",
+    "before": null,
+    "after": "e89dcc740c6561eba1dc1a67d217e5e0e30aa1d6e68e86845492fba8a867e78d"
+  },
+  {
+    "file": "docs/V27_IMPLEMENTATION.md",
+    "before": null,
+    "after": "ef0339025f8f47044fdfd2074e0b6b7ee1cbb96405da7422c260f3c7af1ec745"
+  },
+  {
+    "file": "docs/V27_LAUNCHER.json",
+    "before": null,
+    "after": "0e21c37b7564569cb85e4606ee7ba18dffd35b71dd9ffef309cdb60d0c063a7f"
+  },
+  {
+    "file": "docs/V27_PRIOR_TASKS_20261031.md",
+    "before": null,
+    "after": "cb6b3827f4c6abc6bb3c36caf7c2634e60a968b28833d47d2d636c50c488cacb"
+  },
+  {
+    "file": "docs/V27_SOURCE_EXPORT_TESTS.txt",
+    "before": null,
+    "after": "7c8303bb483481ad7adc3593edb32ad36d716950c8cb7ba8b4b38eb3b2f601ed"
+  },
+  {
+    "file": "docs/V27_STAGE_I.patch",
+    "before": null,
+    "after": "2eb78395da3837c121a687f71158864acc45626f2c8019bda2b879162ad9e2a9"
+  },
+  {
+    "file": "docs/V27_STAGE_II.patch",
+    "before": null,
+    "after": "90fead343f8d09791e8567374a1eb3faeb6f92cf28f52c02dc640fb589ce639e"
+  },
+  {
+    "file": "docs/V27_STAGE_III.patch",
+    "before": null,
+    "after": "a6c70db774e84b7f640f35865146f65b0f76fae29540c5b7f529ba5f5e3b4039"
+  },
+  {
+    "file": "docs/V27_STAGE_III_FILES.json",
+    "before": null,
+    "after": "97866e2c0574a0f9613badaddf6714613708aaeb4106963b7e94356ab5a4180a"
+  },
+  {
+    "file": "docs/V27_STAGE_III_INITIAL_TEST_FAILURE.txt",
+    "before": null,
+    "after": "d85d873fe05e8fcbe5f2d457f00ca461f299d9b2f348c8a23738b91a140660d6"
+  },
+  {
+    "file": "docs/V27_STAGE_III_TESTS.txt",
+    "before": null,
+    "after": "e191ad8c69506875fab6239957ab4e8e61bc8233713ec99e7387b7820db05ac5"
+  },
+  {
+    "file": "docs/V27_STAGE_III_TRAINING_FIXTURE_FAILURE.txt",
+    "before": null,
+    "after": "61c0bafba678c414c78583a61a4903c085194656e9a24f3b685c5531bc1aad43"
+  },
+  {
+    "file": "docs/V27_STAGE_III_UI.txt",
+    "before": null,
+    "after": "7c56911bd2100c2ac6840c2cc76f6c2cb73965a9af377fd17b5bed538586ce52"
+  },
+  {
+    "file": "docs/V27_STAGE_II_FILES.json",
+    "before": null,
+    "after": "cb9e8ee5409ae86c9282dae98ca50061a357b418e9b36bcbe6b7ccbf8b2f6a48"
+  },
+  {
+    "file": "docs/V27_STAGE_II_TESTS.txt",
+    "before": null,
+    "after": "9abdc40e225455c978e8bafec2eadce0d467ae35bd7fc21fbfb675ff4f6a8b93"
+  },
+  {
+    "file": "docs/V27_STAGE_II_UI.txt",
+    "before": null,
+    "after": "de83c1446a6bb669238a012dc9b47077ff000f2520e61f3eca0fd40f648b3e86"
+  },
+  {
+    "file": "docs/V27_STAGE_II_UPGRADE.json",
+    "before": null,
+    "after": "c04ddd695ef33e7828b03ececcdde950cb409640771487a224614726461c82f0"
+  },
+  {
+    "file": "docs/V27_STAGE_I_FILES.json",
+    "before": null,
+    "after": "5d8fd2bab60ed827907203282289915513882c0e12f470d8d763414debc4ffba"
+  },
+  {
+    "file": "docs/V27_STAGE_I_INITIAL_UPGRADE_FAILURE.txt",
+    "before": null,
+    "after": "f886a6ece5aee5dc3629f7d8bd07394da809abbc5643d3b821cf29dc55314a05"
+  },
+  {
+    "file": "docs/V27_STAGE_I_TESTS.txt",
+    "before": null,
+    "after": "1c8dc8b5932d29da4ee0a9bfcf65a6b57e5deaec55430ca12a673d0834339c95"
+  },
+  {
+    "file": "docs/V27_STAGE_I_UPGRADE.json",
+    "before": null,
+    "after": "a9f79d0ba83f5e9aec82ae762803289f8cd7a10354e2a6fd8749d8d622bc1ee3"
+  },
+  {
+    "file": "docs/V27_WORKLOG.md",
+    "before": null,
+    "after": "d3e862ba8066775da49f9d2ec1efa9e24d7d8950b111932f922370489651f1e2"
+  },
+  {
+    "file": "docs/package-validation.json",
+    "before": "33a4a9b146b6f39b629112bd0650e31a99bc2de2f2401cb734c919eedaf7dec9",
+    "after": "715e0c5258e164eeb0443c1267ceda7dbb9febbd9257694e552c2895115d2976"
+  },
+  {
+    "file": "docs/package-validation_V26.json",
+    "before": null,
+    "after": "33a4a9b146b6f39b629112bd0650e31a99bc2de2f2401cb734c919eedaf7dec9"
+  },
+  {
+    "file": "persona/common.py",
+    "before": "1d91f667008a564b26515394a46b931b3153ab019f20aeebc2dc126578b4eeb0",
+    "after": "dc062a11b854dcf35cbdf7fa5f349e51dd1369b06e66b5ab9d26444b1bc70d68"
+  },
+  {
+    "file": "persona/consolidation.py",
+    "before": "6c73e73de246f544c81d291c9a1d6857f89ead537139780a9201ce1fa44cffa5",
+    "after": "93552bdf283f78277d4405b734612ed184f3b258e6aa09d11b46e2f74926fd51"
+  },
+  {
+    "file": "persona/decision_evaluation.py",
+    "before": null,
+    "after": "5e7235848ab73c69e8e31aaf7b5ee8639e4ea0ef9dc5300f8b80077d6d50ae1f"
+  },
+  {
+    "file": "persona/engine.py",
+    "before": "29cf4a3c429365c75681065a4cda0559920abc7cb4da396460cb39db192a715e",
+    "after": "58bfd05d4cc36df6815cae3c86458e655f4b41a0019ba3d222af17fcb5103cb0"
+  },
+  {
+    "file": "persona/evidence.py",
+    "before": null,
+    "after": "eaafec9d274ee7c1bf35da7e4020c23ed9318ea5ef6ec41ebce30c6aed3b1af9"
+  },
+  {
+    "file": "persona/formation.py",
+    "before": null,
+    "after": "2e2341a37d4bbe57ac2822d84b63708a4e2aa460611f8c87b803fb5512cfa797"
+  },
+  {
+    "file": "persona/learning.py",
+    "before": "000ec5bcf32e1e1755f22882da28d7cfdd0b8ec3dcef445b4358a7820a4c14cc",
+    "after": "4e6093e78497ee410bac4f0ec808dfe260d42eb248bd60ebfc94231d176e7fae"
+  },
+  {
+    "file": "persona/memory_lifecycle.py",
+    "before": "5a28ae7c1fd74e1898ffd3eb3887380f63ee5bf0134d9ce9d8682ba833811be9",
+    "after": "6e2edbe9e39374b27b752c7b874d29b2898178541dff9638360659cd0df1b9db"
+  },
+  {
+    "file": "persona/packages.py",
+    "before": "1551fe1d7a2b9d47f652dfd694736205eb2d83141694f7f2b7ffb51e30228a91",
+    "after": "fcde81186c1affc484d943508189906998fafbf5e20787dec7648f52f921a80c"
+  },
+  {
+    "file": "persona/people.py",
+    "before": null,
+    "after": "d84568be1852c548ed2ef5824f8513401a350d09b201939b7ff806738c15a418"
+  },
+  {
+    "file": "persona/policy.py",
+    "before": "f4a3944bb988aa8d7c907bd3fce64a42616fcaeafe82c30aa03026f1fa543977",
+    "after": "fabdcfc94c7c0599f9d4113ebd43b2ac1ad10926cb7ce49d04c4101e7cb96889"
+  },
+  {
+    "file": "persona/relationships.py",
+    "before": "57810642270c54842b9d0b8a08a7416d8ee1e4c6a928e08b1a65531a2115654a",
+    "after": "390fe75cdb018d9dd9093a53e354e6dfe4a5a9b7b19dab88144470d9b25a2145"
+  },
+  {
+    "file": "persona/server.py",
+    "before": "03037c730a7c74cebb8d9b9f3c07d1b3f2873596c444cf53516719a0ae939741",
+    "after": "849b5cb0afe3175566c82b6d6ef87866ed713fc22bbcb007a0b71db5dd9e5973"
+  },
+  {
+    "file": "persona/social_graph.py",
+    "before": "c8d16dd7807fbe40511fb07c6d9ab34aadd0d95415c7b5d38745886b6c654073",
+    "after": "e77556fb64e6407c4ef6e4c90514497258b587e6708c3b4df2e520de4944ebcd"
+  },
+  {
+    "file": "persona/storage.py",
+    "before": "af3fcff14217ccf9a6169a04fae253c4471dd4349b7ce3c634f98f5f4e9c1d6b",
+    "after": "61522ee48fc2a585bac4a5f88e00850e341c57400f3f46e765c2e7d4040585fc"
+  },
+  {
+    "file": "persona/traits.py",
+    "before": "77b1f7325e799c9b0c85ed7d1b07f74395eb9df66f79c7e9bad4ea716c79130d",
+    "after": "41cd8898f7ef81066b48758ae29fb9f45c0f5a569805788d9383a10f4902d943"
+  },
+  {
+    "file": "scripts/evaluate_v27.py",
+    "before": null,
+    "after": "97a413d9c100bf0c2b4da461d91340777aa43924ac232035628f7f8165337c4e"
+  },
+  {
+    "file": "scripts/export_sources.py",
+    "before": "a7d881954386f4c548d9986e3ff20bd9a9642fb4a309c101eb51938c806dfe9c",
+    "after": "0bbffa8218017ec6f0603b23e9bd43c7fa74406b0fd1f52696088dfc1a9a0023"
+  },
+  {
+    "file": "tests/test_ui_v250.js",
+    "before": "28837c631800ddb3a7cd9332b2083c8677df4186b6b340ac557e90452019da35",
+    "after": "ea9037140f3fb022bf63569560c60bba7b432a44dda61bd21f9135fc2426412f"
+  },
+  {
+    "file": "tests/test_ui_v251.js",
+    "before": "0e2923d1adeb024d08b0494348be5f0c5337b77b7f5ba7c241bffa47bc13c361",
+    "after": "41090d8e4ae93a22d238d3da50213add21b0c3b39d7172d04a992e208024189a"
+  },
+  {
+    "file": "tests/test_ui_v26.js",
+    "before": "eb2ed20287cef3a00046c6b5b32fd0fac3ea3c5f85f51fe451d7c85e7cf08b0b",
+    "after": "32f67c43b11962023270f71a8c6bfdbaecf6df9ef966c6778f4ec957bcae6852"
+  },
+  {
+    "file": "tests/test_ui_v27.js",
+    "before": null,
+    "after": "b5a48efcbebb9f053780202e2ce76615d541c8aeab28a6546ab9706180c9aae2"
+  },
+  {
+    "file": "tests/test_v27_stage1.py",
+    "before": null,
+    "after": "88f5b820139c410d3ae1941b8318e08c57f4a635ac97e7d15c2d308cb60721bb"
+  },
+  {
+    "file": "tests/test_v27_stage2.py",
+    "before": null,
+    "after": "e18f53ef41a5aa59e409b4aa7eb81434ae70503417e566de8bb025662ce4403a"
+  },
+  {
+    "file": "tests/test_v27_stage3.py",
+    "before": null,
+    "after": "831a86addc530bb525686e93c5165103424c37c8f6c81139e7039399adb90956"
+  },
+  {
+    "file": "tests/upgrade_v27.py",
+    "before": null,
+    "after": "fe52187cc2d14026f3df3881ea28bed8a67f939c518c45650bf73d4df56a043f"
+  },
+  {
+    "file": "web/app.js",
+    "before": "7bc9e30b6fd95901b5d323cfe582895bb77e041e8942624211d1bf2ed7d8b182",
+    "after": "be431e8b125cb7de73a56d2a07a40c67e3c21fabbebd01a32ba129d5b2203f47"
+  },
+  {
+    "file": "web/index.html",
+    "before": "d2446ad1aeaabc55ae23b67cb9570194f33ac8d57868f62b8570651c24b86a65",
+    "after": "6a89cdd223f6f2344d039ee5f73671f8e255df587214ccdd38f4d61f4864b149"
+  }
+]

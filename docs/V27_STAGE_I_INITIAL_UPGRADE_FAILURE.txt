@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/workspace/scratch/659f3a8d9af1/huai_an_dreamer_v270/tests/upgrade_v27.py", line 36, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/workspace/scratch/659f3a8d9af1/huai_an_dreamer_v270/tests/upgrade_v27.py", line 22, in main
+    for key,value in om.items():assert nm[key]==value,key
+                                       ^^^^^^^^^^^^^^
+AssertionError: pmm_pragmatics

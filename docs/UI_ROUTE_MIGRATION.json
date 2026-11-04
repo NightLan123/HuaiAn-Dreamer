@@ -1,0 +1,3704 @@
+{
+  "baseline": "2.5.0",
+  "version": "2.5.1",
+  "primary_pages": 10,
+  "tabs": 39,
+  "controls": [
+    {
+      "id": "personaSelect",
+      "element": "select",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "newPersona",
+      "element": "button",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "importPack",
+      "element": "button",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "newSession",
+      "element": "button",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "sessions",
+      "element": "div",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connectionDot",
+      "element": "div",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "settingsBtn",
+      "element": "button",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pageKicker",
+      "element": "span",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pageTitle",
+      "element": "h1",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "modelName",
+      "element": "span",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "settingsTop",
+      "element": "button",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "localStatus",
+      "element": "span",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "retryLocal",
+      "element": "button",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "copyLocalError",
+      "element": "button",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "notice",
+      "element": "div",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "chat",
+      "element": "section",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "loadEarlierMessages",
+      "element": "button",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "chatLog",
+      "element": "div",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "progress",
+      "element": "div",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "chatForm",
+      "element": "form",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "message",
+      "element": "textarea",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "sendBtn",
+      "element": "button",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "composeHint",
+      "element": "p",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "subjectName",
+      "element": "h2",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "identitySummary",
+      "element": "p",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "emotionMeters",
+      "element": "div",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "modelStats",
+      "element": "div",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "latestTrace",
+      "element": "button",
+      "old_page": "chat",
+      "new_page": "chat",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "distill",
+      "element": "section",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "chatFile",
+      "element": "input",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "sourceText",
+      "element": "textarea",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "previewImport",
+      "element": "button",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "speakerSelect",
+      "element": "select",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "distillTarget",
+      "element": "select",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "otherFields",
+      "element": "div",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "personId",
+      "element": "input",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "personScope",
+      "element": "input",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "importPreview",
+      "element": "div",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "distillBtn",
+      "element": "button",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "distillResult",
+      "element": "div",
+      "old_page": "distill",
+      "new_page": "distill",
+      "new_tab": "distill-import",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningPage",
+      "element": "section",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "learningPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningOverview",
+      "element": "div",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningProgress",
+      "element": "p",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningPreset",
+      "element": "select",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-policy",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningPolicyForm",
+      "element": "form",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-policy",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningPolicyFields",
+      "element": "div",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-policy",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningPaused",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-policy",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningBatchRecords",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-policy",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningBatchChars",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-policy",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningMaxCalls",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-policy",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningMaxTokens",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-policy",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningPreviewForm",
+      "element": "form",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningTarget",
+      "element": "select",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningPerson",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningScopes",
+      "element": "select",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningRange",
+      "element": "select",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningAmount",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningSession",
+      "element": "select",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningIntent",
+      "element": "select",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningIncludeObservations",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningTrainWeights",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningReanalyse",
+      "element": "input",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningPreviewResult",
+      "element": "div",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningCreate",
+      "element": "button",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-manual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningRefresh",
+      "element": "button",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "learningPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningJobs",
+      "element": "div",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "learningPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningJobPage",
+      "element": "span",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "learningPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningJobsPrevious",
+      "element": "button",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "learningPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningJobsNext",
+      "element": "button",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "learningPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningActivities",
+      "element": "div",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-results",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "learningMoreActivities",
+      "element": "button",
+      "old_page": "learningPage",
+      "new_page": "distill",
+      "new_tab": "distill-results",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "graphPage",
+      "element": "section",
+      "old_page": "graphPage",
+      "new_page": "profiles",
+      "new_tab": "graphPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "graphQueryForm",
+      "element": "form",
+      "old_page": "graphPage",
+      "new_page": "profiles",
+      "new_tab": "graphPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "graphScopes",
+      "element": "select",
+      "old_page": "graphPage",
+      "new_page": "profiles",
+      "new_tab": "graphPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "graphPerson",
+      "element": "input",
+      "old_page": "graphPage",
+      "new_page": "profiles",
+      "new_tab": "graphPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "graphSummary",
+      "element": "div",
+      "old_page": "graphPage",
+      "new_page": "profiles",
+      "new_tab": "graphPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "graphCanvas",
+      "element": "div",
+      "old_page": "graphPage",
+      "new_page": "profiles",
+      "new_tab": "graphPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "graphIntersections",
+      "element": "div",
+      "old_page": "graphPage",
+      "new_page": "profiles",
+      "new_tab": "graphPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "graphClaims",
+      "element": "div",
+      "old_page": "graphPage",
+      "new_page": "profiles",
+      "new_tab": "graphPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "profiles",
+      "element": "section",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "selfProfileName",
+      "element": "h2",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-settings",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "editCharacter",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-settings",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "characterSummary",
+      "element": "p",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-settings",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "registrySummary",
+      "element": "p",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-self",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "psychologyPanel",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-self",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "beqPanel",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-self",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "erqPanel",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-self",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "panasPanel",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-self",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "editTraitSeed",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-self",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "reviewTraitEvidence",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traitReviewPanel",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "stylePanel",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "expressionPage",
+      "new_tab": "language-style",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "newDynamicBoundary",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryModelSummary",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryFilter",
+      "element": "select",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundarySearch",
+      "element": "input",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryList",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryHistoryForm",
+      "element": "form",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryHistorySearch",
+      "element": "input",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryActivations",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryCalibrationResults",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryHistoryCount",
+      "element": "span",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryHistoryPrevious",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryHistoryNext",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryEvidence",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "boundaryMetrics",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-boundaries",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "synthesizePersona",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "synthesisPanel",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "synthesisCandidates",
+      "element": "button",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "evidencePanel",
+      "element": "div",
+      "old_page": "profiles",
+      "new_page": "profiles",
+      "new_tab": "profiles-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "otherPage",
+      "element": "section",
+      "old_page": "otherPage",
+      "new_page": "profiles",
+      "new_tab": "otherPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "otherSelect",
+      "element": "select",
+      "old_page": "otherPage",
+      "new_page": "profiles",
+      "new_tab": "otherPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "otherPanel",
+      "element": "div",
+      "old_page": "otherPage",
+      "new_page": "profiles",
+      "new_tab": "otherPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "otherLearningStatus",
+      "element": "div",
+      "old_page": "otherPage",
+      "new_page": "profiles",
+      "new_tab": "otherPage",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectPage",
+      "element": "section",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectStatus",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "currentAffect",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-current",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectAuxiliary",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-current",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "emotionTop",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-current",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectProvenance",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-current",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "moodPanel",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-current",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "emotionLabels",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-current",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "actualExpression",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-actual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "expressionPanel",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-actual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectTrajectory",
+      "element": "div",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-history",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectParametersForm",
+      "element": "form",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectBaseValence",
+      "element": "input",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectBaseArousal",
+      "element": "input",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectBaseDominance",
+      "element": "input",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectBaseStress",
+      "element": "input",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectBaseEngagement",
+      "element": "input",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectTau",
+      "element": "input",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "moodTau",
+      "element": "input",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "affectReactivity",
+      "element": "input",
+      "old_page": "affectPage",
+      "new_page": "affectPage",
+      "new_tab": "affect-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "expressionPage",
+      "element": "section",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "expressionStatus",
+      "element": "p",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-behaviour",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticProfile",
+      "element": "div",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-behaviour",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticSources",
+      "element": "p",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-behaviour",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticContexts",
+      "element": "div",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-behaviour",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticAnnotationForm",
+      "element": "form",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticEpisode",
+      "element": "select",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticOriginal",
+      "element": "pre",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticField",
+      "element": "select",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticValue",
+      "element": "input",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticValuePreview",
+      "element": "div",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pragmaticNote",
+      "element": "textarea",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "savePragmaticAnnotation",
+      "element": "button",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-evidence",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "expressionObservation",
+      "element": "div",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-actual",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "expressionPlans",
+      "element": "div",
+      "old_page": "expressionPage",
+      "new_page": "expressionPage",
+      "new_tab": "language-plans",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memory",
+      "element": "section",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memory-tab-list",
+      "element": "button",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memory-tab-settings",
+      "element": "button",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memory-panel-list",
+      "element": "section",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": "memory-panel-list",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memorySearch",
+      "element": "input",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": "memory-panel-list",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memoryList",
+      "element": "div",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": "memory-panel-list",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memory-panel-settings",
+      "element": "section",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": "memory-panel-settings",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memoryLifecycleForm",
+      "element": "form",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": "memory-panel-settings",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memoryGistEnabled",
+      "element": "input",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": "memory-panel-settings",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memoryConsolidateNow",
+      "element": "button",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": "memory-panel-settings",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "memoryLifecycleStatus",
+      "element": "pre",
+      "old_page": "memory",
+      "new_page": "memory",
+      "new_tab": "memory-panel-settings",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "research",
+      "element": "section",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "trainingPanel",
+      "element": "div",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-training",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "versionLoadError",
+      "element": "p",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "parameterSummary",
+      "element": "div",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "saveWeightsVersion",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "exportAdapter",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "importAdapter",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "weightVersion",
+      "element": "select",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "activateWeights",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "saveCore",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "exportCore",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "importCore",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "coreVersion",
+      "element": "select",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "activateCore",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "coreEpochs",
+      "element": "input",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "trainCore",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-parameters",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "savePersonaRevision",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-checkpoints",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "applyPack",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-checkpoints",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "personaRevision",
+      "element": "select",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-checkpoints",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "rollbackPersona",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-checkpoints",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "backupBtn",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-backup",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "restoreBtn",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-backup",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "reloadBtn",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-backup",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "packageScope",
+      "element": "select",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-backup",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "exportPack",
+      "element": "button",
+      "old_page": "research",
+      "new_page": "research",
+      "new_tab": "research-backup",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connections",
+      "element": "section",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connections-tab-general",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connections-tab-pmm",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connections-tab-presets",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connections-panel-general",
+      "element": "section",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "settingsForm",
+      "element": "form",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "providerPreset",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetHint",
+      "element": "p",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "provider",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "baseUrl",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "apiKey",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "clearLlmKey",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "llmThinkingMode",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "llmThinkingAdapter",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "modelInput",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "modelOptions",
+      "element": "datalist",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "modelsBtn",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "jsonMode",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "jsonRepair",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "protocolHint",
+      "element": "p",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "authMode",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "maxOutputTokens",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "tokenField",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "sendTemp",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "temperature",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "timeout",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "anthropicVersion",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "apiVersion",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "extraHeaders",
+      "element": "textarea",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "extraBody",
+      "element": "textarea",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "testModel",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "generalDiagnostics",
+      "element": "details",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "generalDiagnosticBody",
+      "element": "pre",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connectionResult",
+      "element": "p",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-general",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connections-panel-pmm",
+      "element": "section",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmForm",
+      "element": "form",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmMode",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmModeHint",
+      "element": "div",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmApiPanel",
+      "element": "div",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "copyGeneral",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paProviderPreset",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paPresetHint",
+      "element": "p",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paProvider",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paBaseUrl",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paApiKey",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paClearLlmKey",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paThinkingMode",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paThinkingAdapter",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paModelInput",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paModelOptions",
+      "element": "datalist",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paModelsBtn",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paJsonMode",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paJsonRepair",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paProtocolHint",
+      "element": "p",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paAuthMode",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paMaxOutputTokens",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paTokenField",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paSendTemp",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paTemperature",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paTimeout",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paAnthropicVersion",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paApiVersion",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paExtraHeaders",
+      "element": "textarea",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "paExtraBody",
+      "element": "textarea",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmNumericPanel",
+      "element": "div",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmBackend",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmHttpFields",
+      "element": "div",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmUrl",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmKey",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "clearPmmKey",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmModel",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmModels",
+      "element": "datalist",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmModelsBtn",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmTimeout",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "startPmm",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "onlineLearning",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "testPmm",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmDiagnostics",
+      "element": "details",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmDiagnosticBody",
+      "element": "pre",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmResult",
+      "element": "p",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmCheckpoint",
+      "element": "p",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "exportWeights",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "importWeights",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "pmmEpochs",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "trainPmm",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "deliberationEnabled",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "deliberationMode",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "maxPerspectives",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "deliberationRounds",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "unresolvedConflict",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "retrievalRounds",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-pmm",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connections-panel-presets",
+      "element": "section",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connectionKind",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connectionPreset",
+      "element": "select",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connectionName",
+      "element": "input",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "connectionBinding",
+      "element": "p",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetNew",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetSave",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetCopy",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetRename",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetApply",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetTest",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetDelete",
+      "element": "button",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "presetResult",
+      "element": "pre",
+      "old_page": "connections",
+      "new_page": "connections",
+      "new_tab": "connections-panel-presets",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqPage",
+      "element": "section",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqPage-tab-connection",
+      "element": "button",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqPage-tab-group",
+      "element": "button",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqPage-tab-social",
+      "element": "button",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqPage-panel-connection",
+      "element": "section",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqForm",
+      "element": "form",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqEnabled",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqSelfId",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqUrl",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqToken",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqUsers",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqGroups",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqMention",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqHmac",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqTest",
+      "element": "button",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqSetup",
+      "element": "button",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqResult",
+      "element": "p",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-connection",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqPage-panel-group",
+      "element": "section",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-group",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "groupAttentionForm",
+      "element": "form",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-group",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "groupAttentionEnabled",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-group",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "groupAllowReply",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-group",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "groupPerMinute",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-group",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "groupContextChars",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-group",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "groupKnowledge",
+      "element": "div",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-group",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqPage-panel-social",
+      "element": "section",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialForm",
+      "element": "form",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialEnabled",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialPrivate",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialGroup",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialRecipients",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialGroupRecipients",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialReadiness",
+      "element": "p",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialIdle",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialCooldown",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialBudget",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialUnanswered",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "quietStart",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "quietEnd",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialTimezone",
+      "element": "input",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialPreviewScope",
+      "element": "select",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialPreview",
+      "element": "button",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialRefresh",
+      "element": "button",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialContacts",
+      "element": "div",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "socialResult",
+      "element": "pre",
+      "old_page": "qqPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-social",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "mediaPage",
+      "element": "section",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaPage-tab-vision",
+      "element": "button",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaPage-tab-assets",
+      "element": "button",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaPage-tab-preference",
+      "element": "button",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaPage-panel-vision",
+      "element": "section",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaConfigForm",
+      "element": "form",
+      "old_page": "mediaPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-incoming",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "mediaReceive",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-incoming",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "mediaSend",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "visionModel",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-incoming",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "mediaHosts",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-incoming",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "mediaPage-panel-assets",
+      "element": "section",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "assetForm",
+      "element": "form",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "assetName",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "assetKind",
+      "element": "select",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "assetFile",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "assetFaceId",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "assetTags",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "assetScopes",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "assetList",
+      "element": "div",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaPage-panel-preference",
+      "element": "section",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaPreferenceForm",
+      "element": "form",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaStyle",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaMinGap",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "blockedTags",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaFeedbackForm",
+      "element": "form",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaUsageSelect",
+      "element": "select",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaRating",
+      "element": "select",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaFeedbackNote",
+      "element": "input",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "mediaResult",
+      "element": "pre",
+      "old_page": "mediaPage",
+      "new_page": null,
+      "new_tab": null,
+      "status": "retired_gallery_control"
+    },
+    {
+      "id": "diagnostics",
+      "element": "section",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-tab-status",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-tab-cognition",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-tab-execution",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-tab-history",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-tab-runtime",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-panel-status",
+      "element": "section",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-status",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "exportSupport",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-status",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "exportSource",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-status",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "exportSourceIndex",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-status",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "runtimeSummary",
+      "element": "div",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-status",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqStatusBtn",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-status",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "qqStatusPanel",
+      "element": "div",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-status",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "openOperations",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-status",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-panel-cognition",
+      "element": "section",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-cognition",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cognitionStatus",
+      "element": "div",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-cognition",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cognitiveList",
+      "element": "div",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-cognition",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cognitiveCalibrationResults",
+      "element": "div",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-cognition",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cognitiveFeedbackForm",
+      "element": "form",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-cognition",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cognitiveRecord",
+      "element": "select",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-cognition",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cognitiveField",
+      "element": "select",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-cognition",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cognitiveTarget",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-cognition",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-panel-execution",
+      "element": "section",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "executionRefresh",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "executionExport",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "executionRecover",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "executionMetrics",
+      "element": "div",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "executionList",
+      "element": "div",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "receiptForm",
+      "element": "form",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "receiptOutbox",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "receiptMessage",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-execution",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-panel-history",
+      "element": "section",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-history",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "activityHistory",
+      "element": "section",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-history",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "eventFilter",
+      "element": "select",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-history",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "exportEvents",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-history",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "eventList",
+      "element": "div",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-history",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "moreEvents",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-history",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "diagnostics-panel-runtime",
+      "element": "section",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "operationsTitle",
+      "element": "h2",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cognitionForm",
+      "element": "form",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "appraisalTimeout",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "turnTakingForm",
+      "element": "form",
+      "old_page": "diagnostics",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-incoming",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "turnTakingEnabled",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-incoming",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "turnDebounce",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-incoming",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "turnMaxWait",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "qqPage",
+      "new_tab": "qqPage-panel-incoming",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "performanceForm",
+      "element": "form",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "performanceMode",
+      "element": "select",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "performanceQQOnly",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "replyChars",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "batchTurns",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "idleSeconds",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "workChars",
+      "element": "input",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "consolidateNow",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "refreshConsolidation",
+      "element": "button",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "consolidationStatus",
+      "element": "pre",
+      "old_page": "diagnostics",
+      "new_page": "diagnostics",
+      "new_tab": "diagnostics-panel-runtime",
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "personaDialog",
+      "element": "dialog",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "personaForm",
+      "element": "form",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "cloneTemplate",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "newName",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "newSelfReference",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "newInitialPersonality",
+      "element": "textarea",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "newSeed",
+      "element": "textarea",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "characterDialog",
+      "element": "dialog",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "characterForm",
+      "element": "form",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "characterName",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "characterSelfReference",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "characterInitialPersonality",
+      "element": "textarea",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "characterSeed",
+      "element": "textarea",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traceDialog",
+      "element": "dialog",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traceTitle",
+      "element": "h2",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traceBody",
+      "element": "div",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "feedbackDialog",
+      "element": "dialog",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "feedbackForm",
+      "element": "form",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "feedbackAction",
+      "element": "select",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "feedbackPerspective",
+      "element": "select",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "correctedReply",
+      "element": "textarea",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "feedbackNote",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "weightsFile",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "packFile",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "backupFile",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "adapterFile",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "coreFile",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "applyPackFile",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryDialog",
+      "element": "dialog",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryForm",
+      "element": "form",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryId",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryTopic",
+      "element": "textarea",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryDomain",
+      "element": "select",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryStrength",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryScope",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "dynamicBoundaryPerson",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "brmCalibrationDialog",
+      "element": "dialog",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "brmCalibrationForm",
+      "element": "form",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "brmTarget",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "brmAction",
+      "element": "select",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traitSeedDialog",
+      "element": "dialog",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traitSeedForm",
+      "element": "form",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traitSeedField",
+      "element": "select",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traitSeedValue",
+      "element": "input",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    },
+    {
+      "id": "traitSeedNote",
+      "element": "textarea",
+      "old_page": null,
+      "new_page": null,
+      "new_tab": null,
+      "status": "retained_or_moved"
+    }
+  ]
+}

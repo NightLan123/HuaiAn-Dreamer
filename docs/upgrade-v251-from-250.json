@@ -1,0 +1,15 @@
+{
+  "from": "2.5.0",
+  "to": "2.5.1",
+  "fixture": "two synthetic trained identities in actual archived runtime",
+  "all_old_metadata_unchanged": true,
+  "old_tables_unchanged": true,
+  "config_preserved": true,
+  "asset_files_preserved": true,
+  "automatic_backup_contains_original_assets": true,
+  "read_only_asset_export_exact": true,
+  "continued_training": true,
+  "snapshot_restore": true,
+  "restart_idempotent": true,
+  "production_database": false
+}

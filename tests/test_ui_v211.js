@@ -1,0 +1,25 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const root=path.join(__dirname,'..','web'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);assert.equal(new Set(ids).size,ids.length,'HTML IDs unique');
+const elements=new Map(ids.map(id=>[id,{id,value:'',checked:false,hidden:false,disabled:false,innerHTML:'',textContent:'',className:'',addEventListener(){},showModal(){this.open=true},close(){this.open=false},querySelector(){return null}}]));
+const doc={getElementById(id){assert(elements.has(id),'Unknown DOM ID: '+id);return elements.get(id)},querySelectorAll(){return []},querySelector(){return null},addEventListener(){}};
+const context=vm.createContext({document:doc,console,Date,setTimeout,clearTimeout,fetch:()=>{throw Error('Unexpected network in UI unit test')}});
+const source=fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/\nrefresh\(\)\.then[\s\S]*$/, '\n');vm.runInContext(source,context);
+const run=s=>vm.runInContext(s,context);
+assert.equal(run("groupEvents([{id:'1',kind:'config_updated',payload:{}},{id:'2',kind:'turn',payload:{}},{id:'3',kind:'config_updated',payload:{}}]).length"),2);
+assert.equal(run("groupEvents([{id:'1',kind:'connection_test',payload:{ok:false}},{id:'2',kind:'config_updated',payload:{}}]).length"),2,'Errors never hidden in successful connection group');
+run("events=[{id:'1',kind:'config_updated',created_at:1,payload:{keys:['model']}},{id:'2',kind:'config_updated',created_at:2,payload:{keys:['thinking_mode']}},{id:'3',kind:'turn_failed',created_at:3,payload:{error:'<script>unsafe</script>'}}];$('eventFilter').value='all';renderEvents()");
+assert(elements.get('eventList').innerHTML.includes('2 次'));assert(!elements.get('eventList').innerHTML.includes('<script>unsafe'));assert(elements.get('eventList').innerHTML.includes('&lt;script&gt;'));
+run("$('eventFilter').value='errors';renderEvents()");assert(!elements.get('eventList').innerHTML.includes('连接设置与测试'));assert(elements.get('eventList').innerHTML.includes('对话失败'));
+run("uiReady=true;state={profile:{name:'小岚',revision:3,seed:'基础设定',character:{self_reference:'咱',initial_personality:'慢热'}}};$('editCharacter').onclick()");assert.equal(elements.get('characterName').value,'小岚');assert.equal(elements.get('characterSelfReference').value,'咱');assert.equal(elements.get('characterInitialPersonality').value,'慢热');assert.equal(elements.get('characterDialog').open,true);
+assert.equal(run("timingHTML({})"),'');assert(run("timingHTML({timing:{total_ms:800,general_api_ms:300,pmm_api_ms:400,stages:[]},api_calls:[],pmm_api_calls:[]})").includes('0.80 秒'));
+run("showDiagnostics('pmmResult',{status:'error'})");assert.equal(elements.get('pmmDiagnostics').hidden,false);assert(elements.get('pmmDiagnosticBody').textContent.includes('error'));
+for(const id of ['llmThinkingMode','llmThinkingAdapter','paThinkingMode','paThinkingAdapter','qqStatusBtn','moreEvents','exportEvents','characterForm'])assert(elements.has(id));
+console.log('UI checks passed: DOM bindings, grouping, error filter, XSS escaping, character form, timing and diagnostics (no browser rendering).');
+
+run("state={config:{turn_taking:{enabled:true,debounce_seconds:1.5,max_wait_seconds:12,decision_timeout_seconds:3},group_attention:{enabled:true,allow_unmentioned_reply:false,per_minute:8,sample_every:5,context_chars:6000,watched_terms:['围棋']},memory:{enabled:true,half_life_days:30}},memory_lifecycle:{pending:2},group_attention:{people:[{scope:'group:qq:1',person:'<script>',relationship:'陌生人',direct_interactions:0}]}};fillCognitiveOperations()");
+assert.equal(elements.get('turnDebounce').value,1.5);assert.equal(elements.get('groupAllowReply').checked,false);assert(!elements.has('groupWatchedTerms'));assert(elements.get('groupKnowledge').innerHTML.includes('&lt;script&gt;'));assert(!elements.get('groupKnowledge').innerHTML.includes('<script>'));assert(!elements.has('memoryHalfLife'));
+run("memories=[{id:'x',content:'<script>内容</script>',scope:'private:qq:1',status:'active',kind:'gist',created_at:1,memory_strength:{source_type:'observed_group',storage_strength:.5,retrieval_strength:.25,accesses:2}}];renderMemory()");
+assert(elements.get('memoryList').innerHTML.includes('25%'));assert(elements.get('memoryList').innerHTML.includes('非共同经历'));assert(elements.get('memoryList').innerHTML.includes('data-memory-sources'));assert(elements.get('memoryList').innerHTML.includes('data-memory-erase'));assert(!elements.get('memoryList').innerHTML.includes('<script>'));
+console.log('v2.1.2 UI checks passed: new settings, observed-stranger labels, memory strengths, source/erase controls and escaping.');

@@ -1,0 +1,741 @@
+{
+  "fixture": "production dialogue pipeline and SQLite local commit; deterministic conditional renderer, no cloud/QQ",
+  "scope": "ablation of the new D/E input to the expression policy, not a claim about an LLM hidden state",
+  "input": "要不要一起去？你带伞，我带水。",
+  "clock": 1790000000.0,
+  "seed": 260,
+  "same_model_checkpoint_per_case": true,
+  "repeats_per_cell": 2,
+  "pairs_exactly_repeated": true,
+  "source": {
+    "source_event_ids": [
+      "b7b53471adf8dc02612da2cfaaf8721e",
+      "f1ddffa2f6e6a522cc594d22b4ff39bf",
+      "adf4ef7a3ed4ceea5cf567703b79508f",
+      "30ec42971b3f77e45890a8dbcee730f0"
+    ],
+    "candidate_id": "4dce78fdead15a668ef4fe49d63e1cf6a514184d11a7d408902cacfabc4197d8",
+    "before_after": [
+      {
+        "field": "burst_propensity",
+        "scope": "private:web:owner",
+        "prior_speech_act": "invitation",
+        "before": null,
+        "after": 1.0
+      }
+    ],
+    "language_version": 4,
+    "checkpoint": "917b9764f25904fc3e93316b3c801873be0f1e2783bef3612d128912abef00ae"
+  },
+  "cells": {
+    "baseline": {
+      "D": false,
+      "E": false,
+      "model_mode": "learned",
+      "checkpoint_before": "917b9764f25904fc3e93316b3c801873be0f1e2783bef3612d128912abef00ae",
+      "input_event_ids": [
+        "frozen-input-001"
+      ],
+      "frozen_action": "reply",
+      "strategy": "RESPOND_AND_YIELD",
+      "tone": "steady",
+      "planned": 1,
+      "confirmed": 1,
+      "parts": [
+        "好。伞我来带。"
+      ],
+      "channel_usage": {
+        "long_term_language": "recorded_only",
+        "emotion": "recorded_only",
+        "mood": "recorded_only",
+        "stable_trait": "read",
+        "situation": "scored",
+        "observed_ai": "recorded_only"
+      },
+      "candidate_scores": [
+        {
+          "strategy": "RESPOND_AND_YIELD",
+          "base": 0.65,
+          "terms": [],
+          "score": 0.65
+        },
+        {
+          "strategy": "MINIMAL_REPLY",
+          "base": 0.43,
+          "terms": [],
+          "score": 0.43
+        },
+        {
+          "strategy": "CASUAL_BURST",
+          "base": 0.39,
+          "terms": [],
+          "score": 0.39
+        },
+        {
+          "strategy": "OPTIONAL_EXPANSION",
+          "base": 0.34,
+          "terms": [],
+          "score": 0.34
+        }
+      ],
+      "emotion": {
+        "before": -0.8359507357483749,
+        "after": -0.5265679782364436,
+        "delta": 0.309383
+      },
+      "language_version": null,
+      "effective_language_evidence": {},
+      "trait_version": 0,
+      "actual_expression_count": 1
+    },
+    "D_only": {
+      "D": true,
+      "E": false,
+      "model_mode": "learned",
+      "checkpoint_before": "917b9764f25904fc3e93316b3c801873be0f1e2783bef3612d128912abef00ae",
+      "input_event_ids": [
+        "frozen-input-001"
+      ],
+      "frozen_action": "reply",
+      "strategy": "CASUAL_BURST",
+      "tone": "steady",
+      "planned": 2,
+      "confirmed": 2,
+      "parts": [
+        "好。",
+        "伞我来带。"
+      ],
+      "channel_usage": {
+        "long_term_language": "scored",
+        "emotion": "recorded_only",
+        "mood": "recorded_only",
+        "stable_trait": "read",
+        "situation": "scored",
+        "observed_ai": "recorded_only"
+      },
+      "candidate_scores": [
+        {
+          "strategy": "RESPOND_AND_YIELD",
+          "base": 0.65,
+          "terms": [
+            {
+              "channel": "D",
+              "field": "yield_after_acknowledgement",
+              "delta": 0.17
+            },
+            {
+              "channel": "D",
+              "field": "burst_propensity",
+              "delta": -0.07
+            }
+          ],
+          "score": 0.75
+        },
+        {
+          "strategy": "MINIMAL_REPLY",
+          "base": 0.43,
+          "terms": [],
+          "score": 0.43
+        },
+        {
+          "strategy": "CASUAL_BURST",
+          "base": 0.39,
+          "terms": [
+            {
+              "channel": "D",
+              "field": "yield_after_acknowledgement",
+              "delta": 0.17
+            },
+            {
+              "channel": "D",
+              "field": "burst_propensity",
+              "delta": 0.375
+            }
+          ],
+          "score": 0.935
+        },
+        {
+          "strategy": "OPTIONAL_EXPANSION",
+          "base": 0.34,
+          "terms": [
+            {
+              "channel": "D",
+              "field": "yield_after_acknowledgement",
+              "delta": -0.075
+            }
+          ],
+          "score": 0.265
+        }
+      ],
+      "emotion": {
+        "before": -0.8359507357483749,
+        "after": -0.5265679782364436,
+        "delta": 0.309383
+      },
+      "language_version": 4,
+      "effective_language_evidence": {
+        "response_sufficiency_preference": {
+          "estimate": 1.0,
+          "events": 2,
+          "source": "human_episode_statistics"
+        },
+        "question_initiation_propensity": {
+          "estimate": 0.0,
+          "events": 2,
+          "source": "human_episode_statistics"
+        },
+        "yield_after_acknowledgement": {
+          "estimate": 1.0,
+          "events": 2,
+          "source": "human_episode_statistics"
+        },
+        "burst_propensity": {
+          "estimate": 1.0,
+          "events": 2,
+          "source": "reviewed_owner_evidence",
+          "candidate_id": "4dce78fdead15a668ef4fe49d63e1cf6a514184d11a7d408902cacfabc4197d8",
+          "learning_strength": 1.0,
+          "source_event_ids": [
+            "30ec42971b3f77e45890a8dbcee730f0",
+            "adf4ef7a3ed4ceea5cf567703b79508f",
+            "b7b53471adf8dc02612da2cfaaf8721e",
+            "f1ddffa2f6e6a522cc594d22b4ff39bf"
+          ]
+        }
+      },
+      "trait_version": 0,
+      "actual_expression_count": 2
+    },
+    "E_only": {
+      "D": false,
+      "E": true,
+      "model_mode": "learned",
+      "checkpoint_before": "917b9764f25904fc3e93316b3c801873be0f1e2783bef3612d128912abef00ae",
+      "input_event_ids": [
+        "frozen-input-001"
+      ],
+      "frozen_action": "reply",
+      "strategy": "RESPOND_AND_YIELD",
+      "tone": "restrained",
+      "planned": 1,
+      "confirmed": 1,
+      "parts": [
+        "嗯，可以。伞我来带。"
+      ],
+      "channel_usage": {
+        "long_term_language": "recorded_only",
+        "emotion": "scored",
+        "mood": "scored",
+        "stable_trait": "read",
+        "situation": "scored",
+        "observed_ai": "recorded_only"
+      },
+      "candidate_scores": [
+        {
+          "strategy": "RESPOND_AND_YIELD",
+          "base": 0.65,
+          "terms": [],
+          "score": 0.65
+        },
+        {
+          "strategy": "MINIMAL_REPLY",
+          "base": 0.43,
+          "terms": [],
+          "score": 0.43
+        },
+        {
+          "strategy": "CASUAL_BURST",
+          "base": 0.39,
+          "terms": [],
+          "score": 0.39
+        },
+        {
+          "strategy": "OPTIONAL_EXPANSION",
+          "base": 0.34,
+          "terms": [],
+          "score": 0.34
+        }
+      ],
+      "emotion": {
+        "before": -0.8359507357483749,
+        "after": -0.5265679782364436,
+        "delta": 0.309383
+      },
+      "language_version": null,
+      "effective_language_evidence": {},
+      "trait_version": 0,
+      "actual_expression_count": 1
+    },
+    "D_plus_E": {
+      "D": true,
+      "E": true,
+      "model_mode": "learned",
+      "checkpoint_before": "917b9764f25904fc3e93316b3c801873be0f1e2783bef3612d128912abef00ae",
+      "input_event_ids": [
+        "frozen-input-001"
+      ],
+      "frozen_action": "reply",
+      "strategy": "CASUAL_BURST",
+      "tone": "restrained",
+      "planned": 2,
+      "confirmed": 2,
+      "parts": [
+        "嗯，可以。",
+        "伞我来带。"
+      ],
+      "channel_usage": {
+        "long_term_language": "scored",
+        "emotion": "scored",
+        "mood": "scored",
+        "stable_trait": "read",
+        "situation": "scored",
+        "observed_ai": "recorded_only"
+      },
+      "candidate_scores": [
+        {
+          "strategy": "RESPOND_AND_YIELD",
+          "base": 0.65,
+          "terms": [
+            {
+              "channel": "D",
+              "field": "yield_after_acknowledgement",
+              "delta": 0.17
+            },
+            {
+              "channel": "D",
+              "field": "burst_propensity",
+              "delta": -0.07
+            }
+          ],
+          "score": 0.75
+        },
+        {
+          "strategy": "MINIMAL_REPLY",
+          "base": 0.43,
+          "terms": [],
+          "score": 0.43
+        },
+        {
+          "strategy": "CASUAL_BURST",
+          "base": 0.39,
+          "terms": [
+            {
+              "channel": "D",
+              "field": "yield_after_acknowledgement",
+              "delta": 0.17
+            },
+            {
+              "channel": "D",
+              "field": "burst_propensity",
+              "delta": 0.375
+            }
+          ],
+          "score": 0.935
+        },
+        {
+          "strategy": "OPTIONAL_EXPANSION",
+          "base": 0.34,
+          "terms": [
+            {
+              "channel": "D",
+              "field": "yield_after_acknowledgement",
+              "delta": -0.075
+            }
+          ],
+          "score": 0.265
+        }
+      ],
+      "emotion": {
+        "before": -0.8359507357483749,
+        "after": -0.5265679782364436,
+        "delta": 0.309383
+      },
+      "language_version": 4,
+      "effective_language_evidence": {
+        "response_sufficiency_preference": {
+          "estimate": 1.0,
+          "events": 2,
+          "source": "human_episode_statistics"
+        },
+        "question_initiation_propensity": {
+          "estimate": 0.0,
+          "events": 2,
+          "source": "human_episode_statistics"
+        },
+        "yield_after_acknowledgement": {
+          "estimate": 1.0,
+          "events": 2,
+          "source": "human_episode_statistics"
+        },
+        "burst_propensity": {
+          "estimate": 1.0,
+          "events": 2,
+          "source": "reviewed_owner_evidence",
+          "candidate_id": "4dce78fdead15a668ef4fe49d63e1cf6a514184d11a7d408902cacfabc4197d8",
+          "learning_strength": 1.0,
+          "source_event_ids": [
+            "30ec42971b3f77e45890a8dbcee730f0",
+            "adf4ef7a3ed4ceea5cf567703b79508f",
+            "b7b53471adf8dc02612da2cfaaf8721e",
+            "f1ddffa2f6e6a522cc594d22b4ff39bf"
+          ]
+        }
+      },
+      "trait_version": 0,
+      "actual_expression_count": 2
+    }
+  },
+  "different_language_same_emotion": {
+    "D": true,
+    "E": true,
+    "model_mode": "learned",
+    "checkpoint_before": "917b9764f25904fc3e93316b3c801873be0f1e2783bef3612d128912abef00ae",
+    "input_event_ids": [
+      "frozen-input-001"
+    ],
+    "frozen_action": "reply",
+    "strategy": "RESPOND_AND_YIELD",
+    "tone": "restrained",
+    "planned": 1,
+    "confirmed": 1,
+    "parts": [
+      "嗯，可以。伞我来带。"
+    ],
+    "channel_usage": {
+      "long_term_language": "scored",
+      "emotion": "scored",
+      "mood": "scored",
+      "stable_trait": "read",
+      "situation": "scored",
+      "observed_ai": "recorded_only"
+    },
+    "candidate_scores": [
+      {
+        "strategy": "RESPOND_AND_YIELD",
+        "base": 0.65,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": 0.17
+          },
+          {
+            "channel": "D",
+            "field": "burst_propensity",
+            "delta": 0.07
+          }
+        ],
+        "score": 0.89
+      },
+      {
+        "strategy": "MINIMAL_REPLY",
+        "base": 0.43,
+        "terms": [],
+        "score": 0.43
+      },
+      {
+        "strategy": "CASUAL_BURST",
+        "base": 0.39,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": 0.17
+          },
+          {
+            "channel": "D",
+            "field": "burst_propensity",
+            "delta": -0.375
+          }
+        ],
+        "score": 0.185
+      },
+      {
+        "strategy": "OPTIONAL_EXPANSION",
+        "base": 0.34,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": -0.075
+          }
+        ],
+        "score": 0.265
+      }
+    ],
+    "emotion": {
+      "before": -0.8359507357483749,
+      "after": -0.5265679782364436,
+      "delta": 0.309383
+    },
+    "language_version": 7,
+    "effective_language_evidence": {
+      "response_sufficiency_preference": {
+        "estimate": 1.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "question_initiation_propensity": {
+        "estimate": 0.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "yield_after_acknowledgement": {
+        "estimate": 1.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "burst_propensity": {
+        "estimate": 0.0,
+        "events": 2,
+        "source": "reviewed_owner_evidence",
+        "candidate_id": "4dce78fdead15a668ef4fe49d63e1cf6a514184d11a7d408902cacfabc4197d8",
+        "learning_strength": 1.0,
+        "source_event_ids": [
+          "30ec42971b3f77e45890a8dbcee730f0",
+          "adf4ef7a3ed4ceea5cf567703b79508f",
+          "b7b53471adf8dc02612da2cfaaf8721e",
+          "f1ddffa2f6e6a522cc594d22b4ff39bf"
+        ]
+      }
+    },
+    "trait_version": 0,
+    "actual_expression_count": 1
+  },
+  "different_emotion_same_language": {
+    "D": true,
+    "E": true,
+    "model_mode": "learned",
+    "checkpoint_before": "917b9764f25904fc3e93316b3c801873be0f1e2783bef3612d128912abef00ae",
+    "input_event_ids": [
+      "frozen-input-001"
+    ],
+    "frozen_action": "reply",
+    "strategy": "CASUAL_BURST",
+    "tone": "warm",
+    "planned": 2,
+    "confirmed": 2,
+    "parts": [
+      "好啊！",
+      "伞我来带。"
+    ],
+    "channel_usage": {
+      "long_term_language": "scored",
+      "emotion": "scored",
+      "mood": "scored",
+      "stable_trait": "read",
+      "situation": "scored",
+      "observed_ai": "recorded_only"
+    },
+    "candidate_scores": [
+      {
+        "strategy": "RESPOND_AND_YIELD",
+        "base": 0.65,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": 0.17
+          },
+          {
+            "channel": "D",
+            "field": "burst_propensity",
+            "delta": -0.07
+          }
+        ],
+        "score": 0.75
+      },
+      {
+        "strategy": "MINIMAL_REPLY",
+        "base": 0.43,
+        "terms": [],
+        "score": 0.43
+      },
+      {
+        "strategy": "CASUAL_BURST",
+        "base": 0.39,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": 0.17
+          },
+          {
+            "channel": "D",
+            "field": "burst_propensity",
+            "delta": 0.375
+          }
+        ],
+        "score": 0.935
+      },
+      {
+        "strategy": "OPTIONAL_EXPANSION",
+        "base": 0.34,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": -0.075
+          }
+        ],
+        "score": 0.265
+      }
+    ],
+    "emotion": {
+      "before": 0.8359507357483749,
+      "after": 0.5601679782364437,
+      "delta": -0.275783
+    },
+    "language_version": 4,
+    "effective_language_evidence": {
+      "response_sufficiency_preference": {
+        "estimate": 1.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "question_initiation_propensity": {
+        "estimate": 0.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "yield_after_acknowledgement": {
+        "estimate": 1.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "burst_propensity": {
+        "estimate": 1.0,
+        "events": 2,
+        "source": "reviewed_owner_evidence",
+        "candidate_id": "4dce78fdead15a668ef4fe49d63e1cf6a514184d11a7d408902cacfabc4197d8",
+        "learning_strength": 1.0,
+        "source_event_ids": [
+          "30ec42971b3f77e45890a8dbcee730f0",
+          "adf4ef7a3ed4ceea5cf567703b79508f",
+          "b7b53471adf8dc02612da2cfaaf8721e",
+          "f1ddffa2f6e6a522cc594d22b4ff39bf"
+        ]
+      }
+    },
+    "trait_version": 0,
+    "actual_expression_count": 2
+  },
+  "api_pmm_protocol_case": {
+    "D": true,
+    "E": true,
+    "model_mode": "api",
+    "checkpoint_before": "917b9764f25904fc3e93316b3c801873be0f1e2783bef3612d128912abef00ae",
+    "input_event_ids": [
+      "frozen-input-001"
+    ],
+    "frozen_action": "reply",
+    "strategy": "CASUAL_BURST",
+    "tone": "restrained",
+    "planned": 2,
+    "confirmed": 2,
+    "parts": [
+      "嗯，可以。",
+      "伞我来带。"
+    ],
+    "channel_usage": {
+      "long_term_language": "scored",
+      "emotion": "scored",
+      "mood": "scored",
+      "stable_trait": "read",
+      "situation": "scored",
+      "observed_ai": "recorded_only"
+    },
+    "candidate_scores": [
+      {
+        "strategy": "RESPOND_AND_YIELD",
+        "base": 0.65,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": 0.17
+          },
+          {
+            "channel": "D",
+            "field": "burst_propensity",
+            "delta": -0.07
+          }
+        ],
+        "score": 0.75
+      },
+      {
+        "strategy": "MINIMAL_REPLY",
+        "base": 0.43,
+        "terms": [],
+        "score": 0.43
+      },
+      {
+        "strategy": "CASUAL_BURST",
+        "base": 0.39,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": 0.17
+          },
+          {
+            "channel": "D",
+            "field": "burst_propensity",
+            "delta": 0.375
+          }
+        ],
+        "score": 0.935
+      },
+      {
+        "strategy": "OPTIONAL_EXPANSION",
+        "base": 0.34,
+        "terms": [
+          {
+            "channel": "D",
+            "field": "yield_after_acknowledgement",
+            "delta": -0.075
+          }
+        ],
+        "score": 0.265
+      }
+    ],
+    "emotion": {
+      "before": -0.8359507357483749,
+      "after": -0.5265679782364436,
+      "delta": 0.309383
+    },
+    "language_version": 4,
+    "effective_language_evidence": {
+      "response_sufficiency_preference": {
+        "estimate": 1.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "question_initiation_propensity": {
+        "estimate": 0.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "yield_after_acknowledgement": {
+        "estimate": 1.0,
+        "events": 2,
+        "source": "human_episode_statistics"
+      },
+      "burst_propensity": {
+        "estimate": 1.0,
+        "events": 2,
+        "source": "reviewed_owner_evidence",
+        "candidate_id": "4dce78fdead15a668ef4fe49d63e1cf6a514184d11a7d408902cacfabc4197d8",
+        "learning_strength": 1.0,
+        "source_event_ids": [
+          "30ec42971b3f77e45890a8dbcee730f0",
+          "adf4ef7a3ed4ceea5cf567703b79508f",
+          "b7b53471adf8dc02612da2cfaaf8721e",
+          "f1ddffa2f6e6a522cc594d22b4ff39bf"
+        ]
+      }
+    },
+    "trait_version": 0,
+    "actual_expression_count": 2
+  }
+}

@@ -1,0 +1,3 @@
+UI checks passed: DOM bindings, grouping, error filter, XSS escaping, character form, timing and diagnostics (no browser rendering).
+v2.1.2 UI checks passed: new settings, observed-stranger labels, memory strengths, source/erase controls and escaping.
+v2.2 UI contract checks passed: full runtime render, 9 pages, flat form hierarchy, peer tabs/ARIA, legacy controls absent, audit escaping and single-layer evidence. v2.2.1 boundary forms, legacy rule editor removed, execution statuses and privacy escaping checked. No visual browser test.

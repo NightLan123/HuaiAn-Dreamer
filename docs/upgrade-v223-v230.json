@@ -1,0 +1,34 @@
+{
+  "from": "2.2.3",
+  "to": "2.3.0",
+  "fixture": "archived runtime; synthetic trained data",
+  "subjects": 2,
+  "same_identity_catalog_config": true,
+  "old_93_values_unknown_masks_and_evidence_unchanged": true,
+  "checkpoint_pending_memory_codes_and_rows_unchanged": true,
+  "old_examples_preserved": true,
+  "continued_training_passed": true,
+  "old_package_import_passed": true,
+  "old_full_snapshot_restore_passed": true,
+  "second_launch_idempotent": true,
+  "legacy_missing_timestamp_stays_unknown": true,
+  "historical_appraisals_and_operations_preserved": true,
+  "standalone_sqlite_snapshots": 5,
+  "real_user_database_used": false,
+  "checks": [
+    {
+      "identity": "9c5220873cc0415d8fa98b017dd06c0b",
+      "checkpoint_sha256": "3a093c34091302c632c02aee4190c069ab2d6e61a03ea8bee17bc2a7e794d878",
+      "pending_sha256": "1bb440390ef2e56d15f1fe96ff80959e24aab460fd3b0edf75000d7cd3aabbb2",
+      "trained_steps": 3,
+      "legacy_timestamp_known": true
+    },
+    {
+      "identity": "2b53789eb9de4246a880d8e05426426b",
+      "checkpoint_sha256": "23e16661caed1ad1c3f55b39b2d47912a3b6dd50861e4719790024b140319da5",
+      "pending_sha256": "1bb440390ef2e56d15f1fe96ff80959e24aab460fd3b0edf75000d7cd3aabbb2",
+      "trained_steps": 3,
+      "legacy_timestamp_known": false
+    }
+  ]
+}

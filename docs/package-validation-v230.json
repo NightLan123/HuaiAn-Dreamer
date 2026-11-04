@@ -1,0 +1,19 @@
+{
+  "version": "2.3.0",
+  "python_tests": 440,
+  "startup_http_dom_scenarios": 21,
+  "trait_affect_http_dom_scenarios": 16,
+  "source_index_validation": "all ranges and hashes verified during packaging",
+  "zip_validation": "CRC and every member byte verified during packaging",
+  "runtime_data_in_archive": false,
+  "windows_launcher_static_crlf_and_quoted_paths": "passed",
+  "windows_native_tested": false,
+  "visual_browser_tested": false,
+  "real_provider_or_qq_tested": false,
+  "actual_archived_upgrade_versions": [
+    "2.2.1",
+    "2.2.2",
+    "2.2.3"
+  ],
+  "production_user_database_tested": false
+}

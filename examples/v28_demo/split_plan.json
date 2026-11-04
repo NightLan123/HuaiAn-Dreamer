@@ -1,0 +1,26 @@
+{
+  "train": {
+    "subjects": [
+      "trainA",
+      "trainB"
+    ],
+    "start": 100,
+    "end": 200
+  },
+  "validation": {
+    "subjects": [
+      "validationA",
+      "validationB"
+    ],
+    "start": 1000,
+    "end": 1100
+  },
+  "test": {
+    "subjects": [
+      "testA",
+      "testB"
+    ],
+    "start": 10000,
+    "end": 10100
+  }
+}

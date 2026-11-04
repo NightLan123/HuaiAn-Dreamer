@@ -1,0 +1,86 @@
+{
+  "baseline": "2.8",
+  "fast_axes": [
+    "valence",
+    "arousal",
+    "dominance",
+    "stress",
+    "engagement"
+  ],
+  "slow_axes": [
+    "valence",
+    "arousal",
+    "dominance"
+  ],
+  "labels": [
+    "joy",
+    "sadness",
+    "anger",
+    "fear",
+    "disgust",
+    "surprise",
+    "interest",
+    "shame",
+    "guilt",
+    "gratitude",
+    "pride",
+    "frustration",
+    "anxiety",
+    "relief",
+    "calmness",
+    "amusement",
+    "disappointment",
+    "boredom",
+    "loneliness",
+    "affection",
+    "awkwardness",
+    "awe",
+    "envy",
+    "nostalgia"
+  ],
+  "appraisal_ids": [
+    "affect.appraisal.novelty",
+    "affect.appraisal.intrinsic_pleasantness",
+    "affect.appraisal.goal_relevance",
+    "affect.appraisal.agency_attribution",
+    "affect.appraisal.outcome_likelihood",
+    "affect.appraisal.goal_conduciveness",
+    "affect.appraisal.urgency",
+    "affect.appraisal.control",
+    "affect.appraisal.power",
+    "affect.appraisal.adjustment_capacity",
+    "affect.appraisal.internal_norm_compatibility",
+    "affect.appraisal.external_norm_compatibility"
+  ],
+  "ranges": {
+    "valence": [
+      -1,
+      1
+    ],
+    "others": [
+      0,
+      1
+    ],
+    "missing": null
+  },
+  "storage": "SQLite meta.pmm_affect, trait-affect/1",
+  "time_fields": [
+    "emotion.last_updated",
+    "mood.updated_at",
+    "appraisals[].clock"
+  ],
+  "existing_calls": {
+    "understand": "General UNDERSTAND_V3",
+    "A": "APIPMM.prepare, pmm.api; cached by Coordinator",
+    "affect": "affect.evaluate before/after API plus Coordinator; old proposal may directly replace target",
+    "neural": "NeuralDynamicsPort.predict; new state enters ActionHead",
+    "B": "General assessment for multi-view, APIPMM.review uses same pmm.api; not an independent connection"
+  },
+  "migration_contract": {
+    "old_state": "archive unchanged; invert tanh/sigmoid on known values with precision metadata",
+    "new_state": "5 fast axes + 3 slow axes from existing registry and mood fields; per owner/scope/person stream",
+    "old_labels": "retain 24 IDs, historic observations remain unknown where missing",
+    "old_parameters": "preserve baseline and time constants as labelled migration engineering seed; no overwrite of existing calibrated v2 models"
+  },
+  "runtime_data": "No production database, persona package, live credentials or externally trained emotion weights supplied; test-created synthetic database snapshots will be verified."
+}

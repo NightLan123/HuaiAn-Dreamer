@@ -1,0 +1,880 @@
+--- /dev/null
++++ b/docs/DE_JOINT_SPEC_20261030.md
+@@ -0,0 +1,46 @@
++# 槐安梦客 2.5.1：D（语言习惯）＋E（情绪动力学）联合开发规划
++
++**状态：仅规划；未修改源码、数据库、配置或版本号。** 代码基线为 2.5.1。开发原则：D 与 E 同轮开发、共享事件追踪，但设两个独立验收关口；后一个关口只有在前一关口通过后才启动。F（关系模型）、G（自主 Agent、视频及激活控制）均不纳入。
++
++## 1. 为什么联合实施
++
++D 是长期语言习惯与当轮语用规划；E 是即时情绪、心境、事件评价及长期情绪调节倾向。二者在实际表达中需要交汇，但不能共用状态字段，也不能把实际发出的句子作为二者的独立训练真值。
++
++当前可复用模块：`persona/pragmatics.py`（人类示范、统计、人工反馈与实际发送观察）、`persona/expression_plan.py`（话语行为、消息数及分段规划）、`persona/affect.py`（事件评价、现实时间演化、情绪调节及表达记录）、`persona/engine.py`（PMM 条件接入与持久化）、`persona/learning.py`（统一学习任务）、`persona/server.py`（API/UI），以及 2.5.1 已有十栏目中的「情绪」「语言习惯」「蒸馏」。现有 24 类情绪是候选目录，不应宣称心理学上已经完成量表校准。
++
++## 2. 关口 I：学习来源与状态动力学（第一批执行）
++
++**DE-01：语言证据分流。** 已导入人工聊天按有无可靠时间戳分两条学习路径。前者可用于有实际前后链接的多气泡时序模式；后者只能用于字词、句式、长度、修辞和语境风格，绝不补造发送间隔。记录原始事件 ID、人物、授权范围、内容来源及去重依据；不把一个四气泡连续事件计作四次独立证据。
++
++**DE-02：语言反馈闭环。** 在已有 `human_feedback`、`annotations` 上建立“反馈 → 候选倾向 → 审核/门槛 → 应用 → 版本”的实际路径。必须能显示未采纳原因及更新字段；AI 的 `observed_ai` 只用于行为评估，除非存在独立外部评价，否则不能自动当作目标风格真值。
++
++**DE-03：情绪双时间尺度检查与改造。** 保留 EmotionState/MoodState/稳定人格的独立性。现实时间推进只做可复现的状态演化；事件触发通过有证据的 appraisal 更新；对话轮次只能代表事件序列，不可虚构时长。未经校准的时间常数和基线需明确标识，不能宣称人类心理学定律。
++
++**DE-04：人格条件下的情绪反应。** 检查并完善已有稳定人格/长期调节倾向影响事件评价、反应性及表达调节的机制。应区分可观测证据、人工设定、工程先验和统计学习。不得硬编码某个 HEXACO 分数一高就等于某个具体情绪；不得用当次情绪回写稳定人格。
++
++**关口 I 验收：** 两类人工语言资料分别产生正确的可用特征与合理未知；人工反馈形成可追踪候选并在允许时应用；相同事件和相同时间差给出可复现情绪结果；没有新事件时仅时间演化不伪造记忆；人格、情绪、语言数据的独立性和旧数据库兼容测试通过。四项均通过才进入关口 II。
++
++## 3. 关口 II：联合决策及验证（第二批执行）
++
++**DE-05：情绪到表达的条件接口。** 每轮为 PMM 提供有版本的长期语言习惯、当时情绪/心境、稳定人格与情境，而非将它们混合成一个「表达分数」。PMM 依交际目的决定回应、让轮、补充和气泡数；情绪能调节表现强度或语用倾向，但不能越过主动沉默、权限、边界和最终发送校验。
++
++**DE-06：情境化语言策略学习。** 利用有来源的人类示范和人工评价，修正现有 `burst_propensity` 等描述统计与策略条件之间的接口。避免机械「情绪高则多发几条」「有疑问必追问」；未训练的神经策略头仍应如实显示 `not_trained`，不在本轮擅自开发新 Learned-PMM 网络。
++
++**DE-07：完整结果可追溯。** 在现有 UI 内展示：当前语言档案版本、情绪状态版本、输入事件、情绪前后差异、PMM 选择的交际策略、计划气泡、实际成功发送气泡及人工反馈。需要显示该条件是“被读取”“影响候选评分/解释”还是“仅记录未参与”，不得仅凭读取字段就宣称对决策产生因果影响。
++
++**DE-08：联合行为验证。** 在隔离测试中固定基础模型/随机种子/对话上下文，分别改变长期语言档案和短期情绪，比较表达差异；设置 D-only、E-only、D+E 和无条件基线的消融；检查来源隔离、同一事件去重、重试幂等、部分 QQ 发送和旧 checkpoint 回归。
++
++**关口 II 验收：** 能在输入一致时观察到可重复、条件相关的表达差异；在未改变情绪的情况下修改语言习惯，与在未改变语言习惯情况下修改情绪，影响路径可区分；真实发送与最终状态一致；所有日志可追溯；没有历史数据损坏。模拟结果与云模型/QQ 实机结果分开报告。
++
++## 4. 明确不纳入本轮
++
++- F：完整关系图式、第三方社交图谱、关系动态学习（保留现有关系上下文，不新增算法）；
++- G：主动回忆调度、Agent、多模态视频和模型激活控制；
++- 未经验证的随机情绪波动、自发痛苦或拟人化人格宣称；
++- 强制固定情绪维度数量为任何单一论文的“唯一正确标准”；
++- 新训练型语用神经网络、LoRA/Activation Steering、大规模 Token 架构改写；
++- 新一轮导航大重构。仅在现有「情绪」「语言习惯」「蒸馏」三页面添加结果可视化。
++
++## 5. 交付要求
++
++每个关口交付：(a) 变更文件清单和提交差异；(b) 数据迁移兼容说明；(c) 单元/集成/回归测试日志与未通过原因；(d) 一段有独立证据支持的真实或固定测试例子，标出学习前后、状态前后及输出差异；(e) 严格列出未实现和待实机验证内容。关口 I 通过之后，才允许开发关口 II。最终整体联测通过才能宣布 D+E 本轮完成。
+--- a/persona/affect.py
++++ b/persona/affect.py
+@@ -5,7 +5,7 @@
+ """
+ from __future__ import annotations
+ import copy, math
+-from .common import now, uid, clamp
++from .common import now, clamp
+ from .registry import STATE_IDS, APPRAISAL_IDS, REGULATION_IDS, BY_ID, number, digest
+ from .traits import snapshot as trait_snapshot
+ 
+@@ -151,9 +151,17 @@
+             'time_constant':projected['transition_params']['label_tau_seconds'][k],'source':'provider_proposal' if last and last.get('method','').startswith('provider') else 'engineering_prior' if last else 'unknown'})
+     return details
+ 
++def condition_sources(snapshot):
++    fields={**snapshot['hexaco_facets'],**snapshot['affective_disposition']}
++    keys=('hexaco.e.anxiety','hexaco.a.patience','erq.expressive_suppression','erq.cognitive_reappraisal',
++          'beq.negative_expressivity','beq.positive_expressivity','beq.impulse_strength')
++    return {k:{'estimate':fields[k].get('estimate'),'source_type':fields[k].get('source_type','unknown'),
++        'fallback_used':fields[k].get('estimate') is None,'evidence_ids':fields[k].get('evidence_ids',[])} for k in keys}
++
+ def advance(data,at=None):
+     """Closed-form continuous E and low-pass M; polling never changes the result."""
+     out=upgrade_catalog(data);at=now() if at is None else at;p=out['transition_params'];e=out['emotion'];m=out['mood']
++    number(at,0,1e13)
+     last=e['last_updated'];elapsed=max(0,at-last) if last is not None else 0
+     if not elapsed:return out
+     te=p['emotion_tau_seconds'];tm=p['mood_tau_seconds'];ee=math.exp(-elapsed/te);em=math.exp(-elapsed/tm)
+@@ -222,7 +230,20 @@
+     """
+     at=now() if at is None else at
+     if data['persona_id']!=snapshot['persona_id'] or snapshot['scope']!='agent_self':raise ValueError('情绪转移主体不匹配')
+-    out=advance(data,at);p=out['transition_params'];sem=understanding['semantic'];before=copy.deepcopy(out['emotion'])
++    number(at,0,1e13)
++    if any(not isinstance(event.get(k),str) or not event[k].strip() for k in ('id','text','scope','person')):raise ValueError('情绪更新需要可定位的当前输入事件')
++    content_digest=digest([event['scope'],event['person'],event['text']]);event_key=digest([data['persona_id'],event['scope'],event['id']])
++    prior=next((r for r in reversed(data['appraisals']) if r.get('event_key')==event_key),None)
++    if prior:
++        if prior['content_digest']!=content_digest:raise ValueError('同一输入事件 ID 对应不同证据，未再次更新状态')
++        trajectory=next(r for r in reversed(data['trajectory']) if r.get('event_key')==event_key)
++        regulation=next(r for r in reversed(data['regulation_actions']) if r.get('appraisal_id')==prior['id'])
++        return copy.deepcopy(data),{'trait_snapshot':snapshot,'appraisal':copy.deepcopy(prior),'regulation_action':copy.deepcopy(regulation),
++            'emotion_before':copy.deepcopy(prior['emotion_before']),'mood_before':copy.deepcopy(prior['mood_before']),
++            'emotion_state':copy.deepcopy(trajectory['emotion']),'mood_state':copy.deepcopy(trajectory['mood']),
++            'transition_params':copy.deepcopy(data['transition_params']),'replayed':True}
++    received_at=at;at=max(at,data['emotion']['last_updated'] or at)
++    out=advance(data,at);p=out['transition_params'];sem=understanding['semantic'];before=copy.deepcopy(out['emotion']);mood_before=copy.deepcopy(out['mood'])
+     proposal=validate_proposal(proposal,event['text'])
+     compat=compatibility(out);old=compat['emotion'];h=sem.get('hostility',0);nov=sem.get('novelty',0);goal=sem.get('goal_congruence',.5)
+     # These coefficients are explicitly uncalibrated, bounded interactions, not
+@@ -236,7 +257,12 @@
+         'affect.appraisal.goal_conduciveness':goal,'affect.appraisal.urgency':sem.get('urgency',0),
+         'affect.appraisal.control':control,'affect.appraisal.internal_norm_compatibility':1-sem.get('value_conflict',0)}
+     if proposal:checks.update({k:v for k,v in proposal.get('appraisal_checks',{}).items() if v is not None})
+-    aid=uid();appraisal={'id':aid,'entity':'EventAppraisal','persona_id':data['persona_id'],'scope':event['scope'],
++    aid=event_key[:32];appraisal={'id':aid,'event_key':event_key,'content_digest':content_digest,
++        'original_event_ids':list(event.get('source_event_ids') or [event['id']]),'emotion_before':before,'mood_before':mood_before,
++        'clock':{'received_at':received_at,'effective_at':at,'elapsed_seconds':max(0,at-(data['emotion']['last_updated'] or at)),
++            'basis':'elapsed_wall_seconds','event_sequence':before['state_revision']+1,'simulated_seconds_per_turn':None},
++        'evidence_provenance':{'event':'observed_input','appraisal':'model_inference' if proposal else 'bounded_engineering_appraisal_of_model_semantics',
++            'parameters':p['source_type'],'trait_inputs':condition_sources(snapshot),'calibrated':False},'entity':'EventAppraisal','persona_id':data['persona_id'],'scope':event['scope'],
+         'person_id':event['person'],'event_id':event['id'],'at':at,'trait_version':snapshot['trait_version'],'trait_digest':snapshot['trait_digest'],
+         'checks':checks,'threat_estimate':perceived_threat,'memory_ids':[m['id'] for m in memories],
+         'relationship_context':{'trust':trust,'familiarity':relation.get('familiarity')},
+@@ -260,7 +286,13 @@
+         labels['nostalgia']=None;appraisal['rejected_labels']={'nostalgia':'缺少可核对的本主体经历来源'}
+     appraisal['label_updates']={k:v for k,v in labels.items() if v is not None}
+     appraisal['label_confidence']=min(.75,em_proposal.get('confidence') or .35)
+-    e=out['emotion'];react=p['reactivity'];e.update(event_id=event['id'],appraisal_id=aid,onset_at=at,last_updated=at,
++    e=out['emotion']
++    # Trait only modulates the response to an observed event. No independent
++    # trait-to-emotion label or drift from an absent event is introduced.
++    sensitivity=clamp(1+.2*(anxiety-.5)*perceived_threat-.15*(patience-.5)*relevance,.8,1.2)
++    react=clamp(p['reactivity']*sensitivity)
++    appraisal['reactivity']={'base':p['reactivity'],'event_multiplier':sensitivity,'effective':react,'source':'bounded_engineering_interaction','calibrated':False}
++    e.update(event_id=event['id'],appraisal_id=aid,onset_at=at,last_updated=at,
+         state_revision=e['state_revision']+1,confidence=min(.75,em_proposal.get('confidence') or .35),source_type='model_inference' if proposal else 'uncalibrated_engineering')
+     for k,v in target.items():
+         previous=e.get(k)
+@@ -280,7 +312,7 @@
+     if (e['valence'] or 0)<0 or (e['stress'] or 0)>.35:
+         if proposed=='expressive_suppression' or suppress>max(.5,reappraise):strategy='expressive_suppression'
+         elif proposed=='cognitive_reappraisal' or reappraise>.5:strategy='cognitive_reappraisal'
+-    regulation={'id':uid(),'entity':'RegulationOperation','persona_id':data['persona_id'],'event_id':event['id'],'appraisal_id':aid,
++    regulation={'id':digest([event_key,'regulation'])[:32],'entity':'RegulationOperation','persona_id':data['persona_id'],'event_id':event['id'],'appraisal_id':aid,
+         'scope':event['scope'],'strategy':strategy,'trait_version':snapshot['trait_version'],'at':at,'applied':True,
+         'internal_effect':0.,'expression_multiplier':1.,'method':'uncalibrated_habit_policy/1'}
+     if strategy=='expressive_suppression':
+@@ -292,10 +324,10 @@
+         for k in ('anger','fear','frustration'):
+             if e['categorical_activations'][k] is not None:e['categorical_activations'][k]*=1-gain
+     out['appraisals'].append(appraisal);out['regulation_actions'].append(regulation)
+-    out['trajectory'].append({'persona_id':data['persona_id'],'at':at,'event_id':event['id'],'scope':event['scope'],
++    out['trajectory'].append({'event_key':event_key,'persona_id':data['persona_id'],'at':at,'event_id':event['id'],'scope':event['scope'],
+         'trait_version':snapshot['trait_version'],'emotion_revision':e['state_revision'],
+         'emotion':copy.deepcopy(e),'mood':copy.deepcopy(out['mood'])})
+-    return out,{'trait_snapshot':snapshot,'appraisal':appraisal,'regulation_action':regulation,'emotion_before':before,
++    return out,{'trait_snapshot':snapshot,'appraisal':appraisal,'regulation_action':regulation,'emotion_before':before,'mood_before':mood_before,'replayed':False,
+         'emotion_state':copy.deepcopy(e),'mood_state':copy.deepcopy(out['mood']),'transition_params':copy.deepcopy(p)}
+ 
+ def expression_plan(snapshot,affect,decision,context):
+--- a/persona/common.py
++++ b/persona/common.py
+@@ -2,7 +2,7 @@
+ import json, os, tempfile, math, time, uuid
+ from pathlib import Path
+ 
+-VERSION = '2.5.1'
++VERSION = '2.6'
+ SCHEMA = 1
+ 
+ def uid(): return uuid.uuid4().hex
+--- a/persona/engine.py
++++ b/persona/engine.py
+@@ -190,6 +190,30 @@
+                 with self.store.lock,self.store.db:
+                     self.store.setmeta('pmm_profile',profile);self.store.setmeta('pmm_training_records',pending);self.store.event('trait_evidence_promoted',report)
+             return report
++    def language_review(self,op,body):
++        from . import language_learning as ll
++        with self.lock,self.store.lock,self.store.db:
++            if body.get('persona_id')!=self.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新后操作')
++            p=self.store.meta('pmm_pragmatics') or pg.empty()
++            def gate(scope,person):return learn.permission(self,'language',scope,person,manual=True)
++            if op=='review':value,result=ll.review(p,body,gate)
++            elif op=='target':
++                row=next((r for r in p['observed_ai'] if r['turn_id']==body.get('turn_id')),None)
++                if not row:raise ValueError('找不到实际发送记录')
++                plan=row.get('plan',{});g=gate(plan.get('scope',''),plan.get('person_id',''))
++                if not g['allowed']:raise ValueError('语言学习未获授权：'+','.join(g['reasons']))
++                value=ll.feedback_target(p,body.get('turn_id'),body.get('field'),body.get('value'),body.get('note'),pg.LABELS)
++                result={'ok':True,'version':value['version'],'turn_id':row['turn_id'],'status':'candidate_only'}
++            elif op=='annotate':
++                row=next((r for r in p.get('lexical_demonstrations',p['demonstrations']) if r['id']==body.get('episode_id')),None)
++                if not row:raise ValueError('示范事件不存在')
++                g=gate(row.get('authorization_scope',row['scope'] or 'self:imported'),row.get('person',row['speaker']))
++                if not g['allowed']:raise ValueError('语言学习未获授权：'+','.join(g['reasons']))
++                value=pg.annotate(p,body.get('episode_id'),body.get('field'),body.get('value'),body.get('note'));result={'ok':True,'version':value['version'],'status':'candidate_only'}
++            else:raise ValueError('未知的语言反馈操作')
++            if value!=p:self.store.setmeta('pmm_pragmatics',value);self.store.event('language_'+op,result)
++            return result
++
+     def edit_affect_parameters(self,body):
+         with self.lock:
+             data=self.affect_state();parameters=copy.deepcopy(data['transition_params'])
+@@ -284,7 +308,7 @@
+             person=person_override or session['person'];session={**session,'person':person,'direct_interaction':telemetry['turn_context'].get('direct_interaction',True)};p=self.profile();before=self.store.meta('state')
+             from .psychology import context_profile
+             prompt_profile=context_profile(p,session['scope'])
+-            affect_base=self.affect_state();trait_snapshot=tr.snapshot(p);activity=af.compatibility(affect_base);dyads=self.store.meta('pmm_dyads') or {};dyad=dyads.get(dy.key(person,session['scope']),dy.empty(person,session['scope']));relation=dy.policy_relation(dyad);other_key=self.other_key(session['scope'],person)
++            affect_base=af.migrate(self.store);trait_snapshot=tr.snapshot(p);activity=af.compatibility(affect_base);dyads=self.store.meta('pmm_dyads') or {};dyad=dyads.get(dy.key(person,session['scope']),dy.empty(person,session['scope']));relation=dy.policy_relation(dyad);other_key=self.other_key(session['scope'],person)
+             others=self.store.meta('pmm_interlocutors');other=ensure_profile(others.get(other_key,empty_profile(other_key,person)), 'model_of_other')
+             for field in other['psychology']['features'].values():field['scope']='model_of_other'
+             history=bounded_history(self.store.history(sid,24))
+@@ -310,8 +334,9 @@
+             progress('2 / 6 · PMM 检索并解码人格条件')
+             memories=self.retrieve(text,session['scope'],c['retrieval_k'],u)
+             media_condition={'visual_observation':telemetry.get('media')}
+-            event={'id':run['turn_id'],'text':text,'scope':session['scope'],'person':person}
+-            affect_at=now()
++            event={'id':('input:'+digest([session['scope'],run['input_event_ids']])) if run.get('input_event_ids') else run['turn_id'],
++                   'source_event_ids':run.get('input_event_ids',[]),'text':text,'scope':session['scope'],'person':person}
++            affect_at=run['started_at']
+             affect_draft,layer_trace=af.evaluate(affect_base,trait_snapshot,u,event,relation,memories,at=affect_at)
+             activity=af.compatibility(affect_draft)
+             x=self.input_vector(text,u,p,activity['emotion'],relation,{**activity,'typed_affect':affect_draft});codes=self.store.meta('pmm_memory_codes') or {}
+--- /dev/null
++++ b/persona/language_learning.py
+@@ -0,0 +1,182 @@
++"""D evidence and reviewed tendencies. No neural head or generated-output labels.
++
++All thresholds/features below are explicit engineering choices, not validated
++psychometric scales. Raw records stay in their original archive.
++"""
++from __future__ import annotations
++import copy, hashlib, re
++from collections import Counter
++from .common import now, dumps
++from .expression_plan import number
++
++SCHEMA='language-evidence/2'
++MIN_EVENTS=2
++
++def signature(value):return hashlib.sha256(dumps(value).encode()).hexdigest()
++
++def text_features(texts):
++    content='\n'.join(texts)
++    # Exact lexical surface features, not a claimed semantic/rhetorical diagnosis.
++    words=re.findall(r'[A-Za-z]+|[\u4e00-\u9fff]',content.lower())
++    phrases=re.findall(r'[\u4e00-\u9fff]{2,8}|[A-Za-z]{2,20}',content)
++    lengths=[len(t) for t in re.split(r'[。！？!?\n]+',content) if t.strip()]
++    return {'characters':len(content),'source_message_lengths':[len(t) for t in texts],
++        'sentence_lengths':lengths,'lexical_units':dict(Counter(words).most_common(24)),
++        'surface_phrases':dict(Counter(phrases).most_common(12)),
++        'question_marks':len(re.findall(r'[?？]',content)),
++        'exclamation_marks':len(re.findall(r'[!！]',content)),
++        'ellipsis_marks':len(re.findall(r'…+|\.{3,}',content)),
++        'quotation_marks':len(re.findall(r'[“”「」]',content)),
++        'rhetorical_meaning':None,'measurement':'literal_surface_statistics_not_personality'}
++
++def _filtered(rows,scope,act):
++    rows=[r for r in rows if (scope is None or r.get('scope') in ('',scope)) and (act is None or r.get('prior_speech_act')==act)]
++    # A declared event split across several source groups remains ONE support unit.
++    return list({r.get('independent_event_id',r['id']):r for r in rows}.values())
++
++def text_summary(p,scope=None,act=None):
++    rows=_filtered(p.get('lexical_demonstrations',[]),scope,act)
++    words=Counter();phrases=Counter();lengths=[]
++    for r in rows:
++        f=r['text_features'];words.update(f['lexical_units']);phrases.update(f['surface_phrases']);lengths.extend(f['sentence_lengths'])
++    return {'schema':SCHEMA,'effective_events':len(rows),'untimed_events':sum(r['at'] is None for r in rows),
++        'mean_sentence_characters':sum(lengths)/len(lengths) if lengths else None,
++        'lexical_units':dict(words.most_common(20)),'surface_phrases':dict(phrases.most_common(12)),
++        'ellipsis_rate':sum(r['text_features']['ellipsis_marks']>0 for r in rows)/len(rows) if rows else None,
++        'question_rate':sum(r['question'] for r in rows)/len(rows) if rows else None,
++        'contexts':dict(Counter(r['prior_speech_act'] for r in rows)),
++        'timing_inferred_from_untimed':False,'semantic_rhetoric':None,
++        'source_event_ids':[i for r in rows[-6:] for i in r['source_event_ids']][:24],
++        'source_type':'human_text_statistics' if rows else 'unknown','calibrated':False}
++
++def correction_targets(p,turn_id,text):
++    if not text:return {}
++    row=next((r for r in p.get('observed_ai',[]) if r['turn_id']==turn_id),None)
++    if not row:return {}
++    act=row.get('plan',{}).get('previous_act','unknown');question=bool(re.search(r'[?？]|吗[。！!]?$',text))
++    values={'question_initiation_propensity':float(question)}
++    if act not in ('question','unknown'):
++        values['response_sufficiency_preference']=float(len(text)<=30 and not question)
++    # No timestamp/segmentation inference from a corrected text.
++    return values
++
++def feedback_target(p,turn_id,field,value,note,labels):
++    if field not in labels or number(value) is None:raise ValueError('请选择有效倾向及 0–1 数值')
++    if not isinstance(note,str) or not note.strip() or len(note)>1000:raise ValueError('请填写独立人工评价依据（1–1000 字符）')
++    observed=next((r for r in p.get('observed_ai',[]) if r['turn_id']==turn_id),None)
++    if not observed or not observed.get('actual_bubbles'):raise ValueError('只能评价有实际成功发送内容的回合')
++    out=copy.deepcopy(p);rows=out.setdefault('human_feedback',[])
++    key=signature(['explicit_feedback',turn_id,field]);old=next((r for r in rows if r.get('id')==key),None)
++    if old and old.get('targets')=={field:value} and old['note']==note:return out
++    out['human_feedback']=[r for r in rows if r.get('id')!=key]+[{'id':key,'turn_id':turn_id,'at':now(),
++        'rating':'targeted','note':note,'has_corrected_reply':False,
++        'targets':{field:value},'source_type':'independent_owner_feedback'}]
++    out['version']+=1
++    return out
++
++def _evidence(p):
++    episodes={r['id']:r for r in p.get('lexical_demonstrations',p.get('demonstrations',[]))}
++    rows=[]
++    for a in p.get('annotations',[]):
++        e=episodes.get(a['episode_id'])
++        if not e:continue
++        if a['field']=='burst_propensity' and e.get('at') is None:continue
++        rows.append({'event_id':e.get('independent_event_id',e['id']),'field':a['field'],'value':a['value'],
++            'scope':e['scope'],'authorization_scope':e.get('authorization_scope',e['scope'] or 'self:imported'),
++            'person':e.get('person',e.get('speaker','')),'act':e['prior_speech_act'],'source_event_ids':e['source_event_ids'],
++            'source_type':'independent_owner_annotation','evidence_at':a['at'],'note':a['note']})
++    observed={r['turn_id']:r for r in p.get('observed_ai',[])}
++    for f in p.get('human_feedback',[]):
++        actual=observed.get(f['turn_id'])
++        if not actual or not actual.get('actual_bubbles'):continue
++        plan=actual.get('plan',{});scope=plan.get('scope') or ''
++        for field,value in f.get('targets',{}).items():
++            rows.append({'event_id':'feedback:'+f['turn_id'],'field':field,'value':value,'scope':scope,
++                'authorization_scope':scope or 'self:imported','person':plan.get('person_id',''),
++                'act':plan.get('previous_act','unknown'),'source_event_ids':[f['turn_id']],
++                'source_type':'independent_owner_feedback','evidence_at':f['at'],'note':f['note']})
++    return rows
++
++def candidates(p):
++    # Latest explicit evaluation of an event/field replaces the old label. An
++    # edited/retried evaluation is never an additional independent sample.
++    unique={}
++    for r in sorted(_evidence(p),key=lambda r:r['evidence_at']):unique[(r['event_id'],r['field'])]=r
++    groups={}
++    for r in unique.values():groups.setdefault((r['scope'],r['act'],r['field']),[]).append(r)
++    out=[]
++    for (scope,act,field),rows in sorted(groups.items()):
++        rows=sorted(rows,key=lambda r:r['event_id']);values=[r['value'] for r in rows];estimate=sum(values)/len(values)
++        reasons=[]
++        if len(rows)<MIN_EVENTS:reasons.append('insufficient_independent_events')
++        if max(values)-min(values)>.6:reasons.append('conflicting_evidence_requires_more_review')
++        cid=signature([scope,act,field]);revision=signature(rows)
++        old=next((r for r in p.get('applied_tendencies',[]) if r['id']==cid),None)
++        if old and old['evidence_digest']==revision:reasons.append('already_applied')
++        recent=next((r for r in reversed(p.get('review_history',[])) if r['candidate_id']==cid and r.get('evidence_digest')==revision),None)
++        if recent and recent['action']=='reject':reasons.append('owner_rejected_current_evidence')
++        out.append({'id':cid,'field':field,'scope':scope,'prior_speech_act':act,'estimate':estimate,
++            'effective_events':len(rows),'evidence_digest':revision,'evidence':rows,'eligible':not reasons,
++            'reasons':reasons,'status':'applied' if 'already_applied' in reasons else 'ready_for_review' if not reasons else 'not_adopted',
++            'threshold':{'minimum_independent_events':MIN_EVENTS,'max_value_spread':.6,'calibrated':False},
++            'source_type':'independent_human_evaluation','neural_head':'not_trained'})
++    return out
++
++def unusable_feedback(p):
++    return [{'turn_id':r['turn_id'],'reason':'no_explicit_target_or_corrected_example','note':r.get('note','')}
++        for r in p.get('human_feedback',[]) if not r.get('targets')][-20:]
++
++def applied(p,scope=None,act=None):
++    active={r['id']:r for r in candidates(p)}
++    out=[]
++    for r in p.get('applied_tendencies',[]):
++        if scope is not None and r['scope'] not in ('',scope):continue
++        if act is not None and r['prior_speech_act']!=act:continue
++        # New/removed/resegmented evidence invalidates a stale application until
++        # re-reviewed; keeping its history does not silently keep it active.
++        c=active.get(r['id'])
++        if c and c['evidence_digest']==r['evidence_digest']:out.append(copy.deepcopy(r))
++    return out
++
++def review(p,body,gate):
++    if type(body.get('expected_version')) is not int or body['expected_version']!=p['version']:raise ValueError('语言档案已变化，请刷新后重新审核')
++    cid=body.get('candidate_id');action=body.get('action')
++    c=next((r for r in candidates(p) if r['id']==cid),None)
++    if c is None or action not in ('apply','reject','revoke'):raise ValueError('候选或审核操作无效')
++    if body.get('evidence_digest')!=c['evidence_digest']:raise ValueError('候选证据已变化，请重新审核')
++    if not isinstance(body.get('note'),str) or not body['note'].strip() or len(body['note'])>1000:raise ValueError('请填写审核理由（1–1000 字符）')
++    reasons=[]
++    if action=='apply':
++        reasons.extend(c['reasons'])
++        for r in c['evidence']:
++            g=gate(r['authorization_scope'],r['person'])
++            if not g['allowed']:reasons.extend(g['reasons'])
++    if reasons:return copy.deepcopy(p),{'ok':False,'reasons':sorted(set(reasons)),'changed_fields':[],'version':p['version']}
++    out=copy.deepcopy(p);old=next((r for r in out.get('applied_tendencies',[]) if r['id']==cid),None)
++    out['applied_tendencies']=[r for r in out.get('applied_tendencies',[]) if r['id']!=cid]
++    if action=='apply':out['applied_tendencies'].append({k:copy.deepcopy(c[k]) for k in ('id','field','scope','prior_speech_act','estimate','effective_events','evidence_digest','source_type')})
++    out['version']+=1;changed=[{'field':c['field'],'scope':c['scope'],'prior_speech_act':c['prior_speech_act'],
++        'before':old['estimate'] if old else None,'after':c['estimate'] if action=='apply' else None}]
++    entry={'candidate_id':cid,'evidence_digest':c['evidence_digest'],'action':action,'at':now(),
++        'note':body['note'],'version_before':p['version'],'version_after':out['version'],'changed_fields':changed}
++    out.setdefault('review_history',[]).append(entry)
++    return out,{'ok':True,'version':out['version'],'changed_fields':changed,'review':entry,'reasons':[]}
++
++def validate(p,labels):
++    for key in ('lexical_demonstrations','applied_tendencies','review_history'):
++        if key in p and (not isinstance(p[key],list) or len(p[key])>100000):raise ValueError('语言学习扩展格式无效')
++    for r in p.get('lexical_demonstrations',[]):
++        if not isinstance(r,dict) or not isinstance(r.get('id'),str) or not isinstance(r.get('source_event_ids'),list) or not r['source_event_ids'] or r.get('source_type')!='authorized_human_demonstration' or not isinstance(r.get('text_features'),dict):raise ValueError('语言文本证据缺少原始来源')
++        if r.get('at') is None and any(k in r for k in ('gaps_seconds','bubble_count')):raise ValueError('无时间资料不能包含时序学习结果')
++    for r in p.get('human_feedback',[]):
++        if not isinstance(r.get('targets',{}),dict) or any(k not in labels or number(v) is None for k,v in r.get('targets',{}).items()):raise ValueError('人工语言目标无效')
++    cs={r['id']:r for r in candidates(p)}
++    for h in p.get('review_history',[]):
++        if not isinstance(h,dict) or h.get('action') not in ('apply','reject','revoke') or not isinstance(h.get('candidate_id'),str) or not isinstance(h.get('evidence_digest'),str) or not isinstance(h.get('changed_fields'),list):raise ValueError('语言审核历史无效')
++    for r in p.get('applied_tendencies',[]):
++        if not isinstance(r,dict) or r.get('field') not in labels or number(r.get('estimate')) is None or not isinstance(r.get('evidence_digest'),str):raise ValueError('已审核语言倾向格式无效')
++        # Historic applications may be stale, but may never fabricate a matching
++        # current evidence revision's field or estimate during backup import.
++        if not any(h['action']=='apply' and h['candidate_id']==r.get('id') and h['evidence_digest']==r['evidence_digest'] for h in p.get('review_history',[])):raise ValueError('语言倾向缺少对应的人工审核记录')
++        c=cs.get(r.get('id'))
++        if c and c['evidence_digest']==r['evidence_digest'] and any(r.get(k)!=c[k] for k in ('field','scope','prior_speech_act','estimate','effective_events')):raise ValueError('已应用倾向与原始人工证据不一致')
+--- a/persona/learning.py
++++ b/persona/learning.py
+@@ -160,6 +160,7 @@
+             if not isinstance(imported,list) or not imported or len(imported)>3000:raise ValueError('导入任务需要1–3000条已解析的原文')
+             for r in imported:
+                 if not isinstance(r,dict) or not isinstance(r.get('id'),str) or not isinstance(r.get('text'),str) or not r['text'].strip() or len(r['text'])>16000:raise ValueError('导入来源格式无效')
++                if r.get('source') in ('generated','observed_ai','actual_ai_behavior_not_training_truth') or r.get('role') in ('assistant','model','system','tool'):raise ValueError('AI 输出不能作为人类导入示范')
+                 scope=r.get('scope') or scopes[0]
+                 if scope not in scopes:raise ValueError('导入记录超出本任务授权范围')
+                 rows.append({**copy.deepcopy(r),'source':'imported','scope':scope,'person':person or str(r.get('speaker','')),'context':str(r.get('context',''))[:2000]})
+@@ -314,7 +315,7 @@
+             others=self.st.meta('pmm_interlocutors') or {}
+             for (scope,person),rs in groups.items():
+                 language_allowed=target=='language' or target=='self' and all(permission(self.e,'language',r['scope'],r['person'],manual=True)['allowed'] for r in rs)
+-                if target in ('self','language'):rs=[{**r,'scope':'' if r['scope']=='self:imported' else r['scope']} for r in rs]
++                if target in ('self','language'):rs=[{**r,'authorization_scope':r['scope'],'language_authorized':language_allowed,'scope':'' if r['scope']=='self:imported' else r['scope']} for r in rs]
+                 key=self.e.other_key(scope,person);old=self.e.profile() if target!='other' else ensure_profile(others.get(key,empty_profile(key,person)),'model_of_other')
+                 applied=copy.deepcopy(report)
+                 if target=='language':applied={k:v for k,v in applied.items() if k=='examples'}
+--- a/persona/pragmatics.py
++++ b/persona/pragmatics.py
+@@ -9,6 +9,7 @@
+ from collections import Counter
+ from .common import dumps, now
+ from .expression_plan import speech_act, number
++from . import language_learning as ll
+ 
+ SCHEMA = 'pragmatic-style/1'
+ LABELS = {'response_sufficiency_preference':'短回应后停止（示范代理指标）',
+@@ -22,14 +23,19 @@
+ def empty():
+     return {'schema':SCHEMA, 'version':0, 'demonstrations':[], 'untimed_record_ids':[],
+             'observed_ai':[], 'human_feedback':[], 'annotations':[], 'calibrated':False,
+-            'mechanism':'episode_statistics_uncalibrated', 'neural_head':'not_trained'}
++            'mechanism':'episode_statistics_uncalibrated', 'neural_head':'not_trained',
++            'evidence_schema':'language-evidence/2', 'lexical_demonstrations':[],
++            'applied_tendencies':[], 'review_history':[]}
+ 
+ 
+ def timestamp(value):
+     try:
+         n = float(value)
+     except (ValueError, TypeError):
+-        try: n = datetime.datetime.fromisoformat(str(value).replace('Z','+00:00')).timestamp()
++        try:
++            parsed=datetime.datetime.fromisoformat(str(value).replace('Z','+00:00'))
++            if parsed.tzinfo is None:return None  # Unknown timezone is not a reliable sending time.
++            n=parsed.timestamp()
+         except (ValueError, OverflowError): return None
+     return n if math.isfinite(n) and 0 < n < 253402300799 else None
+ 
+@@ -37,48 +43,79 @@
+ def rebuild(current, records):
+     out = copy.deepcopy(current or empty()); known = {}; untimed = []
+     for r in records:
+-        if r.get('source') != 'imported': continue
+-        if r['id'] in known: continue
++        if r.get('source') not in ('imported','human') or r.get('language_authorized') is False: continue
++        if r['id'] in known:
++            if known[r['id']].get('text')!=r.get('text'):raise ValueError('语言证据同一 ID 对应不同原文')
++            continue
+         known[r['id']] = r
++    # Explicit predecessor links define adjacency. Sorting alone never supplies it.
+     ordered = sorted(known.values(), key=lambda r:(r.get('scope',''), r.get('conversation_id','') or r.get('batch_id',''), r.get('thread_id',''), timestamp(r.get('timestamp')) or 0, r['id']))
+-    groups = []; previous = None
++    groups=[];by_id={}
+     for r in ordered:
+-        at = timestamp(r.get('timestamp'))
+-        if at is None: untimed.append(r['id']); continue
+-        key = (r.get('scope',''), r.get('conversation_id','') or r.get('batch_id',''), r.get('thread_id',''), r['speaker'])
+-        # Source adjacency, not merely equal author + close timestamps. Missing
+-        # predecessor linkage cannot prove a burst and is not silently invented.
+-        adjacent = previous and (r.get('previous_record_id') == previous['record']['id'] if r.get('previous_record_id') else r.get('context_record_id') == previous['record']['id'] and not r.get('context'))
+-        if previous and key == previous['key'] and adjacent and 0 <= at - previous['at'] <= 15:
+-            groups[-1].append(r)
+-        else: groups.append([r])
+-        previous = {'key':key, 'at':at, 'record':r}
+-    episodes = []
++        at=timestamp(r.get('timestamp'))
++        if at is None:untimed.append(r['id'])
++        key=(r.get('scope',''),r.get('conversation_id','') or r.get('batch_id',''),r.get('thread_id',''),r['speaker'])
++        by_id[r['id']]={'record':r,'at':at,'key':key}
++    # Walk source chains even when untimed ID sorting differs from source order.
++    consumed=set()
++    def predecessor(r):return r.get('previous_record_id') or (r.get('context_record_id') if not r.get('context') else None)
++    successors={}
++    for r in ordered:
++        previous=predecessor(r)
++        if previous:successors.setdefault(previous,[]).append(r)
++    def linked(a,b):
++        x,y=by_id[a['id']],by_id[b['id']]
++        if x['key']!=y['key']:return False
++        if bool(x['at'] is None)!=bool(y['at'] is None):return False
++        if a.get('event_id') and b.get('event_id') and a['event_id']!=b['event_id']:return False
++        return x['at'] is None or 0<=y['at']-x['at']<=15
++    starts=[r for r in ordered if predecessor(r) not in by_id or not linked(by_id[predecessor(r)]['record'],r)]
++    for first in starts+ordered:
++        if first['id'] in consumed:continue
++        rows=[first];consumed.add(first['id'])
++        while True:
++            options=[r for r in successors.get(rows[-1]['id'],[]) if r['id'] not in consumed and linked(rows[-1],r)]
++            if len(options)!=1:break  # Ambiguous source graph is not a burst.
++            rows.append(options[0]);consumed.add(options[0]['id'])
++        groups.append(rows)
++    episodes=[];lexical=[]
+     for rows in groups:
+-        first = rows[0]; texts = [r['text'] for r in rows]; content = '\n'.join(texts)
+-        incoming = first.get('context',''); act = speech_act(incoming) if incoming else 'unknown'
+-        ended = not re.search(r'[?？]|吗[。！!]?$', content)
+-        short = len(content) <= 30 and ended
+-        ids = [r['id'] for r in rows]
+-        episodes.append({'id':hashlib.sha256(dumps(ids).encode()).hexdigest()[:32], 'source_type':'authorized_human_demonstration',
+-                         'scope':first.get('scope',''), 'conversation_id':first.get('conversation_id','') or first.get('batch_id',''),
+-                         'thread_id':first.get('thread_id',''), 'speaker':first['speaker'], 'at':timestamp(first['timestamp']),
+-                         'source_event_ids':ids, 'incoming_record_id':first.get('context_record_id'), 'prior_speech_act':act,
+-                         'bubble_count':len(rows), 'bubble_lengths':[len(t) for t in texts],
+-                         'question':not ended, 'short_response':short,
+-                         'ack_yield':short if act in ('invitation','tentative_interest') else None,
+-                         'grouping_rule':'source_adjacency_and_15s_uncalibrated', 'independent_episodes':1})
+-    if out['demonstrations'] != episodes or out['untimed_record_ids'] != untimed:
+-        ids={r['id'] for r in episodes}
++        first=rows[0];texts=[r['text'] for r in rows];content='\n'.join(texts);ids=[r['id'] for r in rows]
++        at=timestamp(first.get('timestamp'));act=speech_act(first.get('context','')) if first.get('context') else 'unknown'
++        ended=not re.search(r'[?？]|吗[。！!]?$',content);short=len(content)<=30 and ended
++        declared={r.get('event_id') for r in rows if r.get('event_id')}
++        event_key=['declared',first.get('scope',''),first.get('conversation_id') or ('' if first.get('scope') else first.get('batch_id','')),first.get('thread_id',''),first['speaker'],next(iter(declared))] if len(declared)==1 else ['source_chain',*by_id[first['id']]['key'],ids]
++        row={'id':hashlib.sha256(dumps(ids).encode()).hexdigest()[:32],
++            'independent_event_id':hashlib.sha256(dumps(event_key).encode()).hexdigest()[:32],
++            'source_type':'authorized_human_demonstration','content_source':first['source'],
++            'scope':first.get('scope',''),'authorization_scope':first.get('authorization_scope',first.get('scope','') or 'self:imported'),
++            'person':first.get('person',first['speaker']),'speaker':first['speaker'],
++            'conversation_id':first.get('conversation_id','') or first.get('batch_id',''),'thread_id':first.get('thread_id',''),
++            'at':at,'source_event_ids':ids,'original_event_ids':sorted(declared),'content_sha256':hashlib.sha256(content.encode()).hexdigest(),
++            'deduplication_basis':'scoped_original_event_or_explicit_source_chain',
++            'incoming_record_id':first.get('context_record_id'),'prior_speech_act':act,
++            'question':not ended,'short_response':short,'ack_yield':short if act in ('invitation','tentative_interest') else None,
++            'independent_episodes':1,'timing_status':'known_source_times' if at is not None else 'unknown_no_reliable_timestamp',
++            'text_features':ll.text_features(texts)}
++        lexical.append(row)
++        if at is not None:
++            episodes.append({**row,'bubble_count':len(rows),'bubble_lengths':[len(t) for t in texts],
++                'gaps_seconds':[timestamp(rows[i]['timestamp'])-timestamp(rows[i-1]['timestamp']) for i in range(1,len(rows))],
++                'grouping_rule':'source_adjacency_and_15s_uncalibrated'})
++    episodes.sort(key=lambda r:(r['at'],r['id']));lexical.sort(key=lambda r:(r['at'] or 0,r['id']));untimed.sort()
++    if out['demonstrations']!=episodes or out['untimed_record_ids']!=untimed or out.get('lexical_demonstrations')!=lexical:
++        ids={r['id'] for r in lexical}
+         archived=[r for r in out.get('annotations',[]) if r['episode_id'] not in ids]
+         if archived:out.setdefault('archived_annotations',[]).extend([{**r,'archive_reason':'episode_resegmented'} for r in archived])
+         out['annotations']=[r for r in out.get('annotations',[]) if r['episode_id'] in ids]
+-        out.update(demonstrations=episodes, untimed_record_ids=untimed, version=out['version']+1, updated_at=now())
++        out.update(demonstrations=episodes,lexical_demonstrations=lexical,untimed_record_ids=untimed,version=out['version']+1,updated_at=now(),evidence_schema='language-evidence/2')
++    out.setdefault('applied_tendencies',[]);out.setdefault('review_history',[])
+     return out
+ 
+ 
+ def ratio(rows, field):
+-    values = [r[field] for r in rows if r.get(field) is not None]
++    unique={r.get('independent_event_id',r.get('id',str(i))):r for i,r in enumerate(rows)}
++    values = [r[field] for r in unique.values() if r.get(field) is not None]
+     if not values: return {'estimate':None,'effective_episodes':0,'support':0,'counterevidence':0,'confidence':None,'source_type':'unknown'}
+     yes = sum(bool(v) for v in values); n = len(values); p = yes/n
+     # Wilson 95% sampling interval; does not measure construct validity.
+@@ -91,7 +128,9 @@
+     p = current or empty(); rows = p['demonstrations']
+     if scope is not None: rows = [r for r in rows if r['scope'] in ('',scope)]
+     if act is not None: rows = [r for r in rows if r['prior_speech_act'] == act]
+-    rows = [{**r,'burst':r['bubble_count']>1} for r in rows]
++    counts=Counter(r.get('independent_event_id',r['id']) for r in rows)
++    # Disconnected pieces declaring one event have unknown rhythm as a whole.
++    rows = [{**r,'burst':r['bubble_count']>1} for r in rows if counts[r.get('independent_event_id',r['id'])]==1]
+     fields = {k:ratio([], '') for k in LABELS}
+     fields.update(response_sufficiency_preference=ratio([r for r in rows if r['prior_speech_act'] not in ('question','unknown')],'short_response'),
+                   question_initiation_propensity=ratio(rows,'question'), yield_after_acknowledgement=ratio(rows,'ack_yield'), burst_propensity=ratio(rows,'burst'))
+@@ -105,9 +144,10 @@
+             'days':len({datetime.datetime.fromtimestamp(r['at'],datetime.timezone.utc).date().isoformat() for r in rows}),
+             'bubble_distribution':dict(Counter(str(r['bubble_count']) for r in rows)),
+             'burst_context_distribution':{a:ratio([r for r in rows if r['prior_speech_act']==a],'burst') for a in sorted({r['prior_speech_act'] for r in rows})},
+-            'untimed_records':len(p['untimed_record_ids']), 'calibrated':False,'neural_head':'not_trained',
++            'untimed_records':sum(len(r['source_event_ids']) for r in p.get('lexical_demonstrations',[]) if r['at'] is None and (scope is None or r['scope'] in ('',scope)) and (act is None or r['prior_speech_act']==act)) if 'lexical_demonstrations' in p else len(p['untimed_record_ids']) if scope is None else 0, 'calibrated':False,'neural_head':'not_trained',
+             'source_event_ids':[v for r in rows[-6:] for v in r['source_event_ids']][:24],
+-            'note':'按独立事件描述示范习惯；抽样区间不表示心理效度。无时间戳记录不用于节奏学习。'}
++            'text_style':ll.text_summary(p,scope,act),'reviewed_tendencies':ll.applied(p,scope,act),
++            'note':'按独立事件描述示范习惯；抽样区间不表示心理效度。无时间戳记录仅用于字词、句式、长度及语境，不推断发送间隔。'}
+ 
+ 
+ def observe(current, turn_id, plan, parts, receipts, status,receipt_states=None):
+@@ -123,15 +163,23 @@
+ 
+ def feedback(current, turn_id, rating, note, corrected_reply=None):
+     out = copy.deepcopy(current or empty())
+-    out['human_feedback'].append({'turn_id':turn_id,'at':now(),'rating':rating,'note':str(note)[:2000],
+-                                  'has_corrected_reply':bool(corrected_reply),'source_type':'independent_owner_feedback'})
++    checksum=hashlib.sha256(dumps([turn_id,rating,str(note)[:2000],corrected_reply]).encode()).hexdigest()
++    if any(r.get('feedback_id')==checksum for r in out['human_feedback']):return out
++    out['version']+=1
++    out['human_feedback'].append({'feedback_id':checksum,'turn_id':turn_id,'at':now(),'rating':rating,'note':str(note)[:2000],
++                                  'has_corrected_reply':bool(corrected_reply),'source_type':'independent_owner_feedback',
++                                  'targets':ll.correction_targets(out,turn_id,corrected_reply),
++                                  'correction_sha256':hashlib.sha256(corrected_reply.encode()).hexdigest() if corrected_reply else None})
+     return out
+ 
+ 
+ def status(current):
+     p = current or empty()
+     return {'profile':summary(p), 'labels':LABELS,'recent':list(reversed(p['observed_ai'][-30:])),
+-            'demonstration_choices':[{k:r[k] for k in ('id','at','scope','prior_speech_act','source_event_ids')} for r in p['demonstrations'][-100:]],
++            'demonstration_choices':[{k:r.get(k) for k in ('id','at','scope','prior_speech_act','source_event_ids','timing_status')} for r in p.get('lexical_demonstrations',p['demonstrations'])[-100:]],
++            'learning_candidates':ll.candidates(p),'review_history':p.get('review_history',[])[-30:],
++            'applied_tendencies':ll.applied(p,None,None),
++            'unusable_feedback':ll.unusable_feedback(p),
+             'observed_ai_episodes':len(p['observed_ai']), 'observed_bubble_distribution':dict(Counter(str(r['actual_bubbles']) for r in p['observed_ai'])),
+             'human_feedback_count':len(p['human_feedback']), 'human_feedback':p['human_feedback'][-20:],
+             'evaluation':{k:None for k in ('unnecessary_followup_rate','premature_commitment_rate','response_sufficiency','conversational_burden','redundant_question_rate','naturalness','persona_consistency')},
+@@ -139,9 +187,11 @@
+ 
+ 
+ def annotate(current,episode_id,field,value,note):
+-    out=copy.deepcopy(current or empty());episode=next((r for r in out['demonstrations'] if r['id']==episode_id),None)
++    out=copy.deepcopy(current or empty());episode=next((r for r in out.get('lexical_demonstrations',out['demonstrations']) if r['id']==episode_id),None)
+     if episode is None or field not in LABELS or number(value) is None:raise ValueError('只能标注有来源的人类示范事件，数值须为 0–1')
++    if field=='burst_propensity' and episode.get('at') is None:raise ValueError('无可靠时间戳的资料不能标注多气泡时序倾向')
+     if not isinstance(note,str) or not note.strip() or len(note)>1000:raise ValueError('请记录标注依据（1–1000 字符）')
++    if any(a['episode_id']==episode_id and a['field']==field and a['value']==value and a['note']==note for a in out.get('annotations',[])):return out
+     row={'episode_id':episode_id,'field':field,'value':value,'note':note,'at':now(),'source_event_ids':episode['source_event_ids'],'source_type':'independent_owner_annotation'}
+     out['annotations']=[r for r in out.get('annotations',[]) if (r['episode_id'],r['field'])!=(episode_id,field)]+[row]
+     out['version']+=1
+@@ -159,12 +209,14 @@
+     for row in p['observed_ai']:
+         if not isinstance(row,dict) or not isinstance(row.get('turn_id'),str) or type(row.get('actual_bubbles')) is not int or not 0<=row['actual_bubbles']<=4 or not isinstance(row.get('plan'),dict): raise ValueError('实际表达记录无效')
+     for row in p['human_feedback']:
+-        if not isinstance(row,dict) or not isinstance(row.get('turn_id'),str) or row.get('rating') not in ('helpful','unhelpful'): raise ValueError('独立语用反馈无效')
++        if not isinstance(row,dict) or not isinstance(row.get('turn_id'),str) or row.get('rating') not in ('helpful','unhelpful','targeted'): raise ValueError('独立语用反馈无效')
+     annotations=p.get('annotations',[])
+     if not isinstance(annotations,list) or len(annotations)>100000:raise ValueError('语用人工标注无效')
+-    ids={r['id'] for r in p['demonstrations']};seen=set()
++    ids={r['id'] for r in p.get('lexical_demonstrations',p['demonstrations'])};seen=set()
+     for row in annotations:
+         if not isinstance(row,dict) or row.get('episode_id') not in ids or row.get('field') not in LABELS or number(row.get('value')) is None or not isinstance(row.get('note'),str):raise ValueError('语用人工标注缺少有效原始事件')
+         key=(row['episode_id'],row['field'])
+         if key in seen:raise ValueError('同一语用事件重复标注')
+         seen.add(key)
++
++    ll.validate(p,LABELS)
+--- a/persona/psychology.py
++++ b/persona/psychology.py
+@@ -60,7 +60,7 @@
+                 scope=x.get('scope',x.get('context_id',''))
+                 if not scope and x.get('group_id'):scope='group:qq:'+str(x['group_id'])
+                 if not isinstance(scope,str) or len(scope)>200:raise ValueError('记录的会话范围无效')
+-                raw.append({'speaker':str(speaker),'text':text,'timestamp':str(x.get('timestamp',x.get('time','')))[:100],
++                raw.append({'speaker':str(speaker),'text':text,'declared_generated':x.get('role') in ('assistant','model','system','tool') or x.get('source') in ('generated','observed_ai','actual_ai_behavior_not_training_truth'),'timestamp':str(x.get('timestamp',x.get('time','')))[:100],
+                             'external_id':str(x.get('id',x.get('message_id','')))[:100],
+                             'scope':scope,'conversation_id':str(x.get('conversation_id',''))[:200],
+                             'event_id':str(x.get('event_id',x.get('source_event_id','')))[:200],'reply_to':str(x.get('reply_to',''))[:100],'thread_id':str(x.get('thread_id',''))[:200]})
+@@ -92,7 +92,7 @@
+         r['context']=prior['text'][:2000] if prior and prior['speaker']!=r['speaker'] else ''
+         if prior:r['context_record_id']=prior['id']
+         seen[r['id']]=r;previous[context_key]=r
+-        r['source']='imported';r['batch_id']=batch;records.append(r)
++        r['source']='generated' if r.pop('declared_generated',False) else 'imported';r['batch_id']=batch;records.append(r)
+     if not records:raise ValueError('没有非空文本消息')
+     return records
+ 
+--- a/persona/server.py
++++ b/persona/server.py
+@@ -554,14 +554,8 @@
+                     if path=='/api/traits/disposition':return self.send(app.engine.edit_disposition(body))
+                     if path=='/api/traits/review':return self.send(app.engine.review_traits(body.get('apply') is True))
+                     return self.send(app.engine.edit_affect_parameters(body))
+-                if path=='/api/pragmatics/annotate':
+-                    app.ensure_idle()
+-                    if body.get('persona_id')!=app.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新后再标注')
+-                    from .pragmatics import annotate
+-                    with app.engine.lock,app.store.lock,app.store.db:
+-                        value=annotate(app.store.meta('pmm_pragmatics'),body.get('episode_id'),body.get('field'),body.get('value'),body.get('note'))
+-                        app.store.setmeta('pmm_pragmatics',value)
+-                    return self.send({'ok':True,'version':value['version']})
++                if path in ('/api/pragmatics/annotate','/api/pragmatics/target','/api/pragmatics/review'):
++                    app.ensure_idle();return self.send(app.engine.language_review(path.rsplit('/',1)[1],body))
+                 if path=='/api/import/preview':
+                     records=parse_records(body['content'],body.get('format','auto'))
+                     speakers={}
+--- /dev/null
++++ b/tests/test_de_gate1.py
+@@ -0,0 +1,79 @@
++"""Gate I: dated/undated human material, independent feedback and reproducible clocks."""
++import copy,json,tempfile,unittest
++from pathlib import Path
++from persona import pragmatics as pg,language_learning as ll,affect as af,traits as tr
++from persona.psychology import parse_records,empty_profile
++from persona.server import Runtime
++from persona.packages import export_continuity,validate_pack
++from fixtures import FixtureProvider
++ROOT=Path(__file__).resolve().parents[1]
++
++def records():
++    rows=[{'id':'q','speaker':'另一人','text':'要不要一起去？','timestamp':1000}]+[{'id':str(i),'speaker':'示范者','text':v,'timestamp':1001+i} for i,v in enumerate(['行啊','我带水','也带伞','门口见'])]
++    rows += [{'id':'u1','speaker':'示范者','text':'我想……还是明天吧。','timestamp':''},{'id':'u2','speaker':'另一人','text':'好'},{'id':'u3','speaker':'示范者','text':'谢谢！'}]
++    return [r for r in parse_records(json.dumps([{**r,'scope':'s','conversation_id':'c'} for r in rows])) if r['speaker']=='示范者']
++
++def observed(p,tid):return pg.observe(p,tid,{'scope':'s','person_id':'p','previous_act':'invitation'},['嗯'],[],'LOCAL_COMMITTED')
++def feedback_pair():
++    p=pg.empty()
++    for i in ('a','b'):
++        p=ll.feedback_target(observed(p,i),i,'yield_after_acknowledgement',.85,'独立评价：接受邀请后就让轮',pg.LABELS)
++    return p
++
++def apply(p,gate=lambda s,p:{'allowed':True,'reasons':[]}):
++    c=ll.candidates(p)[0];return ll.review(p,{'action':'apply','expected_version':p['version'],'candidate_id':c['id'],'evidence_digest':c['evidence_digest'],'note':'检查原始事件与情境'},gate)
++
++def evolve(p=None,data=None,at=1000):
++    p=p or tr.ensure_traits(empty_profile('a'*32,'实验'));data=data or af.empty(p['id'],900)
++    return af.evaluate(data,tr.snapshot(p),{'semantic':{'hostility':.8,'social':.8,'urgency':.5,'agency':.6,'goal_congruence':.2,'certainty':1}},
++        {'id':'in1','text':'这件事让我有些为难。','scope':'s','person':'p','source_event_ids':['source-message']},{'trust':.5},[],at=at)
++
++class Language(unittest.TestCase):
++    def test_two_paths_no_invented_intervals(self):
++        p=pg.rebuild(None,records());pg.validate(p);s=pg.summary(p,'s');t=s['text_style'];self.assertEqual(s['bubble_distribution'],{'4':1});self.assertEqual(p['demonstrations'][0]['gaps_seconds'],[1.,1.,1.]);self.assertEqual(t['untimed_events'],2);self.assertEqual(t['effective_events'],3);self.assertGreater(t['mean_sentence_characters'],0);self.assertGreater(t['ellipsis_rate'],0)
++        for x in p['lexical_demonstrations']:
++            self.assertTrue(x['source_event_ids']);self.assertTrue(x['content_sha256']);self.assertEqual(x['authorization_scope'],'s');self.assertNotIn('gaps_seconds',x)
++    def test_unlinked_dates_not_a_burst_naive_date_untimed(self):
++        self.assertIsNone(pg.timestamp('2026-10-30T22:00:00'));self.assertIsNotNone(pg.timestamp('2026-10-30T22:00:00+08:00'))
++        rs=records()[:2];rs[1].pop('previous_record_id');rs[1].pop('context_record_id');p=pg.rebuild(None,rs);self.assertEqual(pg.summary(p)['bubble_distribution'],{'1':2})
++    def test_source_scope_and_reimport(self):
++        rs=records();p=pg.rebuild(None,rs+[{**rs[0],'id':'generated','source':'generated'},{**rs[1],'id':'denied','language_authorized':False}]);self.assertEqual(pg.rebuild(p,rs+rs),p);self.assertEqual(pg.summary(p,'different')['text_style']['effective_events'],0)
++        self.assertEqual(parse_records('[{"role":"assistant","content":"机器说的话"}]')[0]['source'],'generated')
++    def test_no_owner_evidence_means_no_target(self):
++        p=pg.feedback(observed(pg.empty(),'a'),'a','unhelpful','有点奇怪');self.assertEqual(ll.candidates(p),[]);self.assertTrue(ll.unusable_feedback(p));self.assertFalse(ll.applied(p))
++    def test_review_threshold_and_idempotence(self):
++        p=ll.feedback_target(observed(pg.empty(),'a'),'a','yield_after_acknowledgement',.85,'合成评价',pg.LABELS)
++        same,result=apply(p);self.assertFalse(result['ok']);self.assertEqual(same,p);self.assertIn('insufficient_independent_events',result['reasons'])
++        p=feedback_pair();again=ll.feedback_target(p,'a','yield_after_acknowledgement',.85,'独立评价：接受邀请后就让轮',pg.LABELS);self.assertEqual(again,p)
++        new,r=apply(p);self.assertTrue(r['ok']);self.assertIsNone(r['changed_fields'][0]['before']);self.assertEqual(r['changed_fields'][0]['after'],.85);self.assertEqual(new['version'],p['version']+1);self.assertEqual(len(ll.applied(new,'s','invitation')),1);self.assertFalse(ll.applied(new,'other','invitation'));self.assertEqual(apply(new)[0],new)
++    def test_changed_evidence_or_disabled_policy_blocks_application(self):
++        p,r=apply(feedback_pair());p=ll.feedback_target(p,'a','yield_after_acknowledgement',.1,'反例',pg.LABELS);self.assertFalse(ll.applied(p));self.assertIn('conflicting_evidence_requires_more_review',apply(p)[1]['reasons'])
++        p=feedback_pair();self.assertEqual(apply(p,lambda s,p:{'allowed':False,'reasons':['scope_not_authorized']})[0],p)
++    def test_repeated_label_same_episode_does_not_reach_threshold(self):
++        p=pg.rebuild(None,records());e=p['demonstrations'][0]['id']
++        for i in range(4):p=pg.annotate(p,e,'burst_propensity',1.,'四条是同一事件')
++        self.assertEqual(ll.candidates(p)[0]['effective_events'],1);self.assertFalse(apply(p)[1]['ok']);u=next(r for r in p['lexical_demonstrations'] if r['at'] is None)
++        with self.assertRaises(ValueError):pg.annotate(p,u['id'],'burst_propensity',1.,'不可推断')
++
++class Dynamics(unittest.TestCase):
++    def test_same_event_and_time_reproduce_full_state_and_record(self):
++        p=tr.ensure_traits(empty_profile('a'*32,'实验'));a=af.empty(p['id'],900);one=evolve(p,a);two=evolve(p,a);self.assertEqual(one,two)
++        state,trace=one;again,t=evolve(p,state,1100);self.assertEqual(state,again);self.assertTrue(t['replayed']);self.assertEqual(len(again['appraisals']),1);self.assertEqual(trace['appraisal']['clock']['elapsed_seconds'],100)
++    def test_clock_only_and_rollback_do_not_make_events(self):
++        p=tr.ensure_traits(empty_profile('a'*32,'实验'));a,_=evolve(p);d=af.advance(a,8100);self.assertEqual(d['appraisals'],a['appraisals']);self.assertEqual(d['trajectory'],a['trajectory']);self.assertNotEqual(d['emotion']['arousal'],a['emotion']['arousal']);self.assertEqual(af.advance(a,800)['emotion'],a['emotion'])
++        self.assertNotEqual(d['mood']['valence'],a['mood']['valence']);self.assertEqual(d['emotion']['state_revision'],a['emotion']['state_revision'])
++    def test_condition_sources_and_no_trait_writeback(self):
++        p=tr.ensure_traits(empty_profile('a'*32,'实验'));q=tr.edit_disposition(p,{'feature_id':'hexaco.e.anxiety','estimate':.9,'expected_version':0});saved=copy.deepcopy(q);a,t=evolve(q);b,other=evolve(p);self.assertEqual(q,saved);self.assertNotEqual(t['appraisal']['reactivity']['effective'],other['appraisal']['reactivity']['effective']);src=t['appraisal']['evidence_provenance'];self.assertEqual(src['trait_inputs']['hexaco.e.anxiety']['source_type'],'owner_seed');self.assertTrue(src['trait_inputs']['erq.expressive_suppression']['fallback_used']);self.assertFalse(src['calibrated'])
++    def test_runtime_permissions_independence_and_restart(self):
++        with tempfile.TemporaryDirectory() as d:
++            r=Runtime(d,ROOT)
++            try:
++                ident=r.engine.profile()['id'];before=(r.engine.profile(),r.store.meta('pmm_affect'),r.engine.model.export());p=feedback_pair()
++                with r.store.lock,r.store.db:r.store.setmeta('pmm_pragmatics',p)
++                c=ll.candidates(p)[0];body={'persona_id':ident,'expected_version':p['version'],'candidate_id':c['id'],'evidence_digest':c['evidence_digest'],'action':'apply','note':'检查来源'}
++                self.assertTrue(r.engine.language_review('review',body)['ok']);self.assertEqual(before,(r.engine.profile(),r.store.meta('pmm_affect'),r.engine.model.export()));validate_pack(export_continuity(r.engine))
++                with self.assertRaises(ValueError):r.engine.language_review('review',body)
++            finally:r.close()
++            r=Runtime(d,ROOT)
++            try:self.assertEqual(ll.applied(r.store.meta('pmm_pragmatics'))[0]['estimate'],.85)
++            finally:r.close()
+--- a/tests/test_ui_v250.js
++++ b/tests/test_ui_v250.js
+@@ -22,7 +22,7 @@
+  const app=await server(),c=client(app.base);let checks=0,ui;const ok=t=>console.log('PASS '+(++checks)+' '+t);
+  try{
+   const html=await(await c.fetch('/')).text(),build=html.match(/name="app-build" content="([^\"]+)"/)[1],source=await(await c.fetch('/app.js')).text();ui=harness(app.nodes,source,c.fetch,build);await ui.boot;ui.run('globalThis.window=globalThis;confirm=()=>true');
+-  assert(ui.run('uiReady'));assert.equal(ui.run('state.version'),'2.5.1');ok('2.5 页面与后端版本一致');
++  assert(ui.run('uiReady'));assert.equal(ui.run('state.version'),'2.6');ok('2.5 页面与后端版本一致');
+   for(const [p,main] of [['profiles','profiles'],['otherPage','profiles'],['learningPage','distill'],['graphPage','profiles']]){ui.run(`showPage('${p}')`);assert(ui.ids.get(main).classList.contains('active'));if(p!==main)assert(!ui.ids.get(p).hidden);}ok('旧入口迁移到人物和蒸馏子页，数据功能保持可用');
+   assert.equal(ui.run('Object.keys(state.emotion_catalog.labels).length'),24);assert.equal((ui.ids.get('emotionLabels').innerHTML.match(/<summary>/g)||[]).length,24);assert(ui.ids.get('emotionTop').innerHTML.includes('未知'));ok('24 类情绪及未知态可见');
+   assert.equal((ui.ids.get('currentAffect').innerHTML.match(/role="meter"/g)||[]).length,3);assert.equal((ui.ids.get('affectAuxiliary').innerHTML.match(/role="meter"/g)||[]).length,2);ok('VA/D 与压力参与分区');
+--- a/tests/test_ui_v251.js
++++ b/tests/test_ui_v251.js
+@@ -22,7 +22,7 @@
+  const app=await server(),c=client(app.base);let ui,checks=0;const ok=t=>console.log('PASS '+(++checks)+' '+t);
+  try{
+   const html=await(await c.fetch('/')).text(),build=html.match(/name="app-build" content="([^\"]+)"/)[1],source=await(await c.fetch('/app.js')).text();ui=harness(app.nodes,source,c.fetch,build);await ui.boot;
+-  assert(ui.run('uiReady'));assert.equal(ui.run('state.version'),'2.5.1');assert(!ui.ids.get('localStatus').textContent.includes('失败'));ok('2.5.1 实际 HTTP 启动，全部初始区域渲染成功');
++  assert(ui.run('uiReady'));assert.equal(ui.run('state.version'),'2.6');assert(!ui.ids.get('localStatus').textContent.includes('失败'));ok('2.6 实际 HTTP 启动，全部初始区域渲染成功');
+   const nav=ui.all.filter(n=>n.dataset.view&&n.closest('nav'));assert.deepEqual(nav.map(n=>n.dataset.view),['chat','profiles','affectPage','expressionPage','memory','distill','connections','qqPage','diagnostics','research']);assert.equal(ui.all.filter(n=>n.classList.contains('page')).length,10);ok('恰好十个指定一级入口，只有十个页面容器');
+   for(const n of nav){await ui.event(n);assert.equal(ui.run('page'),n.dataset.view);assert.equal(ui.all.filter(n=>n.classList.contains('page')&&n.classList.contains('active')).length,1);}
+   for(const tab of ui.all.filter(n=>n.attrs.role==='tab')){const p=tab.closest('.page');ui.run(`showPage('${p.id}')`);await ui.event(tab);assert(!ui.ids.get(tab.dataset.tab).hidden);assert.equal(tab.attrs['aria-selected'],'true');assert.equal(p.querySelectorAll('[role="tabpanel"]').filter(n=>!n.hidden).length,1);}
+@@ -45,7 +45,7 @@
+   const archive=await c.fetch('/api/export/legacy-media');assert.equal(archive.status,200);assert.equal(archive.headers.get('content-type'),'application/zip');assert((await archive.arrayBuffer()).byteLength>100);ok('历史图片原文件可从数据与版本独立导出');
+   assert(ui.ids.get('affectAppraisals').innerHTML.includes('事件评价'));assert(ui.ids.get('affectRegulations').innerHTML.includes('情绪调节'));assert.equal(ui.ids.get('actualExpression').closest('.page').id,'expressionPage');ok('情绪事件与调节保留原始记录，表达主视图集中到语言习惯');
+   assert(!c.requests.some(r=>/\/api\/media/.test(r.path)&&r.status<400));assert(!c.requests.some(r=>r.status>=500));ok('遍历所有入口没有图库成功请求或服务端 500');
+-  console.log(`${checks} v2.5.1 HTTP and structural DOM scenarios passed; rendered browser separately reported.`);
++  console.log(`${checks} v2.6 HTTP and structural DOM scenarios passed; rendered browser separately reported.`);
+  }finally{if(ui)ui.run('stopAffectPolling()');await app.close();}
+ }
+ main().catch(e=>{console.error(e);process.exitCode=1});
+--- /dev/null
++++ b/tests/upgrade_de_v26.py
+@@ -0,0 +1,45 @@
++"""Run archived 2.5.1 itself; check trained subjects, old exports and restored state."""
++import argparse,json,os,subprocess,sys,tempfile
++from pathlib import Path
++ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
++from upgrade_trait_affect_v230 import OLD_SCRIPT,metadata
++from persona.server import Runtime
++from persona.packages import validate_pack,export_continuity
++from persona.registry import digest
++from persona.common import VERSION
++
++def main():
++    parser=argparse.ArgumentParser();parser.add_argument('--old-root',type=Path,required=True);args=parser.parse_args()
++    script=OLD_SCRIPT.replace("assert VERSION in ('2.2.1','2.2.2','2.2.3')","assert VERSION=='2.5.1'")
++    seed="""        from persona import pragmatics as pg
++        pg_old=pg.rebuild(st.meta('pmm_pragmatics'),profile['source_records'])
++        pg_old=pg.annotate(pg_old,pg_old['demonstrations'][0]['id'],'topic_progression_tendency',.4,'旧版人工标注')
++        with st.lock,st.db:st.setmeta('pmm_pragmatics',pg_old)
++"""
++    script=script.replace('        snapshots[ident]=r.snapshot();',seed+'        snapshots[ident]=r.snapshot();')
++    with tempfile.TemporaryDirectory(prefix='huai-an-de-upgrade-') as tmp:
++        base=Path(tmp);data=base/'训练旧主体';original=base/'expected.json';checks=[]
++        subprocess.run([sys.executable,'-c',script,str(args.old_root.resolve()),str(data),str(original)],check=True,env={**os.environ,'OPENBLAS_NUM_THREADS':'1'})
++        before=json.loads(original.read_text());r=Runtime(data,ROOT);after={}
++        try:
++            assert r.config.get()==before['config'] and r.subjects.catalog==before['catalog'];assert Path(r.upgrade['backup']).exists()
++            for ident,snap in before['snapshots'].items():
++                st,_,e,_=r.context(ident);new=st.snapshot();om=metadata(snap);nm=metadata(new)
++                for table in ('sessions','messages','memories','relations'):assert new['tables'][table]==snap['tables'][table],table
++                for key,value in om.items():
++                    if key!='pmm_pragmatics':assert nm[key]==value,key
++                old=om['pmm_pragmatics'];p=nm['pmm_pragmatics'];assert old['annotations']==p['annotations'];assert old['observed_ai']==p['observed_ai'];assert old['human_feedback']==p['human_feedback'];assert p['lexical_demonstrations'][0]['source_event_ids']==old['demonstrations'][0]['source_event_ids'];assert p['version']==old['version']+1
++                assert e.model.export()==om['pmm_checkpoint'];model=e.model.fork();e.ingest_samples(model,st.meta('pmm_training_records'));model.fit(2);assert model.steps>e.model.steps;assert {'old-trained-style','old-pending'}.issubset({s['id'] for s in model.samples});validate_pack(export_continuity(e))
++                checks.append({'checkpoint_sha256':digest(om['pmm_checkpoint']),'steps_before':e.model.steps,'steps_after':model.steps,'examples':len(om['pmm_profile']['examples']),'memories':len(new['tables']['memories']),'old_language_version':old['version'],'new_language_version':p['version']});after[ident]=p
++        finally:r.close()
++        r=Runtime(data,ROOT)
++        try:
++            assert r.upgrade['kind']=='existing'
++            for ident,p in after.items():assert r.context(ident)[0].meta('pmm_pragmatics')==p
++        finally:r.close()
++        fresh=Runtime(base/'fresh',ROOT)
++        try:
++            ident=before['active'];snap=before['snapshots'][ident];fresh.create_persona({'name':'旧包迁移','package':before['packs'][ident]});assert fresh.engine.model.export()==metadata(snap)['pmm_checkpoint'];assert fresh.store.meta('pmm_pragmatics')['annotations']==after[ident]['annotations'];fresh.restore(snap);assert fresh.engine.model.export()==metadata(snap)['pmm_checkpoint'];assert fresh.store.meta('pmm_profile')==metadata(snap)['pmm_profile'];assert len(fresh.store.rows('SELECT * FROM messages'))==4
++        finally:fresh.close()
++        print(json.dumps({'from':'2.5.1','to':VERSION,'old_runtime_executed':True,'subjects':2,'tables_config_weights_original_samples_unchanged':True,'old_package_import':True,'old_snapshot_restore':True,'restart_idempotent':True,'continued_training':True,'language_annotation_evidence_preserved':True,'production_database':False,'checks':checks},ensure_ascii=False,indent=2))
++if __name__=='__main__':main()
+--- a/web/app.js
++++ b/web/app.js
+@@ -4,7 +4,7 @@
+ const actionNames={reply:'回答',unknown:'不知道',clarify:'澄清',disagree:'异议',decline:'拒绝',silence:'沉默'};
+ const titles={chat:['对话记录','对话'],profiles:['人物与证据','人物'],affectPage:['当前状态','情绪'],expressionPage:['示范与实际表现','语言习惯'],memory:['事件与来源','记忆'],distill:['来源与学习任务','蒸馏'],connections:['General LLM / PMM','模型设置'],qqPage:['连接与消息处理','QQ 设置'],diagnostics:['运行与执行记录','后台诊断记录'],research:['参数与数据管理','数据与版本']};
+ let state=null,sessionId='',page='chat',busy=false,events=[],memories=[],messages=[],feedbackTurn='',importParsed=false,versions={weights:[],cores:[]},personaRevisions=[];
+-const APP_VERSION='2.5.1';
++const APP_VERSION='2.6';
+ let csrfToken='',connectionPromise=null,uiReady=false,refreshSerial=0,panelFailures={},historyMore=false;
+ function requestError(message,path,status=0,code='NETWORK_ERROR',id='',method='GET'){
+  const e=new Error(`${message} [${method} ${path} · ${status||'网络'} · ${code}${id?' · '+id:''}]`);
+--- a/web/index.html
++++ b/web/index.html
+@@ -6,11 +6,11 @@
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>槐安梦客 · 人格对话</title>
+ <link rel="icon" href="/favicon.svg">
+-<link rel="stylesheet" href="/style.css?v=2.5.1">
++<link rel="stylesheet" href="/style.css?v=2.6">
+ </head>
+ <body>
+ <div class="app">
+-<aside class="sidebar"><a class="brand" href="/">◒ <span>槐安梦客<small>HUAIAN DREAMER · 2.5.1</small></span></a><div class="persona-picker">
++<aside class="sidebar"><a class="brand" href="/">◒ <span>槐安梦客<small>HUAIAN DREAMER · 2.6</small></span></a><div class="persona-picker">
+ <label for="personaSelect">当前主体</label><select id="personaSelect" aria-label="切换人格"></select><div class="row">
+ <button id="newPersona" class="quiet" type="button">＋ 创建人格</button><button id="importPack" class="quiet" type="button">载入人格包</button>
+ </div>
+@@ -802,7 +802,7 @@
+ <label for="traitSeedField">特质、价值或习惯</label><select id="traitSeedField"></select><label for="traitSeedValue">主人设定值（0–1；留空恢复未知）</label><input id="traitSeedValue" type="number" min="0" max="1" step="0.01"><label for="traitSeedNote">设定说明</label><textarea id="traitSeedNote" rows="3" maxlength="1000"></textarea><p class="fine">保存为 owner_seed，不是正式量表得分。PANAS 表示“总体上/通常”，不写入此刻情绪。保存后下一轮生效，不重置记忆或训练权重。</p>
+ <button class="primary" type="submit">保存长期设定</button>
+ </form></dialog>
+-<script defer src="/app.js?v=2.5.1"></script>
++<script defer src="/app.js?v=2.6"></script>
+ </body>
+ </html>
+ 

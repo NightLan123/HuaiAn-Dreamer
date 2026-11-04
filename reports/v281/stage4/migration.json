@@ -1,0 +1,31 @@
+{
+  "from": "2.8",
+  "to": "2.8.1",
+  "verified_archive": "7d93a26b4d2bfc58cb4bd7e19306c126128f86f17e3f48256fd67b2e6febbdee",
+  "synthetic_databases": 2,
+  "real_user_database_used": false,
+  "old_and_new_persona_packs_imported": true,
+  "automatic_backup_hashes_verified": true,
+  "actual_archived_rollback_read": true,
+  "restart_and_duplicate_input": true,
+  "subjects": [
+    {
+      "subject": "d7e4deef95c344d7a454a64401527afb",
+      "old_weight_sha256": "0521d794a90ee30e1f4bdd8d7cf6f734c834e1ae6d1bef0888a793355f700d1a",
+      "old_weight_steps": 3,
+      "continued_steps_on_fork": 5,
+      "legacy_2_8_neural_versions": 2,
+      "old_metadata_keys_exact": 21,
+      "old_examples": 1
+    },
+    {
+      "subject": "fd034cdb994e4e60b72403fde3e2fed1",
+      "old_weight_sha256": "5244ae4653f1a65680e5a243bbb5ff4ecbce5f5c76acc19c55e41e18b8b90737",
+      "old_weight_steps": 3,
+      "continued_steps_on_fork": 5,
+      "legacy_2_8_neural_versions": 2,
+      "old_metadata_keys_exact": 20,
+      "old_examples": 1
+    }
+  ]
+}

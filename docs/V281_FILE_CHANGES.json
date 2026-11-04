@@ -1,0 +1,286 @@
+{
+  "baseline": "2.8",
+  "version": "2.8.1",
+  "changes": [
+    {
+      "path": "README.md",
+      "change": "modified",
+      "sha256": "82ba58d787b24537fb82550705d592dcf81d03a886b268e9176219f182614758"
+    },
+    {
+      "path": "RELEASE.json",
+      "change": "modified",
+      "sha256": "c2ace82ab4e1f08aea7eb89a301b2f1e1749cf2dd2ea3af81d7cb2735b5a7981"
+    },
+    {
+      "path": "docs/V281_ACCEPTANCE.md",
+      "change": "added",
+      "sha256": "507ec7d0ad8284b1964ea352e6e539807eb6259e701a304c93a1203241d243b6"
+    },
+    {
+      "path": "docs/V281_DUAL_API.md",
+      "change": "added",
+      "sha256": "4f574ae5efcdf76de1209c6bf171e5cf1e0740eee023996e2e177cb1ca576809"
+    },
+    {
+      "path": "docs/V281_EMOTION_CONTRACT.md",
+      "change": "added",
+      "sha256": "1a07487cd19876831c0f0d4e8ae607a0727ffcc82734ecd7dd28e51f8e43b4a0"
+    },
+    {
+      "path": "docs/V281_EMOTION_MATH_MAP.md",
+      "change": "added",
+      "sha256": "64bf290f7c62307deb6dcdbff17ac033d87d35bd601007861eb7951e053786f9"
+    },
+    {
+      "path": "docs/V281_LIMITS.md",
+      "change": "added",
+      "sha256": "a1330965229d219023c66c2b2eb53cc969e1abe7ed058acc38df7a4fb4093980"
+    },
+    {
+      "path": "docs/V281_MATH_EXPERIMENTS.md",
+      "change": "added",
+      "sha256": "3724e4b1a4cfea7a0005a010ff3b89b99f0a65d51dc7c8c9b403626f4b664f4a"
+    },
+    {
+      "path": "docs/V281_MIGRATION.md",
+      "change": "added",
+      "sha256": "2cf23459bf6412d34d9fd223a98e9cc7e1fc317ae2bd79390b07d49dfc090ce5"
+    },
+    {
+      "path": "docs/V281_SPEC.md",
+      "change": "added",
+      "sha256": "97aa0239a027d71dee00e4af73e39ad853cc7f0340e599e72fc8133f4d441c90"
+    },
+    {
+      "path": "persona/affect_dynamics_v2.py",
+      "change": "added",
+      "sha256": "36832cbb5903731f7e69a711e5cdd1dd37e5dcab70821d7c9e369e0b75413ba9"
+    },
+    {
+      "path": "persona/affect_learning.py",
+      "change": "added",
+      "sha256": "0dc0fa3e719436eb075c2f7d6ccf09c1c3d13d3599de286bd04ba5e22119e248"
+    },
+    {
+      "path": "persona/affect_regulation.py",
+      "change": "added",
+      "sha256": "4b5e8b2ecdb981793f56a835a266d30ec7168a04d39cf3b5229f2d990ce6bb31"
+    },
+    {
+      "path": "persona/affect_response.py",
+      "change": "added",
+      "sha256": "88e371e338bf4b3a38a8e45fb3f061c164a20e68bc9e9f805dbd700e974e57ed"
+    },
+    {
+      "path": "persona/affect_runtime.py",
+      "change": "added",
+      "sha256": "a4ebbe2d471d6028b29d12147f6a5ffdf3cfc21973defb0a3fd5f7042432eda0"
+    },
+    {
+      "path": "persona/affect_training.py",
+      "change": "added",
+      "sha256": "f3e6eb8d5e4ceb689bb1e461a9d2eaf549c74638f52d424e94341274cf7738eb"
+    },
+    {
+      "path": "persona/capabilities.py",
+      "change": "modified",
+      "sha256": "d4d1174a3a31ca837e55b07b4810a556cde6918e915072ae9244f6c8f0d85da9"
+    },
+    {
+      "path": "persona/cognition.py",
+      "change": "modified",
+      "sha256": "4840a3619f01bf55829b5b4687c9cb0bdc930b513de634d185b8d37cae76490f"
+    },
+    {
+      "path": "persona/common.py",
+      "change": "modified",
+      "sha256": "281a21222034f31f7b228dfe3802b3898c26bc2f957077a3030014fba173361c"
+    },
+    {
+      "path": "persona/data_guard.py",
+      "change": "modified",
+      "sha256": "ebea8ebea1c6723f54ef215b978ccbf9c013bc6a04eef780d58d5486278349cd"
+    },
+    {
+      "path": "persona/engine.py",
+      "change": "modified",
+      "sha256": "8507be12d5781370650c33860e094c32bc2b4761e03692e1ab82fa60d44eb77a"
+    },
+    {
+      "path": "persona/packages.py",
+      "change": "modified",
+      "sha256": "4c03312e9330482c13251c7834a9595fda6690c0283b84b646b2d5e2b15d08d7"
+    },
+    {
+      "path": "persona/pmm_connections.py",
+      "change": "added",
+      "sha256": "62d2ae0ee1754d2f27a681b9671763334910a70d69dddea92a7a437ce3319b15"
+    },
+    {
+      "path": "persona/pmm_coordinator.py",
+      "change": "modified",
+      "sha256": "f3070d64cae3d518f29bd860bf777db3736718387ca86ad2008a74f81f3d3931"
+    },
+    {
+      "path": "persona/pmm_event_reasoner.py",
+      "change": "added",
+      "sha256": "49e581730875fbc51ae7fc4cf59e6543efc67fddb49ab247bf4eb4cdec51c586"
+    },
+    {
+      "path": "persona/pmm_experiments.py",
+      "change": "modified",
+      "sha256": "39ff39bf3cc58d9746b1af7fb41cec2e1a1a63c4b07b10b3c110f2c0fd48cc17"
+    },
+    {
+      "path": "persona/pmm_negotiator.py",
+      "change": "added",
+      "sha256": "55ffdde2d2072958b0f252154eb1cb44439b95157a0ef8815a0f294f64bdc2f8"
+    },
+    {
+      "path": "persona/pmm_workspace.py",
+      "change": "added",
+      "sha256": "52ac7ceeb18e9bc05b0220142ba1f53dccb20527370308b796f4a2b2c43a80ca"
+    },
+    {
+      "path": "persona/server.py",
+      "change": "modified",
+      "sha256": "d21ff65388343fea62fc48838610cdd1c2c816b1c10fc1df39dc630fe365de86"
+    },
+    {
+      "path": "persona/storage.py",
+      "change": "modified",
+      "sha256": "6e8e145ceb42d44a7763c0974336987c96c093a6df1b9604c2d5cc41e9c63c61"
+    },
+    {
+      "path": "persona/trait_dynamics.py",
+      "change": "modified",
+      "sha256": "ab8d7e42d81ecef39ed01d2bb1ceb618ce7ce51acd989a2359b7ffa1973693fc"
+    },
+    {
+      "path": "persona/turn_taking.py",
+      "change": "modified",
+      "sha256": "96ed67cb48f160698f1344a1ba1948fc40450e15138c48b46f9d166d0f8c2dd5"
+    },
+    {
+      "path": "scripts/evaluate_affect_v281.py",
+      "change": "added",
+      "sha256": "6a100a1d3cd38cf9e22b54b19d397b9a942feae3934bbb51649849b24a8d3d0b"
+    },
+    {
+      "path": "scripts/export_sources.py",
+      "change": "modified",
+      "sha256": "73743db2c96a78f6d51e4b75b863ebc1e98a409f8057b9ffc12f7f32d0b0f958"
+    },
+    {
+      "path": "scripts/train_affect_v281.py",
+      "change": "added",
+      "sha256": "941b3eaed89c4ace664436e933ef5cf1cc435c9f825e57f4002f96768f167e60"
+    },
+    {
+      "path": "tests/browser_v281.py",
+      "change": "added",
+      "sha256": "42e9b8ccff46d280658b1f1d4feb3f3a50e524197eebf7d395de1b6b4d6e84a1"
+    },
+    {
+      "path": "tests/capture_v281_transport.py",
+      "change": "added",
+      "sha256": "729142ad978d353bf9f28bea783888d687a349903213f3cd18c6a2d2b9368e75"
+    },
+    {
+      "path": "tests/run_ui_v281.py",
+      "change": "added",
+      "sha256": "c8d6c1782fa3ea1334c4fe81505d030ecc51f0cbfa58ec790efd20cceea8289e"
+    },
+    {
+      "path": "tests/run_v281_regression.py",
+      "change": "added",
+      "sha256": "55b8c84007478c8fa01d05eac938a52bd3ec567bd200832eae4f37f5e7ac5ae5"
+    },
+    {
+      "path": "tests/test_transport.py",
+      "change": "modified",
+      "sha256": "0d3568808fc6aad4e3bd563216111d29647b8e76987d48899495ca8f3ba4b4f6"
+    },
+    {
+      "path": "tests/test_ui_v220.js",
+      "change": "modified",
+      "sha256": "828734d0839da437efbf57f60c4f78fd76c7f0eafc6a99747ea92b00aa5af4be"
+    },
+    {
+      "path": "tests/test_ui_v250.js",
+      "change": "modified",
+      "sha256": "ad51bb5b6d9a0be92a1aaa67ad2809eb4b9ef9307695cb78348634b7a713fc0d"
+    },
+    {
+      "path": "tests/test_ui_v251.js",
+      "change": "modified",
+      "sha256": "16b690968ebc97ac0cdf817228f83429a3d52e584beccd37b6dc356d7c588781"
+    },
+    {
+      "path": "tests/test_ui_v26.js",
+      "change": "modified",
+      "sha256": "92e6a1387aa2c726ad724faf3ef00aa61951f7779bced726b87d7137397eb72a"
+    },
+    {
+      "path": "tests/test_ui_v27.js",
+      "change": "modified",
+      "sha256": "3956f9e0479adb3cbad12a2e2a466c0b017d67a7a89533ff60759a723a753bb7"
+    },
+    {
+      "path": "tests/test_ui_v28.js",
+      "change": "modified",
+      "sha256": "542fb7e0c87029fa6a7fcbe68d942626147601b42e986b7d1b66f6719b7d4ed6"
+    },
+    {
+      "path": "tests/test_v281_affect.py",
+      "change": "added",
+      "sha256": "907bf504f652e7356d9a50c8a2572bdea354f56dbf52bc9f674e13aa62b2dbc7"
+    },
+    {
+      "path": "tests/test_v281_connections.py",
+      "change": "added",
+      "sha256": "065b42d44b5053da0c18b1c7b184c6e1e464555255ec2b1a7e57f330bdb5dbe0"
+    },
+    {
+      "path": "tests/test_v281_regression.py",
+      "change": "added",
+      "sha256": "02b93153a33aa73ba8571cf5e545a36770c03049170b3fbd8744352ba6936fd7"
+    },
+    {
+      "path": "tests/test_v281_runtime.py",
+      "change": "added",
+      "sha256": "7ac5de4796530b7ff0d1369d1680021bfa1b0f9208085f67f353bb4f0e6ec8a5"
+    },
+    {
+      "path": "tests/ui_server_v222.py",
+      "change": "modified",
+      "sha256": "4763d6886ae14b7c79ea842c4b4b926484638c075d435c790958f6514d2f112a"
+    },
+    {
+      "path": "tests/ui_server_v281.py",
+      "change": "added",
+      "sha256": "b278c88fc934b90deb7b0ff865ed9082f42b2b294ee63741d9b53fc19f9a682b"
+    },
+    {
+      "path": "tests/upgrade_v281.py",
+      "change": "added",
+      "sha256": "0874c6fdfef9773489e1f901ab11da84dc37d2346d56f08672b983219de6b0d6"
+    },
+    {
+      "path": "web/app.js",
+      "change": "modified",
+      "sha256": "ecfccb595b3bc06c5b0459c4174194b53cf61ed014c13795455f42006edd21d9"
+    },
+    {
+      "path": "web/index.html",
+      "change": "modified",
+      "sha256": "4cd99b7f49ec89153280bd27c49e535841091982e2a00f0bd8337886f08dadd9"
+    },
+    {
+      "path": "web/style.css",
+      "change": "modified",
+      "sha256": "3ad7836f6cbec6fa0728ffd2af5817ab391e3b637ecb16d14e0a349fdaf23937"
+    }
+  ]
+}

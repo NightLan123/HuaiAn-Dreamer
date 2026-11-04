@@ -1,0 +1,210 @@
+{
+  "baseline": "2.5.0",
+  "changed_backend_files": [
+    {
+      "path": "persona/api_pmm.py",
+      "sha256": "8035c29c301fbd65ca09797c469c3bcdb7c42ec52978cb5cf8eedc46ffb2f088",
+      "baseline_sha256": "6dba3661501e5e594c69cb0ae988ba46031f482b3530e3f5c3abffb025f88d7e"
+    },
+    {
+      "path": "persona/common.py",
+      "sha256": "050b914c57bfc415078326ce9f6338b4b288b730b2d31b1e6a9632961e04ede0",
+      "baseline_sha256": "9e9c1318646f6d92a3a5505bdc86c74456a53b0b9ef2f6cf4d09b950e5f4ee6c"
+    },
+    {
+      "path": "persona/engine.py",
+      "sha256": "c08947467c42dc62bb0ba33d168b6118a06b02716a6c2c64e96da66dd6001452",
+      "baseline_sha256": "3a1a513c8ca353dffa051bb56b9280d7e0cbde4f46301d0b19652bbd2fbbff4d"
+    },
+    {
+      "path": "persona/media.py",
+      "sha256": "f3e4e2acf58656c404a6e86b9066de2f1226cbc6123f8c2df06636c010627cf6",
+      "baseline_sha256": "ce8dd5cb6e91c61d689d179a121f4df50bf5d903d9bb692b8925d231c619ba14"
+    },
+    {
+      "path": "persona/qq.py",
+      "sha256": "37f451367e8ea859ee198463acc5ede840a7bbcdbb8a38ca05c62de45cd4aa20",
+      "baseline_sha256": "7a8e7b1676c75cdd48a3a59f911b3c1c13f5af602232319df8fdef9e9cd3d189"
+    },
+    {
+      "path": "persona/server.py",
+      "sha256": "d004811de8f9d76f06f648a65e8b15df8b95e653de663dc2790cdd42b75e7720",
+      "baseline_sha256": "38eefb5007f9d289f915ab5a4531cccbe3251f533d4eb321e57253809e61981b"
+    }
+  ],
+  "unchanged_backend_files": [
+    {
+      "path": "persona/__init__.py",
+      "sha256": "fe49d4217519ce61c2f2e19235fae161f83285ed284b53d8b95d796019efea89"
+    },
+    {
+      "path": "persona/affect.py",
+      "sha256": "96e5e72673879f3db6c5e6f29d005fe7c2d9caea284de3143561ac4ea5c211de"
+    },
+    {
+      "path": "persona/boundaries.py",
+      "sha256": "f4d1e2d473aea0fb836ca1ca8d5823a81887f8f6a9c8059b8405278fd19a1a04"
+    },
+    {
+      "path": "persona/capabilities.py",
+      "sha256": "664aaa20b35e8d8482f207704aae517e375e4fb68bcc5dfc2e7a81e2b736b755"
+    },
+    {
+      "path": "persona/cognition.py",
+      "sha256": "a6daf1e1359b744b7dad14d56cdc095a99b079b7d58d64b34dc16381fd4b9369"
+    },
+    {
+      "path": "persona/connections.py",
+      "sha256": "d12af4089ae063c9cb95903ff2b65cc54b3912eb84fc12b08ecfc79ae9eb205c"
+    },
+    {
+      "path": "persona/consolidation.py",
+      "sha256": "6c73e73de246f544c81d291c9a1d6857f89ead537139780a9201ce1fa44cffa5"
+    },
+    {
+      "path": "persona/construct_registry.json",
+      "sha256": "9b2d13e1f527c458cd08822f09f06237a0d08e1278637e410d7a1e80e1cefe81"
+    },
+    {
+      "path": "persona/data_guard.py",
+      "sha256": "0eed4cba57c52fff84db2a94a95b97dc4e5b0c3d951666d5572547e6ee0a0b1d"
+    },
+    {
+      "path": "persona/deliberation.py",
+      "sha256": "41529bfddf3686e8cf5b2380c8b93dae1254a13ac17ce18c92cbddaaa165db57"
+    },
+    {
+      "path": "persona/diagnostics.py",
+      "sha256": "abdf548ccfb2ada6fb065767dd2fbebba661095293fae3db88054d361d2fd9d1"
+    },
+    {
+      "path": "persona/erasure.py",
+      "sha256": "35344cea795e8887540674ec6ea05f4171f0b833e6652cae8b2a37632597e0bf"
+    },
+    {
+      "path": "persona/execution.py",
+      "sha256": "5f0003cf0b365151dd65a293d33ad71bd76f769c633c93beefd70d002c29c44d"
+    },
+    {
+      "path": "persona/expression_plan.py",
+      "sha256": "c6182acdfed7092853b68d7aff8359fe6f31a69732bc1b4246f4dbc47e3f6d6e"
+    },
+    {
+      "path": "persona/group_attention.py",
+      "sha256": "2ff810ec99d5a4d4d3f60591824a0419b7feaca4f80b23b098b1d4f52e0e46a6"
+    },
+    {
+      "path": "persona/learned_pmm.py",
+      "sha256": "da1b9890e0b9d6d3f88b3a8c1aa2f24a4924a4c9d58a840042983f4bdfbbad9e"
+    },
+    {
+      "path": "persona/learning.py",
+      "sha256": "761c5fefe8ab000ef514a889093e68d213ae281d917113e25ed9248c0046be7b"
+    },
+    {
+      "path": "persona/lock.py",
+      "sha256": "9caab224e9a8e8471da00941ce86ff90ab3da6f233524fbc263f468c32ccfa0d"
+    },
+    {
+      "path": "persona/memory_lifecycle.py",
+      "sha256": "5a28ae7c1fd74e1898ffd3eb3887380f63ee5bf0134d9ce9d8682ba833811be9"
+    },
+    {
+      "path": "persona/memory_ops.py",
+      "sha256": "993a6b12e84c631f36a3617c0b4d42f6be595834d46f1ae2b195988f7ad1c25d"
+    },
+    {
+      "path": "persona/packages.py",
+      "sha256": "1551fe1d7a2b9d47f652dfd694736205eb2d83141694f7f2b7ffb51e30228a91"
+    },
+    {
+      "path": "persona/pmm.py",
+      "sha256": "4ef2ab7c98e64379db90045768edea4d653b064baf030f53c9f5594c169601c8"
+    },
+    {
+      "path": "persona/pmm_interface.py",
+      "sha256": "dcce38cd9769b39e326b7e1e5191f16072a87fb4360de9edac6c95d1da1b028a"
+    },
+    {
+      "path": "persona/pmm_service.py",
+      "sha256": "348ac94977647fe2cdec3d6ea35a7103bd008f35621628e1bee8be6285d52e69"
+    },
+    {
+      "path": "persona/policy.py",
+      "sha256": "f4a3944bb988aa8d7c907bd3fce64a42616fcaeafe82c30aa03026f1fa543977"
+    },
+    {
+      "path": "persona/pragmatics.py",
+      "sha256": "30df2be77884383cbe92cb108f9ff87fe72e9f530bd7a688569b80d223bc5a31"
+    },
+    {
+      "path": "persona/presets.py",
+      "sha256": "d00094b43203d96bb2d7e603602373c1e6e1a85ff0292036830a2d103618d2d4"
+    },
+    {
+      "path": "persona/provider.py",
+      "sha256": "112624c4283e5b19637286fc9b4cd2cb39095085a82a2fcc63ecd55893a8b56d"
+    },
+    {
+      "path": "persona/psychology.py",
+      "sha256": "e4bc0fd38594add02f7098a9338222403ac02a3d229e7fbae1afe1a3a8f3478e"
+    },
+    {
+      "path": "persona/registry.py",
+      "sha256": "4dba3c1ce8bc372008c8b3301b590d505e57fec0487ffb5ea50f11aa1f8466e5"
+    },
+    {
+      "path": "persona/registry_pmm.py",
+      "sha256": "40d0bb560fbb7c5776f00aa85de07c3e80818b58755c7868a1db89a7f8a5f700"
+    },
+    {
+      "path": "persona/relationships.py",
+      "sha256": "57810642270c54842b9d0b8a08a7416d8ee1e4c6a928e08b1a65531a2115654a"
+    },
+    {
+      "path": "persona/social.py",
+      "sha256": "2cbf2995007d2b250ec685f1f1bd31ec075ebc8f523718360f851775c673cd25"
+    },
+    {
+      "path": "persona/social_graph.py",
+      "sha256": "c8d16dd7807fbe40511fb07c6d9ab34aadd0d95415c7b5d38745886b6c654073"
+    },
+    {
+      "path": "persona/storage.py",
+      "sha256": "af3fcff14217ccf9a6169a04fae253c4471dd4349b7ce3c634f98f5f4e9c1d6b"
+    },
+    {
+      "path": "persona/subjects.py",
+      "sha256": "e4c58ce64226eead274c3078d9c01365a407b339d196191363ba9e390cad537a"
+    },
+    {
+      "path": "persona/support.py",
+      "sha256": "bdbff697e6065bf86822cd4bceefc4e442c463cc2330fdd7d9edee2b34d39e96"
+    },
+    {
+      "path": "persona/thinking.py",
+      "sha256": "4b3057241b07960ac2953a5c8db699d9a0fe8c052994ef12a79eb776d81565e4"
+    },
+    {
+      "path": "persona/trait_disposition_registry.json",
+      "sha256": "a82b186b7f60a5b221fd256d64227cb5a30f5925d17a7604eb606cf44eadd7e6"
+    },
+    {
+      "path": "persona/traits.py",
+      "sha256": "77b1f7325e799c9b0c85ed7d1b07f74395eb9df66f79c7e9bad4ea716c79130d"
+    },
+    {
+      "path": "persona/turn_taking.py",
+      "sha256": "f978db6ae5c54965542221fa8ec98c99ed0cc303bf6247fea3fd902192003037"
+    },
+    {
+      "path": "persona/validation.py",
+      "sha256": "f6bb5d5cc5c5aec102f4cdd4bc773779e01213f8c1ad2c8c83a5ecffa33fd848"
+    },
+    {
+      "path": "persona/versions.py",
+      "sha256": "eb0657819a92b53e1df5de46f09068b61bf5ab04295d95b2772e34f770a2938b"
+    }
+  ],
+  "psychological_learning_algorithm_changes": false
+}

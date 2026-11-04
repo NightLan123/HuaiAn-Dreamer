@@ -1,0 +1,78 @@
+{
+  "baseline": "2.5.1",
+  "version": "2.6",
+  "scope": "D+E with related retry/feedback/trace fixes; no new F/G algorithms, neural head, provider protocol or navigation rewrite",
+  "unchanged_files": [
+    {
+      "path": "persona/provider.py",
+      "unchanged": true,
+      "sha256": "112624c4283e5b19637286fc9b4cd2cb39095085a82a2fcc63ecd55893a8b56d"
+    },
+    {
+      "path": "persona/thinking.py",
+      "unchanged": true,
+      "sha256": "4b3057241b07960ac2953a5c8db699d9a0fe8c052994ef12a79eb776d81565e4"
+    },
+    {
+      "path": "persona/qq.py",
+      "unchanged": true,
+      "sha256": "37f451367e8ea859ee198463acc5ede840a7bbcdbb8a38ca05c62de45cd4aa20"
+    },
+    {
+      "path": "persona/social_graph.py",
+      "unchanged": true,
+      "sha256": "c8d16dd7807fbe40511fb07c6d9ab34aadd0d95415c7b5d38745886b6c654073"
+    },
+    {
+      "path": "persona/social.py",
+      "unchanged": true,
+      "sha256": "2cbf2995007d2b250ec685f1f1bd31ec075ebc8f523718360f851775c673cd25"
+    },
+    {
+      "path": "persona/traits.py",
+      "unchanged": true,
+      "sha256": "77b1f7325e799c9b0c85ed7d1b07f74395eb9df66f79c7e9bad4ea716c79130d"
+    },
+    {
+      "path": "persona/registry.py",
+      "unchanged": true,
+      "sha256": "4dba3c1ce8bc372008c8b3301b590d505e57fec0487ffb5ea50f11aa1f8466e5"
+    },
+    {
+      "path": "persona/pmm.py",
+      "unchanged": true,
+      "sha256": "4ef2ab7c98e64379db90045768edea4d653b064baf030f53c9f5594c169601c8"
+    },
+    {
+      "path": "persona/packages.py",
+      "unchanged": true,
+      "sha256": "1551fe1d7a2b9d47f652dfd694736205eb2d83141694f7f2b7ffb51e30228a91"
+    },
+    {
+      "path": "persona/data_guard.py",
+      "unchanged": true,
+      "sha256": "0eed4cba57c52fff84db2a94a95b97dc4e5b0c3d951666d5572547e6ee0a0b1d"
+    },
+    {
+      "path": "persona/storage.py",
+      "unchanged": true,
+      "sha256": "af3fcff14217ccf9a6169a04fae253c4471dd4349b7ce3c634f98f5f4e9c1d6b"
+    },
+    {
+      "path": "launcher.py",
+      "unchanged": true,
+      "sha256": "78082731f61d152863af8cea8f39f0a159e355b2462177b3bfbac95cc847eded"
+    },
+    {
+      "path": "Start_HuaiAn.cmd",
+      "unchanged": true,
+      "sha256": "bde3dcddab6cae59d7f611169cf6b651cb9febeec33e6d670775a729a742f096"
+    },
+    {
+      "path": "start_windows.bat",
+      "unchanged": true,
+      "sha256": "bde3dcddab6cae59d7f611169cf6b651cb9febeec33e6d670775a729a742f096"
+    }
+  ],
+  "not_claimed": "No claim that all psychological algorithms are unchanged; D/E were intentionally updated."
+}

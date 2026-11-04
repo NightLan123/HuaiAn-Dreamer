@@ -1,0 +1,42 @@
+{
+  "222": {
+    "exit_code": 0,
+    "checks": 21,
+    "seconds": 10.34
+  },
+  "230": {
+    "exit_code": 0,
+    "checks": 16,
+    "seconds": 5.26
+  },
+  "240": {
+    "exit_code": 0,
+    "checks": 14,
+    "seconds": 4.73
+  },
+  "250": {
+    "exit_code": 0,
+    "checks": 18,
+    "seconds": 8.28
+  },
+  "251": {
+    "exit_code": 0,
+    "checks": 18,
+    "seconds": 7.65
+  },
+  "26": {
+    "exit_code": 0,
+    "checks": 10,
+    "seconds": 6.17
+  },
+  "27": {
+    "exit_code": 0,
+    "checks": 10,
+    "seconds": 3.66
+  },
+  "28": {
+    "exit_code": 0,
+    "checks": 9,
+    "seconds": 2.76
+  }
+}

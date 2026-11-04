@@ -1,0 +1,1003 @@
+{
+  "kind": "controlled_engine_experiment",
+  "transport": "deterministic_fixture_not_live_model",
+  "rng_seed": 281,
+  "cases": [
+    {
+      "persona": "persona_low",
+      "seconds": 60,
+      "intervention": null,
+      "personality_sha256": "be7debf3cd216309f7614203e7f67c467d6d2246c9e2ee340cba5d4bb4d68755",
+      "emotion_model": "4630d7d3eb9d76d75a7b2cb0430218343268dbf80457c2b375fa1ec8e11ec722",
+      "neural_model": {
+        "TraitInference": "trait-dynamics/2.8.1"
+      },
+      "fast": {
+        "valence": 0.5101607510352613,
+        "arousal": 0.5391771615643297,
+        "dominance": 0.4924145272462482,
+        "stress": 0.6154025156505826,
+        "engagement": 0.6003428626415896
+      },
+      "mood": {
+        "valence": 0.19713838122824842,
+        "arousal": 0.5253358149477035,
+        "dominance": 0.5244762981526511
+      },
+      "jump": [
+        -0.125,
+        0.0,
+        0.07999999999999999,
+        0.075,
+        0.12000000000000002
+      ],
+      "latent_h": [
+        0.4587950509743889,
+        -0.38974120720268496,
+        -0.26398850820498193,
+        -0.3331277276118923,
+        0.4224432762301652,
+        -0.003587233195023651,
+        0.1300587517008993,
+        -0.35118137883553485,
+        -0.14223011472807467,
+        -0.1557450539511816,
+        -0.13488790360225125,
+        0.6431877734542406,
+        -0.13275827785415972,
+        -0.10797849778313875,
+        0.46370162913735274,
+        0.3380611417753529
+      ],
+      "neural_action_candidates": {
+        "reply": 0.12358671532300551,
+        "unknown": 0.15160092125948543,
+        "clarify": 0.14226055116809394,
+        "disagree": 0.09992905952103247,
+        "decline": 0.20447898110155108,
+        "silence": 0.2781437716268315
+      },
+      "formal_neural": false,
+      "decision": {
+        "action": "reply",
+        "reason": "PMM 多倾向综合效用",
+        "gate": "weighted_policy",
+        "scores": {
+          "reply": 0.7592459883298771,
+          "unknown": -1,
+          "clarify": 0.209375,
+          "disagree": 0.18450401167012292,
+          "decline": 0.10312500000000001,
+          "silence": -1
+        },
+        "perspectives": [
+          {
+            "id": "v0",
+            "label": "当前主体综合判断",
+            "weight": 0.45804323928178825,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v1",
+            "label": "灵活妥协倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v2",
+            "label": "宽恕倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v3",
+            "label": "温和倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          }
+        ],
+        "condition_contributions": {
+          "personality": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": 0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "relationship": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "regulation": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          }
+        },
+        "knowledge": {
+          "need": "none",
+          "grounded_memory": false,
+          "supporting_ids": [],
+          "base_model_confidence": 0.8,
+          "verified_external": false
+        },
+        "cognitive_id": null,
+        "decision_id": "8924b21a1c85484486c592fd6f228163",
+        "decision_revision": 1
+      },
+      "expression": {
+        "strategy": "none",
+        "expression_multiplier": 1.0,
+        "intensity": 0.35023257750840714,
+        "internal_state_changed_by_suppression": false,
+        "habit_source": "beq.positive_expressivity",
+        "habit_known": false,
+        "effect_calibration": "unvalidated_expression_control",
+        "status": "planned"
+      },
+      "delta_seconds": 60.0
+    },
+    {
+      "persona": "persona_low",
+      "seconds": 86400,
+      "intervention": null,
+      "personality_sha256": "be7debf3cd216309f7614203e7f67c467d6d2246c9e2ee340cba5d4bb4d68755",
+      "emotion_model": "4630d7d3eb9d76d75a7b2cb0430218343268dbf80457c2b375fa1ec8e11ec722",
+      "neural_model": {
+        "TraitInference": "trait-dynamics/2.8.1"
+      },
+      "fast": {
+        "valence": -0.1711992092309222,
+        "arousal": 0.20568412266286723,
+        "dominance": 0.4990321414502121,
+        "stress": 0.17363584816385313,
+        "engagement": 0.6494222842812056
+      },
+      "mood": {
+        "valence": 0.12332848060687482,
+        "arousal": 0.4245026754472045,
+        "dominance": 0.4977969684385589
+      },
+      "jump": [
+        -0.125,
+        0.0,
+        0.07999999999999999,
+        0.075,
+        0.12000000000000002
+      ],
+      "latent_h": [
+        0.5124514676875926,
+        -0.4264775619001277,
+        -0.28191186770208343,
+        -0.263558065978964,
+        0.4214042905995663,
+        0.06368960126316073,
+        0.022322770227552313,
+        -0.3338396382618033,
+        -0.11861594106255278,
+        -0.030531463023597123,
+        -0.11658907644816038,
+        0.6964085889849073,
+        0.007596505651932563,
+        -0.06328824356194226,
+        0.4031776255834373,
+        0.33370172759442057
+      ],
+      "neural_action_candidates": {
+        "reply": 0.1285063840212028,
+        "unknown": 0.15702782440630214,
+        "clarify": 0.13687639889945907,
+        "disagree": 0.09535283873263299,
+        "decline": 0.19635134815862532,
+        "silence": 0.2858852057817777
+      },
+      "formal_neural": false,
+      "decision": {
+        "action": "reply",
+        "reason": "PMM 多倾向综合效用",
+        "gate": "weighted_policy",
+        "scores": {
+          "reply": 0.615593006214503,
+          "unknown": -1,
+          "clarify": 0.209375,
+          "disagree": 0.32815699378549695,
+          "decline": 0.10312500000000001,
+          "silence": -1
+        },
+        "perspectives": [
+          {
+            "id": "v0",
+            "label": "当前主体综合判断",
+            "weight": 0.45804323928178825,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v1",
+            "label": "灵活妥协倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v2",
+            "label": "宽恕倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v3",
+            "label": "温和倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          }
+        ],
+        "condition_contributions": {
+          "personality": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": 0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "relationship": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "regulation": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          }
+        },
+        "knowledge": {
+          "need": "none",
+          "grounded_memory": false,
+          "supporting_ids": [],
+          "base_model_confidence": 0.8,
+          "verified_external": false
+        },
+        "cognitive_id": null,
+        "decision_id": "ef9ab293541949d78b869665112bd175",
+        "decision_revision": 1
+      },
+      "expression": {
+        "strategy": "none",
+        "expression_multiplier": 1.0,
+        "intensity": 0.24184733986543183,
+        "internal_state_changed_by_suppression": false,
+        "habit_source": "beq.negative_expressivity",
+        "habit_known": false,
+        "effect_calibration": "unvalidated_expression_control",
+        "status": "planned"
+      },
+      "delta_seconds": 86400.0
+    },
+    {
+      "persona": "persona_high",
+      "seconds": 60,
+      "intervention": null,
+      "personality_sha256": "f566d55040586b40d5e133a0e1c8128b8c6b190f031df784cecd4fe98e792321",
+      "emotion_model": "4630d7d3eb9d76d75a7b2cb0430218343268dbf80457c2b375fa1ec8e11ec722",
+      "neural_model": {
+        "TraitInference": "trait-dynamics/2.8.1"
+      },
+      "fast": {
+        "valence": 0.5101607510352613,
+        "arousal": 0.5391771615643297,
+        "dominance": 0.4924145272462482,
+        "stress": 0.6154025156505826,
+        "engagement": 0.6003428626415896
+      },
+      "mood": {
+        "valence": 0.19713838122824842,
+        "arousal": 0.5253358149477035,
+        "dominance": 0.5244762981526511
+      },
+      "jump": [
+        -0.125,
+        0.0,
+        0.07999999999999999,
+        0.075,
+        0.12000000000000002
+      ],
+      "latent_h": [
+        0.4274559021748343,
+        -0.41772086180550366,
+        -0.2641367527754944,
+        -0.3902545976668886,
+        0.4221437951049815,
+        0.016071818999224538,
+        0.14826409091911613,
+        -0.3885035837327835,
+        -0.10464595880118668,
+        -0.1013028481589671,
+        -0.15213377294585725,
+        0.6256207289702269,
+        -0.20523123250795847,
+        -0.11799569373580579,
+        0.476194382252117,
+        0.3240878791399874
+      ],
+      "neural_action_candidates": {
+        "reply": 0.1245811895751502,
+        "unknown": 0.15252201974348475,
+        "clarify": 0.1401421588113519,
+        "disagree": 0.1004232609936107,
+        "decline": 0.2042681970717341,
+        "silence": 0.2780631738046684
+      },
+      "formal_neural": false,
+      "decision": {
+        "action": "reply",
+        "reason": "PMM 多倾向综合效用",
+        "gate": "weighted_policy",
+        "scores": {
+          "reply": 0.7592459883298771,
+          "unknown": -1,
+          "clarify": 0.209375,
+          "disagree": 0.1845040116701229,
+          "decline": 0.10312500000000001,
+          "silence": -1
+        },
+        "perspectives": [
+          {
+            "id": "v0",
+            "label": "当前主体综合判断",
+            "weight": 0.45804323928178814,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v1",
+            "label": "灵活妥协倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v2",
+            "label": "宽恕倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v3",
+            "label": "温和倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          }
+        ],
+        "condition_contributions": {
+          "personality": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "relationship": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "regulation": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          }
+        },
+        "knowledge": {
+          "need": "none",
+          "grounded_memory": false,
+          "supporting_ids": [],
+          "base_model_confidence": 0.8,
+          "verified_external": false
+        },
+        "cognitive_id": null,
+        "decision_id": "4c24686ce575437a914faaead7512898",
+        "decision_revision": 1
+      },
+      "expression": {
+        "strategy": "none",
+        "expression_multiplier": 1.0,
+        "intensity": 0.35023257750840714,
+        "internal_state_changed_by_suppression": false,
+        "habit_source": "beq.positive_expressivity",
+        "habit_known": false,
+        "effect_calibration": "unvalidated_expression_control",
+        "status": "planned"
+      },
+      "delta_seconds": 60.0
+    },
+    {
+      "persona": "persona_high",
+      "seconds": 86400,
+      "intervention": null,
+      "personality_sha256": "f566d55040586b40d5e133a0e1c8128b8c6b190f031df784cecd4fe98e792321",
+      "emotion_model": "4630d7d3eb9d76d75a7b2cb0430218343268dbf80457c2b375fa1ec8e11ec722",
+      "neural_model": {
+        "TraitInference": "trait-dynamics/2.8.1"
+      },
+      "fast": {
+        "valence": -0.1711992092309222,
+        "arousal": 0.20568412266286723,
+        "dominance": 0.4990321414502121,
+        "stress": 0.17363584816385313,
+        "engagement": 0.6494222842812056
+      },
+      "mood": {
+        "valence": 0.12332848060687482,
+        "arousal": 0.4245026754472045,
+        "dominance": 0.4977969684385589
+      },
+      "jump": [
+        -0.125,
+        0.0,
+        0.07999999999999999,
+        0.075,
+        0.12000000000000002
+      ],
+      "latent_h": [
+        0.483118470973771,
+        -0.4534353152455499,
+        -0.2820585527180641,
+        -0.3236208616474967,
+        0.4211044899830535,
+        0.08324329908451902,
+        0.04086913075225064,
+        -0.37169553108007275,
+        -0.08082972783612724,
+        0.024825395822728438,
+        -0.13392134847055503,
+        0.6809530269286949,
+        -0.06694425288660791,
+        -0.07338758967644286,
+        0.41651822656657095,
+        0.3196832284316383
+      ],
+      "neural_action_candidates": {
+        "reply": 0.12951800449401654,
+        "unknown": 0.15795487126528143,
+        "clarify": 0.134757081431578,
+        "disagree": 0.09577734525176809,
+        "decline": 0.19614984032892255,
+        "silence": 0.28584285722843333
+      },
+      "formal_neural": false,
+      "decision": {
+        "action": "reply",
+        "reason": "PMM 多倾向综合效用",
+        "gate": "weighted_policy",
+        "scores": {
+          "reply": 0.615593006214503,
+          "unknown": -1,
+          "clarify": 0.209375,
+          "disagree": 0.32815699378549695,
+          "decline": 0.10312500000000001,
+          "silence": -1
+        },
+        "perspectives": [
+          {
+            "id": "v0",
+            "label": "当前主体综合判断",
+            "weight": 0.45804323928178825,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v1",
+            "label": "灵活妥协倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v2",
+            "label": "宽恕倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v3",
+            "label": "温和倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          }
+        ],
+        "condition_contributions": {
+          "personality": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "relationship": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "regulation": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          }
+        },
+        "knowledge": {
+          "need": "none",
+          "grounded_memory": false,
+          "supporting_ids": [],
+          "base_model_confidence": 0.8,
+          "verified_external": false
+        },
+        "cognitive_id": null,
+        "decision_id": "3a37aa04cbc84946a8aba4452ddeb8b6",
+        "decision_revision": 1
+      },
+      "expression": {
+        "strategy": "none",
+        "expression_multiplier": 1.0,
+        "intensity": 0.24184733986543183,
+        "internal_state_changed_by_suppression": false,
+        "habit_source": "beq.negative_expressivity",
+        "habit_known": false,
+        "effect_calibration": "unvalidated_expression_control",
+        "status": "planned"
+      },
+      "delta_seconds": 86400.0
+    },
+    {
+      "persona": "persona_low",
+      "seconds": 60,
+      "intervention": "fast_intervention",
+      "personality_sha256": "be7debf3cd216309f7614203e7f67c467d6d2246c9e2ee340cba5d4bb4d68755",
+      "emotion_model": "4630d7d3eb9d76d75a7b2cb0430218343268dbf80457c2b375fa1ec8e11ec722",
+      "neural_model": {
+        "TraitInference": "trait-dynamics/2.8.1"
+      },
+      "fast": {
+        "valence": -0.678017065533492,
+        "arousal": 0.5391771615643297,
+        "dominance": 0.4924145272462482,
+        "stress": 0.6154025156505826,
+        "engagement": 0.6003428626415896
+      },
+      "mood": {
+        "valence": 0.19667313999123173,
+        "arousal": 0.5253358149477035,
+        "dominance": 0.5244762981526511
+      },
+      "jump": [
+        -0.125,
+        0.0,
+        0.07999999999999999,
+        0.075,
+        0.12000000000000002
+      ],
+      "latent_h": [
+        0.5419424579908095,
+        -0.2266527247858442,
+        -0.31278336444754207,
+        -0.294506486751588,
+        0.20493019681931526,
+        -0.014412585035217626,
+        0.0244592399618516,
+        -0.524581342658771,
+        -0.16718747078430027,
+        0.05927113890348615,
+        0.01647260900292512,
+        0.6581830581739776,
+        -0.21782668269676955,
+        -0.003422898442178638,
+        0.33594686963726544,
+        0.24519408776456314
+      ],
+      "neural_action_candidates": {
+        "reply": 0.13032109968208624,
+        "unknown": 0.14791687519145558,
+        "clarify": 0.14086576419963817,
+        "disagree": 0.09717809356521441,
+        "decline": 0.20448552168782777,
+        "silence": 0.27923264567377787
+      },
+      "formal_neural": false,
+      "decision": {
+        "action": "reply",
+        "reason": "PMM 多倾向综合效用",
+        "gate": "weighted_policy",
+        "scores": {
+          "reply": 0.5215639008924248,
+          "unknown": -1,
+          "clarify": 0.209375,
+          "disagree": 0.42218609910757515,
+          "decline": 0.10312500000000001,
+          "silence": -1
+        },
+        "perspectives": [
+          {
+            "id": "v0",
+            "label": "当前主体综合判断",
+            "weight": 0.45804323928178825,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v1",
+            "label": "灵活妥协倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v2",
+            "label": "宽恕倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v3",
+            "label": "温和倾向",
+            "weight": 0.18065225357273726,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          }
+        ],
+        "condition_contributions": {
+          "personality": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": 0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "relationship": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "regulation": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          }
+        },
+        "knowledge": {
+          "need": "none",
+          "grounded_memory": false,
+          "supporting_ids": [],
+          "base_model_confidence": 0.8,
+          "verified_external": false
+        },
+        "cognitive_id": null,
+        "decision_id": "41c74795d01f415cbbd264091ca413cf",
+        "decision_revision": 1
+      },
+      "expression": {
+        "strategy": "none",
+        "expression_multiplier": 1.0,
+        "intensity": 0.35023257750840714,
+        "internal_state_changed_by_suppression": false,
+        "habit_source": "beq.negative_expressivity",
+        "habit_known": false,
+        "effect_calibration": "unvalidated_expression_control",
+        "status": "planned"
+      },
+      "delta_seconds": 60.0
+    },
+    {
+      "persona": "persona_low",
+      "seconds": 60,
+      "intervention": "suppression",
+      "personality_sha256": "be7debf3cd216309f7614203e7f67c467d6d2246c9e2ee340cba5d4bb4d68755",
+      "emotion_model": "4630d7d3eb9d76d75a7b2cb0430218343268dbf80457c2b375fa1ec8e11ec722",
+      "neural_model": {
+        "TraitInference": "trait-dynamics/2.8.1"
+      },
+      "fast": {
+        "valence": 0.5101607510352613,
+        "arousal": 0.5391771615643297,
+        "dominance": 0.4924145272462482,
+        "stress": 0.6154025156505826,
+        "engagement": 0.6003428626415896
+      },
+      "mood": {
+        "valence": 0.19713838122824842,
+        "arousal": 0.5253358149477035,
+        "dominance": 0.5244762981526511
+      },
+      "jump": [
+        -0.125,
+        0.0,
+        0.07999999999999999,
+        0.075,
+        0.12000000000000002
+      ],
+      "latent_h": [
+        0.4587950509743889,
+        -0.38974120720268496,
+        -0.26398850820498193,
+        -0.3331277276118923,
+        0.4224432762301652,
+        -0.003587233195023651,
+        0.1300587517008993,
+        -0.35118137883553485,
+        -0.14223011472807467,
+        -0.1557450539511816,
+        -0.13488790360225125,
+        0.6431877734542406,
+        -0.13275827785415972,
+        -0.10797849778313875,
+        0.46370162913735274,
+        0.3380611417753529
+      ],
+      "neural_action_candidates": {
+        "reply": 0.12358671532300551,
+        "unknown": 0.15160092125948543,
+        "clarify": 0.14226055116809394,
+        "disagree": 0.09992905952103247,
+        "decline": 0.20447898110155108,
+        "silence": 0.2781437716268315
+      },
+      "formal_neural": false,
+      "decision": {
+        "action": "reply",
+        "reason": "PMM 多倾向综合效用",
+        "gate": "weighted_policy",
+        "scores": {
+          "reply": 0.7592459883298771,
+          "unknown": -1,
+          "clarify": 0.209375,
+          "disagree": 0.18450401167012292,
+          "decline": 0.10312500000000001,
+          "silence": -1
+        },
+        "perspectives": [
+          {
+            "id": "v0",
+            "label": "当前主体综合判断",
+            "weight": 0.45804323928178825,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v1",
+            "label": "灵活妥协倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v2",
+            "label": "宽恕倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v3",
+            "label": "温和倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          }
+        ],
+        "condition_contributions": {
+          "personality": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": 0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "relationship": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "regulation": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          }
+        },
+        "knowledge": {
+          "need": "none",
+          "grounded_memory": false,
+          "supporting_ids": [],
+          "base_model_confidence": 0.8,
+          "verified_external": false
+        },
+        "cognitive_id": null,
+        "decision_id": "8760571788ff4511853b3cea70420191",
+        "decision_revision": 1
+      },
+      "expression": {
+        "strategy": "suppression",
+        "expression_multiplier": 0.35,
+        "intensity": 0.1225814021279425,
+        "internal_state_changed_by_suppression": false,
+        "habit_source": "beq.positive_expressivity",
+        "habit_known": false,
+        "effect_calibration": "unvalidated_expression_control",
+        "status": "planned"
+      },
+      "delta_seconds": 60.0
+    },
+    {
+      "persona": "persona_low",
+      "seconds": 60,
+      "intervention": "none",
+      "personality_sha256": "be7debf3cd216309f7614203e7f67c467d6d2246c9e2ee340cba5d4bb4d68755",
+      "emotion_model": "4630d7d3eb9d76d75a7b2cb0430218343268dbf80457c2b375fa1ec8e11ec722",
+      "neural_model": {
+        "TraitInference": "trait-dynamics/2.8.1"
+      },
+      "fast": {
+        "valence": 0.5101607510352613,
+        "arousal": 0.5391771615643297,
+        "dominance": 0.4924145272462482,
+        "stress": 0.6154025156505826,
+        "engagement": 0.6003428626415896
+      },
+      "mood": {
+        "valence": 0.19713838122824842,
+        "arousal": 0.5253358149477035,
+        "dominance": 0.5244762981526511
+      },
+      "jump": [
+        -0.125,
+        0.0,
+        0.07999999999999999,
+        0.075,
+        0.12000000000000002
+      ],
+      "latent_h": [
+        0.4587950509743889,
+        -0.38974120720268496,
+        -0.26398850820498193,
+        -0.3331277276118923,
+        0.4224432762301652,
+        -0.003587233195023651,
+        0.1300587517008993,
+        -0.35118137883553485,
+        -0.14223011472807467,
+        -0.1557450539511816,
+        -0.13488790360225125,
+        0.6431877734542406,
+        -0.13275827785415972,
+        -0.10797849778313875,
+        0.46370162913735274,
+        0.3380611417753529
+      ],
+      "neural_action_candidates": {
+        "reply": 0.12358671532300551,
+        "unknown": 0.15160092125948543,
+        "clarify": 0.14226055116809394,
+        "disagree": 0.09992905952103247,
+        "decline": 0.20447898110155108,
+        "silence": 0.2781437716268315
+      },
+      "formal_neural": false,
+      "decision": {
+        "action": "reply",
+        "reason": "PMM 多倾向综合效用",
+        "gate": "weighted_policy",
+        "scores": {
+          "reply": 0.7592459883298771,
+          "unknown": -1,
+          "clarify": 0.209375,
+          "disagree": 0.18450401167012292,
+          "decline": 0.10312500000000001,
+          "silence": -1
+        },
+        "perspectives": [
+          {
+            "id": "v0",
+            "label": "当前主体综合判断",
+            "weight": 0.45804323928178825,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v1",
+            "label": "灵活妥协倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v2",
+            "label": "宽恕倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          },
+          {
+            "id": "v3",
+            "label": "温和倾向",
+            "weight": 0.1806522535727373,
+            "summary": "依据传入快情绪与慢心境的受控测试"
+          }
+        ],
+        "condition_contributions": {
+          "personality": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": 0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "relationship": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": -0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          },
+          "regulation": {
+            "reply": 0.0,
+            "unknown": 0.0,
+            "clarify": 0.0,
+            "disagree": -0.0,
+            "decline": 0.0,
+            "silence": 0.0
+          }
+        },
+        "knowledge": {
+          "need": "none",
+          "grounded_memory": false,
+          "supporting_ids": [],
+          "base_model_confidence": 0.8,
+          "verified_external": false
+        },
+        "cognitive_id": null,
+        "decision_id": "9795d35164bb465caa5f12cd5dbe76d4",
+        "decision_revision": 1
+      },
+      "expression": {
+        "strategy": "none",
+        "expression_multiplier": 1.0,
+        "intensity": 0.35023257750840714,
+        "internal_state_changed_by_suppression": false,
+        "habit_source": "beq.positive_expressivity",
+        "habit_known": false,
+        "effect_calibration": "unvalidated_expression_control",
+        "status": "planned"
+      },
+      "delta_seconds": 60.0
+    }
+  ],
+  "conclusion": "实际 Engine 前向和事务通过；人格/时间/情绪干预改变网络条件，抑制只改变表达。未标定神经候选不自动主导行动；最终行动可保持相同。",
+  "psychological_validity": false
+}

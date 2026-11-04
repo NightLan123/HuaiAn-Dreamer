@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "name": "only one application mode",
+      "passed": true
+    },
+    {
+      "name": "default full",
+      "passed": true
+    },
+    {
+      "name": "compat hidden",
+      "passed": true
+    },
+    {
+      "name": "two actual connections",
+      "passed": true
+    },
+    {
+      "name": "independent task tests",
+      "passed": true
+    },
+    {
+      "name": "preview no formal state changes",
+      "passed": true
+    },
+    {
+      "name": "eight workflow components",
+      "passed": true
+    },
+    {
+      "name": "actual previews reach B",
+      "passed": true
+    },
+    {
+      "name": "compat visible after selection",
+      "passed": true
+    },
+    {
+      "name": "compat persisted",
+      "passed": true
+    },
+    {
+      "name": "switch retains both connections",
+      "passed": true
+    },
+    {
+      "name": "separate training page",
+      "passed": true
+    },
+    {
+      "name": "real gradient job from UI",
+      "passed": true
+    },
+    {
+      "name": "mobile no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "no browser JS errors",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "javascript_errors": [],
+  "browser": "system Chromium 155",
+  "transport": "real HTTP to loopback model fixtures; not cloud/Qwen validation"
+}

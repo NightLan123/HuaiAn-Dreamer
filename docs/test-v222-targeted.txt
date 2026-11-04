@@ -1,0 +1,29 @@
+test_ambiguous_locations_are_not_silently_merged (test_v222.DataRecoveryTests.test_ambiguous_locations_are_not_silently_merged) ... ok
+test_automatic_upgrade_preserves_personas_history_weights_and_connections (test_v222.DataRecoveryTests.test_automatic_upgrade_preserves_personas_history_weights_and_connections) ... ok
+test_config_only_directory_is_not_treated_as_new_install (test_v222.DataRecoveryTests.test_config_only_directory_is_not_treated_as_new_install) ... ok
+test_corrupt_catalog_is_not_overwritten (test_v222.DataRecoveryTests.test_corrupt_catalog_is_not_overwritten) ... ok
+test_corrupt_database_or_missing_identity_cannot_be_initialized (test_v222.DataRecoveryTests.test_corrupt_database_or_missing_identity_cannot_be_initialized) ... ok
+test_data_inside_previous_code_directory_is_found_without_cwd_dependency (test_v222.DataRecoveryTests.test_data_inside_previous_code_directory_is_found_without_cwd_dependency) ... ok
+test_empty_existing_profile_is_not_replaced_by_a_new_personality (test_v222.DataRecoveryTests.test_empty_existing_profile_is_not_replaced_by_a_new_personality) ... ok
+test_invalid_checkpoint_detected_before_profile_or_config_changes (test_v222.DataRecoveryTests.test_invalid_checkpoint_detected_before_profile_or_config_changes) ... ok
+test_known_old_location_is_reused_across_new_program_directories (test_v222.DataRecoveryTests.test_known_old_location_is_reused_across_new_program_directories) ... ok
+test_missing_catalog_recovers_all_existing_subjects_without_replacing_records (test_v222.DataRecoveryTests.test_missing_catalog_recovers_all_existing_subjects_without_replacing_records) ... ok
+test_missing_database_in_catalog_never_creates_empty_subject (test_v222.DataRecoveryTests.test_missing_database_in_catalog_never_creates_empty_subject) ... ok
+test_orphan_messages_stop_upgrade_without_dropping_history (test_v222.DataRecoveryTests.test_orphan_messages_stop_upgrade_without_dropping_history) ... ok
+test_snapshot_contains_committed_wal_and_independent_execution_database (test_v222.DataRecoveryTests.test_snapshot_contains_committed_wal_and_independent_execution_database) ... ok
+test_upgrade_checks_history_content_even_when_counts_are_unchanged (test_v222.DataRecoveryTests.test_upgrade_checks_history_content_even_when_counts_are_unchanged) ... ok
+test_bootstrap_has_a_separate_csrf_token_without_loading_optional_components (test_v222.HTTPRecoveryTests.test_bootstrap_has_a_separate_csrf_token_without_loading_optional_components) ... Local component failed: {"request_id": "42ed3c70efec4eb1943ffb510b4e62c4", "component": "boundaries", "type": "RuntimeError", "frames": [{"module": "server.py", "line": 113, "function": "optional"}, {"module": "mock.py", "line": 1139, "function": "__call__"}, {"module": "mock.py", "line": 1143, "function": "_mock_call"}, {"module": "mock.py", "line": 1198, "function": "_execute_mock_call"}]}
+ok
+test_bootstrap_rejects_cross_site_and_post_rejects_mismatched_frontend (test_v222.HTTPRecoveryTests.test_bootstrap_rejects_cross_site_and_post_rejects_mismatched_frontend) ... ok
+test_cookie_names_are_port_specific_and_assets_have_explicit_mime_and_build (test_v222.HTTPRecoveryTests.test_cookie_names_are_port_specific_and_assets_have_explicit_mime_and_build) ... ok
+test_error_response_identifies_route_status_and_request_without_private_exception_text (test_v222.HTTPRecoveryTests.test_error_response_identifies_route_status_and_request_without_private_exception_text) ... Request failed: {"request_id": "8e1b9f19196a459e9ac99f64763177dc", "method": "GET", "route": "/api/events", "type": "RuntimeError", "frames": [{"module": "server.py", "line": 435, "function": "do_GET"}, {"module": "mock.py", "line": 1139, "function": "__call__"}, {"module": "mock.py", "line": 1143, "function": "_mock_call"}, {"module": "mock.py", "line": 1198, "function": "_execute_mock_call"}]}
+ok
+test_history_pagination_reaches_older_messages_without_changing_ids (test_v222.HTTPRecoveryTests.test_history_pagination_reaches_older_messages_without_changing_ids) ... Request failed: {"request_id": "5affd494431e44fba24a12d11b0b2dae", "method": "GET", "route": "/api/messages", "type": "ValueError", "frames": [{"module": "server.py", "line": 427, "function": "do_GET"}]}
+ok
+test_local_view_and_edit_work_when_all_external_network_calls_fail (test_v222.HTTPRecoveryTests.test_local_view_and_edit_work_when_all_external_network_calls_fail) ... ok
+test_restarted_session_can_be_reconnected_without_retrying_mutations (test_v222.HTTPRecoveryTests.test_restarted_session_can_be_reconnected_without_retrying_mutations) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 12.182s
+
+OK

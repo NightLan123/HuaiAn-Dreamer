@@ -1,0 +1,26 @@
+{
+  "from": "2.3.0",
+  "to": "2.4.0",
+  "subjects": 2,
+  "fixture": "actual archived runtime / synthetic data",
+  "tables_unchanged": true,
+  "old_memory_weights_examples_pending_preserved": true,
+  "continued_training": true,
+  "old_package_import": true,
+  "old_snapshot_restore": true,
+  "relaunch_idempotent": true,
+  "checks": [
+    {
+      "identity": "96aa7419475a4b01bd655c62435b864c",
+      "checkpoint_sha256": "32f421029e21fc27d8f413a33b45b9386f9470856f627139b1eec3c1dd8bacc0",
+      "old_steps": 3,
+      "continued_steps": 5
+    },
+    {
+      "identity": "3af33b18d3ae4fa89366d77ed9fd93b9",
+      "checkpoint_sha256": "9285bdf6061326040bbe286d7149285eb9723646e3edeed08473109018c8bdc5",
+      "old_steps": 3,
+      "continued_steps": 5
+    }
+  ]
+}

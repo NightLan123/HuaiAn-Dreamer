@@ -1,0 +1,28 @@
+{
+  "from": "2.6",
+  "phase": "baseline-28",
+  "to": "2.7",
+  "archived_runtime_executed": true,
+  "subjects": 2,
+  "old_metadata_and_tables_unchanged": true,
+  "new_evidence_index_only": true,
+  "restart_idempotent": true,
+  "old_package_import": true,
+  "old_snapshot_restore": true,
+  "continued_training": true,
+  "production_database": false,
+  "checks": [
+    {
+      "checkpoint_sha256": "4921a2718b284edbe62d215a58cbf12ea27d134ba96303d1ecc5511bce5c9edb",
+      "steps_before": 3,
+      "steps_after": 5,
+      "old_metadata_exact": true
+    },
+    {
+      "checkpoint_sha256": "4c8427680391d3e0268d6c286c73e713ddfa6f03ab46f5416f012485e8ca5700",
+      "steps_before": 3,
+      "steps_after": 5,
+      "old_metadata_exact": true
+    }
+  ]
+}

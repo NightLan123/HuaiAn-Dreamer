@@ -1,0 +1,39 @@
+test_archive_is_reversible_and_preserves_evidence_references (test_v250.BoundaryCases.test_archive_is_reversible_and_preserves_evidence_references) ... ok
+test_broken_boundary_repair_does_not_crash_valid_chat (test_v250.BoundaryCases.test_broken_boundary_repair_does_not_crash_valid_chat) ... ok
+test_history_beyond_cache_paginates_searches_and_calibrates (test_v250.BoundaryCases.test_history_beyond_cache_paginates_searches_and_calibrates) ... ok
+test_lossless_object_normalization_does_not_edit_evidence (test_v250.BoundaryCases.test_lossless_object_normalization_does_not_edit_evidence) ... ok
+test_affect_poll_does_not_change_saved_state_or_trait (test_v250.GraphAndAffectCases.test_affect_poll_does_not_change_saved_state_or_trait) ... ok
+test_catalog_migration_preserves_old_labels_weights_and_93_contract (test_v250.GraphAndAffectCases.test_catalog_migration_preserves_old_labels_weights_and_93_contract) ... ok
+test_counter_claim_cannot_name_invisible_private_actor (test_v250.GraphAndAffectCases.test_counter_claim_cannot_name_invisible_private_actor) ... ok
+test_interaction_count_does_not_raise_familiarity (test_v250.GraphAndAffectCases.test_interaction_count_does_not_raise_familiarity) ... ok
+test_relation_claim_is_scoped_unverified_and_counterevidence_disputes (test_v250.GraphAndAffectCases.test_relation_claim_is_scoped_unverified_and_counterevidence_disputes) ... ok
+test_same_person_cross_group_presence_never_creates_friendships (test_v250.GraphAndAffectCases.test_same_person_cross_group_presence_never_creates_friendships) ... ok
+test_all_zero_allows_chat_but_blocks_longterm_and_weights (test_v250.LearningCases.test_all_zero_allows_chat_but_blocks_longterm_and_weights) ... ok
+test_analysis_does_not_change_profile_and_synthesis_has_no_generated_truth (test_v250.LearningCases.test_analysis_does_not_change_profile_and_synthesis_has_no_generated_truth) ... ok
+test_budget_pause_resume_and_restart_no_duplicate (test_v250.LearningCases.test_budget_pause_resume_and_restart_no_duplicate) ... ok
+test_cancel_inflight_does_not_apply (test_v250.LearningCases.test_cancel_inflight_does_not_apply) ... ok
+test_duplicate_id_with_changed_text_rejected (test_v250.LearningCases.test_duplicate_id_with_changed_text_rejected) ... ok
+test_failed_batch_restores_live_model_and_db (test_v250.LearningCases.test_failed_batch_restores_live_model_and_db) ... ok
+test_generated_replies_never_form_trait_observations (test_v250.LearningCases.test_generated_replies_never_form_trait_observations) ... ok
+test_graph_provider_never_receives_other_private_scope_people (test_v250.LearningCases.test_graph_provider_never_receives_other_private_scope_people) ... ok
+test_group_observation_requires_scope_and_person (test_v250.LearningCases.test_group_observation_requires_scope_and_person) ... ok
+test_history_language_can_learn_previously_saved_self_sources (test_v250.LearningCases.test_history_language_can_learn_previously_saved_self_sources) ... ok
+test_history_limits_session_and_days (test_v250.LearningCases.test_history_limits_session_and_days) ... ok
+test_manual_mode_does_not_autolearn_but_explicit_job_works (test_v250.LearningCases.test_manual_mode_does_not_autolearn_but_explicit_job_works) ... ok
+test_other_model_never_writes_self_or_weights (test_v250.LearningCases.test_other_model_never_writes_self_or_weights) ... ok
+test_pack_rejects_rollback_metadata_injection (test_v250.LearningCases.test_pack_rejects_rollback_metadata_injection) ... ok
+test_policy_change_inflight_rejects_result (test_v250.LearningCases.test_policy_change_inflight_rejects_result) ... ok
+test_preview_does_not_mutate_and_stale_preview_rejected (test_v250.LearningCases.test_preview_does_not_mutate_and_stale_preview_rejected) ... ok
+test_reanalysis_does_not_multiply_independent_trait_events (test_v250.LearningCases.test_reanalysis_does_not_multiply_independent_trait_events) ... ok
+test_rejected_sources_are_not_reoffered_by_automatic_scan (test_v250.LearningCases.test_rejected_sources_are_not_reoffered_by_automatic_scan) ... ok
+test_restart_running_becomes_paused (test_v250.LearningCases.test_restart_running_becomes_paused) ... ok
+test_review_has_no_effect_until_approved_and_duplicate_is_noop (test_v250.LearningCases.test_review_has_no_effect_until_approved_and_duplicate_is_noop) ... ok
+test_review_revalidates_current_zero_strength (test_v250.LearningCases.test_review_revalidates_current_zero_strength) ... ok
+test_review_rollback_restores_profile_and_preserves_job_sources (test_v250.LearningCases.test_review_rollback_restores_profile_and_preserves_job_sources) ... ok
+test_rollback_refuses_newer_profile_edit (test_v250.LearningCases.test_rollback_refuses_newer_profile_edit) ... ok
+test_self_import_respects_separate_language_zero (test_v250.LearningCases.test_self_import_respects_separate_language_zero) ... ok
+
+----------------------------------------------------------------------
+Ran 34 tests in 6.169s
+
+OK

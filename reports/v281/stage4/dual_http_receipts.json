@@ -1,0 +1,184 @@
+{
+  "live_http": true,
+  "upstream": "two_synthetic_loopback_services",
+  "real_cloud_or_Qwen": false,
+  "receipts": [
+    {
+      "role": "A",
+      "operation": "models",
+      "service": "127.0.0.1:44949",
+      "provider": "ollama",
+      "model": "A-http",
+      "elapsed_ms": 10.663,
+      "ok": true
+    },
+    {
+      "role": "A",
+      "operation": "connect",
+      "service": "127.0.0.1:44949",
+      "provider": "ollama",
+      "model": "A-http",
+      "elapsed_ms": 2.911,
+      "ok": true
+    },
+    {
+      "role": "A",
+      "operation": "invoke",
+      "service": "127.0.0.1:44949",
+      "provider": "ollama",
+      "model": "A-http",
+      "elapsed_ms": 21.336,
+      "ok": true
+    },
+    {
+      "role": "B",
+      "operation": "models",
+      "service": "127.0.0.1:37555",
+      "provider": "chat_completions",
+      "model": "B-http",
+      "elapsed_ms": 2.786,
+      "ok": true
+    },
+    {
+      "role": "B",
+      "operation": "connect",
+      "service": "127.0.0.1:37555",
+      "provider": "chat_completions",
+      "model": "B-http",
+      "elapsed_ms": 2.902,
+      "ok": true
+    },
+    {
+      "role": "B",
+      "operation": "invoke",
+      "service": "127.0.0.1:37555",
+      "provider": "chat_completions",
+      "model": "B-http",
+      "elapsed_ms": 17.69,
+      "ok": true
+    },
+    {
+      "role": "B",
+      "operation": "invoke",
+      "service": "127.0.0.1:44949",
+      "provider": "ollama",
+      "model": "A-http",
+      "elapsed_ms": 16.783,
+      "ok": true,
+      "shared_service": true
+    },
+    {
+      "role": "B",
+      "operation": "invoke",
+      "service": "127.0.0.1:37555",
+      "provider": "chat_completions",
+      "model": "B-http",
+      "elapsed_ms": 22.046,
+      "ok": false,
+      "http_status": 503,
+      "failure_reason": "模型服务暂时不可用"
+    }
+  ],
+  "wire": [
+    {
+      "endpoint": "Ollama",
+      "path": "/api/tags",
+      "model": null,
+      "task": "generic_probe_or_listing",
+      "max_tokens": null
+    },
+    {
+      "endpoint": "Ollama",
+      "path": "/api/chat",
+      "model": "A-http",
+      "task": "generic_probe_or_listing",
+      "max_tokens": 4096
+    },
+    {
+      "endpoint": "Ollama",
+      "path": "/api/chat",
+      "model": "A-http",
+      "task": "PMM_A_EVENT_V281",
+      "max_tokens": 4096
+    },
+    {
+      "endpoint": "Ollama",
+      "path": "/api/chat",
+      "model": "general-http",
+      "task": "UNDERSTAND_V3",
+      "max_tokens": 4096
+    },
+    {
+      "endpoint": "Ollama",
+      "path": "/api/chat",
+      "model": "A-http",
+      "task": "PMM_A_EVENT_V281",
+      "max_tokens": 4096
+    },
+    {
+      "endpoint": "Ollama",
+      "path": "/api/chat",
+      "model": "general-http",
+      "task": "REALIZE_V3",
+      "max_tokens": 4096
+    },
+    {
+      "endpoint": "Ollama",
+      "path": "/api/chat",
+      "model": "general-http",
+      "task": "ACTION_CHECK_V221",
+      "max_tokens": 4096
+    },
+    {
+      "endpoint": "Ollama",
+      "path": "/api/chat",
+      "model": "A-http",
+      "task": "FEEDBACK_V3",
+      "max_tokens": 4096
+    },
+    {
+      "endpoint": "Ollama",
+      "path": "/api/chat",
+      "model": "A-http",
+      "task": "PMM_B_DELIBERATION_V281",
+      "max_tokens": 1024
+    },
+    {
+      "endpoint": "OpenAI-compatible",
+      "path": "/v1/models",
+      "model": null,
+      "task": "generic_probe_or_listing",
+      "max_tokens": null
+    },
+    {
+      "endpoint": "OpenAI-compatible",
+      "path": "/v1/chat/completions",
+      "model": "B-http",
+      "task": "generic_probe_or_listing",
+      "max_tokens": 1024
+    },
+    {
+      "endpoint": "OpenAI-compatible",
+      "path": "/v1/chat/completions",
+      "model": "B-http",
+      "task": "PMM_B_DELIBERATION_V281",
+      "max_tokens": 1024
+    },
+    {
+      "endpoint": "OpenAI-compatible",
+      "path": "/v1/chat/completions",
+      "model": "B-http",
+      "task": "PMM_B_DELIBERATION_V281",
+      "max_tokens": 1024
+    },
+    {
+      "endpoint": "OpenAI-compatible",
+      "path": "/v1/chat/completions",
+      "model": "B-http",
+      "task": "PMM_B_DELIBERATION_V281",
+      "max_tokens": 1024
+    }
+  ],
+  "preview_production_writes": 0,
+  "external_messages": 0
+}

@@ -1,0 +1,90 @@
+{
+  "schema": "trait-dispositions/1",
+  "encoder_extension": false,
+  "fields": [
+    {
+      "id": "beq.positive_expressivity",
+      "name_zh": "积极情绪表达",
+      "instrument": "BEQ",
+      "kind": "expression",
+      "temporality": "long",
+      "optional": false,
+      "required_timeframe": "habitual",
+      "minimum": 0,
+      "maximum": 1,
+      "default": null
+    },
+    {
+      "id": "beq.negative_expressivity",
+      "name_zh": "消极情绪表达",
+      "instrument": "BEQ",
+      "kind": "expression",
+      "temporality": "long",
+      "optional": false,
+      "required_timeframe": "habitual",
+      "minimum": 0,
+      "maximum": 1,
+      "default": null
+    },
+    {
+      "id": "beq.impulse_strength",
+      "name_zh": "情绪冲动强度",
+      "instrument": "BEQ",
+      "kind": "expression",
+      "temporality": "long",
+      "optional": false,
+      "required_timeframe": "habitual",
+      "minimum": 0,
+      "maximum": 1,
+      "default": null
+    },
+    {
+      "id": "erq.cognitive_reappraisal",
+      "name_zh": "认知重评习惯",
+      "instrument": "ERQ",
+      "kind": "regulation",
+      "temporality": "long",
+      "optional": false,
+      "required_timeframe": "habitual",
+      "minimum": 0,
+      "maximum": 1,
+      "default": null
+    },
+    {
+      "id": "erq.expressive_suppression",
+      "name_zh": "表达抑制习惯",
+      "instrument": "ERQ",
+      "kind": "regulation",
+      "temporality": "long",
+      "optional": false,
+      "required_timeframe": "habitual",
+      "minimum": 0,
+      "maximum": 1,
+      "default": null
+    },
+    {
+      "id": "panas.positive_affect",
+      "name_zh": "通常的积极情感倾向",
+      "instrument": "PANAS",
+      "kind": "affective_disposition",
+      "temporality": "long",
+      "optional": true,
+      "required_timeframe": "generally",
+      "minimum": 0,
+      "maximum": 1,
+      "default": null
+    },
+    {
+      "id": "panas.negative_affect",
+      "name_zh": "通常的消极情感倾向",
+      "instrument": "PANAS",
+      "kind": "affective_disposition",
+      "temporality": "long",
+      "optional": true,
+      "required_timeframe": "generally",
+      "minimum": 0,
+      "maximum": 1,
+      "default": null
+    }
+  ]
+}

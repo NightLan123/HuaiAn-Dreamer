@@ -1,0 +1,802 @@
+--- /dev/null
++++ b/docs/V26_INDEPENDENT_AUDIT_20261031.md
+@@ -0,0 +1,121 @@
++# 槐安梦客 2.6：D＋E 独立核对及最新未完成更新清单
++
++核查日期：2026-10-31。审计对象：`HuaiAn_Dreamer_Source.md`（正式 `RELEASE.json` 版本 `2.6`，基线 `2.5.1`），共提取 **240 个文件，240/240 个 SHA-256 匹配**。本报告仅审计和制定后续更新清单，未修改程序源码、用户数据、人格状态或版本。
++
++## 0. 先读结论
++
++**D＋E 约定的 DE-01～DE-08 八项均有可查的实现代码和测试；在固定模型／模拟 QQ 的本地工程范围内，两个关口均达到实施目标。** 不应继续把 D、E 整包标记为“未开发”。不过，DE-04 的心理参数与 DE-06 的策略学习只在工程层达标，**没有完成真实数据校准、独立语用策略训练和跨人跨情境科学验证**。四组消融的固定示例可以证明本地评分和模拟表达受条件调节，不能据此证明真实云模型在自然聊天中必然发生相同变化。
++
++**独立运行证据**：
++- 完整源码解包：240/240 文件 SHA-256 一致，包括 Windows 脚本原始 CRLF。
++- `python -m pytest -q tests/test_de_gate1.py tests/test_de_gate2.py`：**23/23 通过**（17.30 秒）。
++- `python -m pytest -q tests/test_trait_affect_v230.py tests/test_cbm_v240.py`：**80/80 通过，另有 14 个子测试通过**（9.73 秒）。
++- `node tests/test_ui_v26.js`：**10/10 HTTP/结构 DOM 场景通过**；`node tests/test_ui_v251.js`：**18/18 通过**；`node tests/test_ui_v240.js`：**14/14 通过**。
++- `node --check web/app.js` 与 `python -m compileall -q persona launcher.py`：通过。
++- **全量 533 项不能声明已经独立复验通过**：两次在当前环境运行完整 `pytest` 均在约 14% 处长时间停顿并超时；开发方的 `docs/TEST_REPORT.md` 报告使用不同的 `unittest discover` 命令记录了 533/533，并有测试日志，但本轮未独立复现其全量结果。没有因此将未运行完毕的测试认定为失败的程序缺陷。
++- 未连接真实云模型、真实 QQ／SnowLuma、原生 Windows、浏览器实机和用户生产数据库；报告中“两名合成已训练主体迁移通过”来自交付方记录，**本次没有单独执行迁移脚本**。
++
++## 1. D＋E 原定八项逐项核对
++
++| 原编号 | 执行状态 | 独立核查依据 | 尚存边界 |
++|---|---|---|---|
++| **DE-01** 人类语言证据分流 | **本地完成** | `persona/language_learning.py` 以来源／独立事件分组；无时间戳数据可形成词句、长度、标点统计，不推断时间节奏；专项测试覆盖 | 表层统计不等于幽默、反讽、语义语用的有效测量；分组质量受导入数据质量影响 |
++| **DE-02** 人工反馈→候选→审核→应用 | **本地完成** | `language_learning.feedback_target`、`candidates`、`review`、`applied`；双事件门槛、证据摘要、拒绝／撤销及版本；自动排除无真实发送记录的反馈 | 目前主要依赖人类明确标注和审核；尚不是对大量自然对话全自动归纳完整语用策略 |
++| **DE-03** 现实时间 Emotion/Mood 转移 | **本地完成，科学校准未完成** | `persona/affect.py` 的 `advance()` 使用真实秒数与可复现指数转移，事件 ID／重试幂等测试通过；Emotion 和 Mood 分离 | 现有时间常数／基线是未校准工程先验；没有实现持续自主回忆带来的新内部事件 |
++| **DE-04** 人格调节情绪 | **工程路径已实现，效度未验证** | `condition_sources` 区分 HEXACO、BEQ、ERQ 等来源；事件评价与当轮调节有独立路径；固定用例覆盖 | 长期调节倾向与情绪反应的真实个体差异、时间常数和跨情境泛化未验证 |
++| **DE-05** D/E 分版本接口与约束 | **本地完成** | `persona/joint_expression.py` 的 `conditions()` 将长期语言、短期情绪、心境、稳定特质、情境分开传入；`refine()` 尊重行动冻结和边界 | 有字段被读取并非云模型词句的因果证据 |
++| **DE-06** 情境化表达评分 | **工程路径已实现，学习模型未完成** | `refine()` 对有证据的语用候选进行可审计加减分，并限制无依据追问／分泡；四组固定实验结果可复现 | 目前是工程评分规则＋人工审核倾向；`pragmatic_neural_head=not_trained`，无独立训练型策略模型或大样本标定 |
++| **DE-07** 学习／情绪／实际发送追踪 | **本地完成，真实 UI 待验收** | `joint_expression.timeline()` 对接已确认消息、回执、计划、条件版本、人工反馈；新版 10/10 UI 场景通过 | 历史旧回合没有新追踪字段无法回填；真实浏览器视觉、分页焦点、QQ 实际回执未验收 |
++| **DE-08** 联合消融与幂等 | **本地完成，外部实验未完成** | 固定模型 D-only、E-only、D+E、baseline，专项测试覆盖重复请求、部分发送及证据隔离 | 固定文本生成器和模拟发送不能代替真实供应商、真人参与者和纵向研究 |
++
++### 工程结果如何解释
++
++交付方的本地示例：无条件 1 气泡、中性；D-only 2 气泡、中性；E-only 1 气泡、克制；D+E 2 气泡、克制。这证明在**指定测试情境和评分门槛下**，两条条件路径可以产生独立、可观察的差异。**没有证明人格会自主学会自然人类语用，也没有证明情绪动力学符合真实人类。**
++
++## 2. 从最新 2.6 重新整理的未完成清单
++
++状态：**未开发**、**已有基础需深化**、**本地完成待实机**；优先级 P0=可用性与数据安全，P1=核心心理/认知机制，P2=后续可插拔扩展，研究=需要真实数据与消融验证。
++
++### A. 可靠性、升级和界面验收（需要实机，不等于未开发）
++
++| ID | 优先级 | 当前状态 | 待完成事项／明确验收 |
++|---|---|---|---|
++| **A26-01** | P0 | 本地完成待实机 | 原生 Windows 一键启动、程序关闭重启、旧 2.5.1 真实人格数据库备份／迁移／回滚，核对权重、记忆、关系和学习任务 |
++| **A26-02** | P0 | 本地完成待实机 | 真实 API-PMM 与 General LLM 调用、`boundary_appraisal` 失配、Phase 3/5 无回复、拒绝／沉默／验证失败的诊断回归 |
++| **A26-03** | P0 | 本地完成待实机 | 真实 QQ/SnowLuma：多气泡发送、部分成功、未知回执、只读核验、重复输入、消息重试及图片接收 |
++| **A26-04** | P1 | 部分验收 | 十栏目与语言／情绪／蒸馏页面的真实浏览器桌面和窄屏、键盘焦点、表单、分页、图例与操作反馈 |
++| **A26-05** | P1 | 部分验收 | 独立复现发布方全部 `unittest discover` 回归和 2.5.1 迁移；定位本环境 `pytest` 全量执行超时原因，不能仅信发布报告 |
++| **A26-06** | P2 | 已有基础需深化 | 真实推理延迟、逐阶段 Token 成本、后台蒸馏预算和高负载监控；不自动扩大为架构重写 |
++
++### B. D 语言习惯研究剩余项（2.6 的新能力保留，不重做）
++
++| ID | 优先级 | 当前状态 | 待完成事项／明确验收 |
++|---|---|---|---|
++| **D26-01** | P1 | 已有基础需深化 | **长期语用自主学习**：从充分授权的真实人类反馈和对话行为中形成跨情境候选；明确独立证据、反例、同一事件权重及人工审核；不能以 AI 自身回复当真值 |
++| **D26-02** | P1 | 已有基础需深化 | **高级语言/语用特征**：超出词频、长度、标点，识别上下文敏感的幽默、反讽、省略、话题延展、主动提问与让轮；需要人工金标和效度评估 |
++| **D26-03** | P1/研究 | 已有基础需深化 | **真实对话效果评估**：同模型、同上下文跨时间和跨对象对照；测量自然性、习惯一致性、反馈变化；长期语言习惯与即时情绪不相互污染 |
++| **D26-04** | P2/研究 | 未开发 | 独立的 Learned-PMM 语用策略头训练与迁移；本次 `not_trained` 必须继续诚实显示，不能把当前手工评分宣称为“学会” |
++
++### C. E 情绪与长期性格研究剩余项
++
++| ID | 优先级 | 当前状态 | 待完成事项／明确验收 |
++|---|---|---|---|
++| **E26-01** | P1/研究 | 已有基础需深化 | **动力学参数校准**：根据纵向记录估计情绪惯性、个体基线、情境反应和调节效应；报告敏感性和置信区间，避免任意固定衰减常数 |
++| **E26-02** | P1/研究 | 已有基础需深化 | **24 类情绪目录有效性验证**：候选目录和人类测量构念对应关系、共激活、混合情绪与未知值；不可把 24 类说成唯一心理学定论 |
++| **E26-03** | P1 | 已有基础需深化 | **长期 BEQ/ERQ 等倾向的真实学习与验证**：区分稳定表达/调节习惯与瞬时情绪，来源核验，跨事件晋升、反例、人工审核，独立于语言表达学习 |
++| **E26-04** | P2 | 未开发完整机制 | **非对话时自主心理事件**：未来由授权的自主回忆／外部观察生成有证据的新评价，并更新状态；不能把定时调用无事件衰减冒充自主认知 |
++
++### D. F 人际社会认知（仍是主要未完成研究模块）
++
++| ID | 优先级 | 当前状态 | 待完成事项／明确验收 |
++|---|---|---|---|
++| **F26-01** | P1 | 未开发完整机制 | REL-01：特定对象关系图式；自我在关系中的角色、对方特征、互动预期、不同关系规范与独立证据 |
++| **F26-02** | P1 | 未开发完整机制 | REL-02：稳定人格如何调节对他人行为的解读、关系判断、期待与修复；人格、情绪与关系模型分层及消融 |
++| **F26-03** | P1 | 部分实现 | 他人画像的自动证据累积与不确定性；直接交谈和群聊旁观区分；同一身份跨群关联必须授权／可审计 |
++| **F26-04** | P1 | 未开发完整机制 | 双向认知不对称：“我如何评价对方”与“我推测对方如何评价我”分离，避免臆测双方同意某段关系 |
++| **F26-05** | P1 | 部分实现 | 关系事件序列、冲突、支持、修复、关系规范变化；纠正以交互次数直接代表熟悉度／友谊的过强推断 |
++| **F26-06** | P1/P2 | 部分实现 | 既有社会图谱的关系证据、群组交集、动态边更新及场景访问权限；当前基础图谱不等于完整社会认知 |
++| **F26-07** | P1 | 部分实现 | 主动社交与 BRM 边界、关系、稳定人格及表达策略的互相约束；需真实反馈和拒绝／停止测试 |
++
++### E. G 记忆、认知及可插拔扩展
++
++| ID | 优先级 | 当前状态 | 待完成事项／明确验收 |
++|---|---|---|---|
++| **G26-01** | P1 | 已有基础需深化 | 记忆→互动事件→评价→情绪→长期人格候选的有向证据链；保持原始记忆与压缩记忆可追溯，拒绝 AI 自创经历 |
++| **G26-02** | P1/P2 | 未开发完整机制 | 自主回忆和内部认知议程：在没有用户新消息时，合规调度检索、评价与状态更新；有停止条件／资源预算／日志 |
++| **G26-03** | P2 | 未开发完整机制 | 群聊无显式引用时的多线程话题解缠，人物身份及会话范围隔离 |
++| **G26-04** | P2 | 未开发完整机制 | 可插拔 Agent 标准接口、观察事件→PMM 决策→执行权限→回执；外部权限独立于人格意图 |
++| **G26-05** | P2 | 未开发 | 视频时序视觉与音频 ASR；不在 PMM 里重复造平台媒体能力 |
++| **G26-06** | P2 | 部分基础设施 | Learned-PMM 训练取消、验证后发布、checkpoint 回滚与跨模型适配 |
++| **G26-07** | 研究 | 尚未开发 | Activation Steering／可训练激活控制器及跨模型人格连续性验证 |
++
++### F. 2.5.0/2.5.1 遗留的 C 学习一致性问题
++
++| ID | 优先级 | 当前状态 | 待完成事项／明确验收 |
++|---|---|---|---|
++| **C26-01** | P1 | 部分实现 | 旧后台长期整理队列与新学习任务的覆盖范围、写入幂等、任务状态和结果归因进一步统一；2.6 新的语言反馈路径不能代表所有人格学习统一完成 |
++| **C26-02** | P1/研究 | 部分实现 | 从独立真实交往、外部评价、长期行为证据形成**自身稳定人格**；设定、观察、推断与训练严格隔离，不能循环学习自身生成内容 |
++| **C26-03** | P1 | 部分实现 | 稳定人格版本对下一轮理解、关系判断和行动决策的实际贡献实验；不能只证明字段被读取 |
++
++## 3. 推荐下一次开发批次：继续小步，而不是整包交给开发程序
++
++**验收优先批（先做、不新增心理功能）**：A26-01～A26-05 中能在真实 Windows/QQ 环境完成的部分；同时核对 2.6 的语言审核、情绪轨迹和实际消息回执。需要本人运行环境配合，不得以本地结构 DOM 替代实机。
++
++**F-1（建议下一个实际功能开发批）**：F26-01 + F26-02；将关系图式与人格条件化解读做成同一小批，仍不扩充社会图谱和主动联系。至少提供固定事件、两种人格/两种关系上下文的可复现消融以及严格的事实来源追踪。
++
++**F-2**：F26-03 + F26-04 + F26-05，逐步补对象画像、关系不对称和动态修复；F26-06/07 再按测试状态拆出后续单独批。
++
++**G-1**：G26-01 + G26-02，先做到可信记忆和受控自主回忆；后续再分别立项群聊、Agent、视频、Learned-PMM 与激活调控。
++
++**D/E 研究校准批**：D26-02/03 与 E26-01/02 需独立建立数据集、评分标准与评估协议，建议和真实受试者验证分离，不作为下一次普通工程补丁一并要求。
++
++每批最大原则：交付**真实改动文件、输入—处理—持久化—后续决策的证据、自动化测试与人工验收清单**；需要升级就给可恢复迁移；清楚标注尚未训练或尚未实机通过。批次未验收前不并行扩大范围。
++
++## 4. 审计所依据的文件
++
++- `persona/language_learning.py`、`persona/pragmatics.py`、`persona/joint_expression.py`、`persona/affect.py`、`persona/engine.py`、`persona/server.py`
++- `docs/DE_JOINT_SPEC_20261030.md`、`docs/DE_IMPLEMENTATION_20261031.md`、`docs/DE_GATE_I_REPORT.md`、`docs/DE_GATE_II_REPORT.md`、`docs/TEST_REPORT.md`
++- `tests/test_de_gate1.py`、`tests/test_de_gate2.py`、`tests/test_trait_affect_v230.py`、`tests/test_cbm_v240.py`、`tests/test_ui_v26.js`、`tests/test_ui_v251.js`、`tests/test_ui_v240.js`
++- 历史遗留清单：2.5.1 UI 更新与待验证清单、2.5.0 `IMPLEMENTATION_STATUS_V250.md` 及既有 D/E/F/G 规划。
++
++**最终标记**：D＋E 的本次**工程开发任务已落地并通过定向本地复测**；真实应用、科学验证和后续自主学习改造仍列待办。**本次未修改正式源码或任何运行数据。**
+--- /dev/null
++++ b/docs/V27_DEVELOPMENT_SPEC.md
+@@ -0,0 +1,13 @@
++# 槐安梦客 2.7：人格形成与人际认知联合开发
++
++基线：最新 2.6 完整源码。当前用户指令覆盖旧路线中只做第 1 批的限制。
++
++阶段 I：C26-01 学习证据去重及任务一致性；G26-01 事件、记忆、评价与状态修订证据链。
++阶段 II：F26-03 身份与人物证据 → F26-01 关系图式 → F26-02 自身人格与关系认知耦合；C26-02 长期自身人格学习；E26-03 长期情绪反应与调节倾向。
++阶段 III：C26-03 接入同一 PMM 决策流程，对人格、关系、调节倾向分别做固定条件与消融实验。每阶段测试通过后继续，最终跨模块回归。
++
++验收：同事件手动/自动不重复贡献；人物/会话权限隔离；关系证据/修订/不确定性；固定事件对象的人格对照；长期变更原文和前后状态；即时与长期情绪分离；重启/失败/迁移持久一致；下一轮 PMM 确实读取；兼容 2.6 语言、情绪、QQ 多气泡、人物、记忆、UI。
++
++排除：完整关系冲突修复、完整第三方网络推断、自主回忆调度、Agent、视频、Activation Steering、独立语用神经模型。禁止与 PMM 平行的新人格/记忆系统。
++
++交付：完整源码、迁移说明、八项修改记录、可独立复跑的测试报告、人格及关系决策消融、错误与未完成清单。工程测试不能证明完整心理学效度。
+--- /dev/null
++++ b/docs/V27_PRIOR_TASKS_20261031.md
+@@ -0,0 +1,122 @@
++# 槐安梦客 2.6：剩余31项任务——实施优先级、前置依赖和验收清单
++
++**版本基线**：2.6（2026-10-31），本文件为**规划与审计后的工作台账**，不改动源码和数据。
++
++**读取规则**：`→` 表示前置依赖；“可并行”不表示能够不做单独验收。P0=运行数据安全/真实可用；P1=核心心理研究实现；P2=未来扩展；R=科学效度研究。**不把已交付的 DE-01～DE-08 重新列为待开发**。
++
++## A. 先给结论：完整依赖关系
++
++```text
++并行验收轨道：A26-01/02/03/04/05（实机/回归；真实发布前必须过关）
++
++核心工程轨道：
++    C26-01（统一两种后台学习的事件去重、版本与可追踪性）
++       └── G26-01（记忆→事件→评价→情绪/人格候选的来源链；先做最小公用链）
++              ├── F26-03〔最小范围：同一人的身份、来源、上下文与不确定性〕
++              │     └── F26-01（REL-01，特定对象关系图式）
++              │           ├── F26-02（REL-02，稳定人格参与关系评价）
++              │           │     └── C26-03（人格变化→理解/行动变化的受控检验）
++              │           └── F26-04（对方眼中我的关系：不对称且有不确定性）
++              │                 └── F26-05（关系事件、冲突与修复）
++              │                        ├── F26-06（已有社会图谱的关系证据和权限整合）
++              │                        └── F26-07（对接现有边界、主动联系、语言策略）
++              ├── C26-02（独立行为/真实反馈→自身稳定人格；可与 F26-01 并行）
++              │     └── E26-03（长期 BEQ/ERQ 等候选学习；可与 F 系列并行）
++              └── G26-02（自主回忆、内部评价；基本型不依赖完整 F；关系反思需接 F）
++
++不阻断以上核心轨道的独立研究/扩展：
++ D26-01→D26-02→D26-03→D26-04（语言研究递进；D26-01 可在 C26-01 后并行）
++ E26-01、E26-02（科研校准：可与 F 的工程并行）；E26-04 依赖 G26-02
++ G26-03 独立群聊任务；G26-04→G26-05（工具与媒体）；G26-06→G26-07（训练部署与激活控制）
++ A26-06 性能监控可并行
++```
++
++**依赖的准确含义**：F26-01 不需要等待 F26-03 的所有跨群身份关联研究都完成；它只需要现有同一会话内的身份、事件和来源准确。F26-02 可以先使用既有固定/人工设定人格，不必等待 C26-02 自主人格学习完成；C26-03 用干预与消融评估人格确实影响了理解/行动。G26-01 也先建立公用最小证据链，复杂记忆重整作为后续深化，不能把整包 G 当成前置障碍。
++
++## B. 推荐具体开发批次（每批尽量2项，不做“大包 F1/F2”）
++
++| 批次 | 做哪几项 | 这批解决什么 | 必需前置 | 本批交付和验收 | 之后才能做 |
++|---|---|---|---|---|---|
++| **验收并行轨** | A26-01～05 | Windows / QQ / 真实 API / 数据备份 / 视觉和全量回归 | 2.6 当前代码 | 实机记录、真实送达、迁移回滚、可复现错误日志 | 正式对用户发布升级 |
++| **第1批（现在先做）** | **C26-01 + G26-01最小链** | 让同一个事件不被后台整理和学习中心重复入账，并能反查记忆、评价、候选与状态修订 | 现有 `learning.py`、`consolidation.py`、`memory_lifecycle.py` | 一条事件跨模块共享稳定ID；重复/失败/重试不重复晋升；UI/日志可反查原文与版本 | F、C长期学习及自主回忆的可信基础 |
++| **第2批** | **F26-03最小身份核验 + F26-01** | 区分 AI 自身、当前人、真实互动与旁观推断；建立关系图式、规范与互动预期 | 第1批 | 同一人×两个情境独立建档；证据和不确定性可见；未知不虚构友谊 | F26-02、F26-04 |
++| **第3批** | **F26-02 + C26-03的关系作用测试** | 稳定人格是否真的改变对同一人/同一事件的判断 | 第2批；既有自我人格即可 | 固定模型、固定情境；只替换人格或关系条件；记录评价、行动、表达变化与读取版本 | 关系策略进一步接入 |
++| **第4批（可在第2/3批时另线开展）** | **C26-02 + E26-03** | 自身人格、长期表达/调节倾向如何从独立证据形成，而不是把当前情绪或 AI 自己的回复当成真值 | 第1批 | 跨事件候选/反例、独立性、审查、升降级与状态改动报告；无自我循环污染 | 更可信的长期变化实验 |
++| **第5批** | **F26-04 + F26-05** | 区分“我怎么看TA/我推测TA怎么看我”，并学习关系冲突、支持和修复 | 第2批，建议第3批 | 方向不对称、确定性标记；关系不是按聊天次数单调增加；对真实互动有变化轨迹 | F26-06/07 |
++| **第6批** | **F26-06 + F26-07** | 将关系图式连接到现有社会图谱、边界、主动联系和语言规划 | 第3、5批 | 第三方关系不等于熟识；跨群范围隔离；无权限时不行动；行为反馈留痕 | 较完整的人际社会认知 |
++| **第7批** | **G26-02（单独）** | 无新消息时受控调用已有记忆，形成有依据的内部评价和可能的情绪变化 | 第1批；关系反思功能取决于第5批 | 可关闭、时间/次数/Token预算、安全停止；不能编造事件；可审计内部认知 | E26-04及后续 Agent |
++
++**并行原则**：A 组是所有版本的持续验收门槛，不要求停下所有研发等待用户 Windows 测试；但未完成真实环境验证时，不得宣布对应实机能力已验收。C26-02 可在 F 的工程推进时独立开发，前提是同一代码分支修改不得冲突，最终需集成测试。
++
++## C. 完整31项状态与依赖表
++
++### P0／实机可靠性：6项（大多是“待实机”，不是“未开发”）
++
++| 编号 | 2.6状态 | 任务 | 前置依赖／排序 | 验收标准 |
++|---|---|---|---|---|
++| A26-01 | 本地已实现，待实机 | Windows启动、升级迁移、真实旧库备份回滚 | **立即，并行** | 旧记忆/权重/人物/任务完整；可恢复 |
++| A26-02 | 本地已实现，待实机 | 真实双模型调用及边界/Phase3/5错误恢复 | **立即，并行** | 结构错误不伪装主动沉默，错误有阶段和次数 |
++| A26-03 | 本地已实现，待实机 | QQ多气泡、部分发送、未知回执、图像接收 | **立即，并行** | 不误重发，账面与平台事实一致 |
++| A26-04 | 部分验收 | 十栏目、人格图例、表单、窄屏实机浏览器 | **立即，并行** | 真实浏览器完整操作与截图复验 |
++| A26-05 | 部分验收 | 完整回归与真实迁移独立复现 | **立即，并行** | 运行命令、日志、失败定位与修复/豁免证据 |
++| A26-06 | 基础已有 | 延迟、Token和后台资源监控 | **非阻塞、后续** | 任务级真实耗时与成本记录、预算超限处理 |
++
++### P1／共用基础与自身人格：5项
++
++| 编号 | 2.6状态 | 任务 | 前置依赖／排序 | 验收标准 |
++|---|---|---|---|---|
++| C26-01 | 部分实现 | **后台整理和学习中心统一事件去重、任务状态和修订追踪** | **第1批，所有长期自动学习的优先基础** | 两条路径不会重复更新人格；失败可重试、状态一致 |
++| G26-01 | 部分实现 | **记忆→事件→评价→情绪/人格候选证据链** | **第1批先做最小公用链，依赖 C26-01 的标识策略** | 输入来源ID可追到状态修订；不创造经历 |
++| C26-02 | 部分实现 | 从独立经历/外部反馈修正**自身稳定人格** | C26-01 + G26-01；**可与 F 开发并行** | 同一自生成回复不能作为人格真实监督；跨情境证据和反例判断 |
++| C26-03 | 部分实现 | 稳定人格对理解、关系和行动的可检验贡献 | F26-02（关系）、C26-02（若检验自主学习前后）；**第3批先固定人格做关系消融** | 固定模型上下文，单独改变人格条件，验证真实行动层差异 |
++| E26-03 | 部分实现 | BEQ/ERQ 等长期表达和调节倾向的可审查学习 | C26-02 所用长期证据通道；**第4批** | 跨情境候选，有来源/反例，与当前情绪隔离 |
++
++### P1／F 人际社会认知：7项（必须按内部依赖拆开）
++
++| 编号 | 2.6状态 | 任务 | 前置依赖／排序 | 验收标准 |
++|---|---|---|---|---|
++| F26-03 | 部分实现 | **谁是对方、他人画像证据、旁观和直接交流分离** | G26-01；先做单会话最小核验；**第2批** | 同一人×scope隔离；不从旁观推断为好友 |
++| F26-01 | 未完整实现 | **REL-01：每个特定对象的关系图式、角色、规范、期待** | F26-03最小能力 + G26-01；**第2批** | 关系有情境、来源、不确定性，未观察到就显示未知 |
++| F26-02 | 未完整实现 | **REL-02：稳定人格怎样影响关系解释和判断** | F26-01 + 既有人格；**第3批** | 两个人格、同一事件的条件消融可复现；不改人格本身 |
++| F26-04 | 未完整实现 | 我对TA的判断 vs 我推测TA对我的判断 | F26-01 + F26-03；**第5批** | 两个方向独立存储，推断标记不确定性 |
++| F26-05 | 部分实现 | 事件驱动的关系变化、冲突、支持与修复 | F26-01 + F26-04；**第5批** | 单次冲突不自动摧毁关系；有反例和动态轨迹 |
++| F26-06 | 部分实现 | 已有第三方关系图谱与关系模型整合 | F26-03 + F26-05；**第6批** | 群成员不等于好友，第三方推测不跨私人范围泄漏 |
++| F26-07 | 部分实现 | 关系/人格/边界对主动联系和语言行动的约束 | F26-02 + F26-05 + 既有 BRM/CBM；**第6批** | 越权不执行、拒绝会停止，决策可解释可追溯 |
++
++### P1/P2／D-E 深化：8项（不阻断 F 主线）
++
++| 编号 | 2.6状态 | 任务 | 前置依赖／排序 | 验收标准 |
++|---|---|---|---|---|
++| D26-01 | 部分实现 | 从长期人类反馈中自动抽取稳定语用候选 | C26-01；**可并行** | 真实独立证据与 AI 输出分开，候选可审查 |
++| D26-02 | 部分实现 | 情境化反讽、幽默、省略、话题延续等测量 | D26-01 的候选接口，人工标注金标 | 跨情境标注一致性和误差，不能仅靠关键词 |
++| D26-03 | 待真实研究 | 自然交流的语言学习/表现对照实验 | D26-01、D26-02 + 真实对话数据 | 固定条件，有标注与基线比较 |
++| D26-04 | 未开发 | 学到的独立语用策略头及模型迁移 | D26-01/02/03 + Learned训练/发布设施 G26-06 | 显式 not_trained→trained 的可复现检查点 |
++| E26-01 | 未校准 | 情绪基线、惯性、恢复速率、调节参数纵向校准 | 有真实纵向样本；**可并行研究** | 参数识别、敏感性、跨个体/时间留出检验 |
++| E26-02 | 未验证 | 24种情绪标签的测量效度与共激活 | 独立标注数据；**可并行研究** | 标注框架和一致性，不把24当定论 |
++| E26-04 | 未完整实现 | 自主内部事件引起新情绪 | G26-02；**第7批之后** | 清楚区分时间自然演化与真实新内部事件 |
++| （说明） | — | E26-03 计入 C/长期证据共用基础部分 | — | 全表合计不重复计算 |
++
++### P2／G 未来扩展：6项（G26-01、G26-02已在核心批次说明）
++
++| 编号 | 2.6状态 | 任务 | 前置依赖／排序 | 验收标准 |
++|---|---|---|---|---|
++| G26-02 | 未完整实现 | 受控自主回忆与内部评价 | G26-01；**第7批** | 有预算/停止机制，引用已有真实记忆，不虚构来源 |
++| G26-03 | 未完整实现 | QQ群聊无引用时多话题语义解缠 | 独立，可在F身份基础上改进 | 交错对话不串话题/串身份 |
++| G26-04 | 未完整实现 | Agent可插拔接口＋独立工具权限 | 稳定事件回执机制；建议G26-02后接入 | 工具失败可观察，行动意图不等于执行权限 |
++| G26-05 | 未开发 | 视频/音频的Agent观察链 | G26-04 | 时序来源与范围、音轨/视觉引用可追溯 |
++| G26-06 | 部分设施 | Learned-PMM训练取消、验证、发布/回滚 | 可与F并行，发布前要A组回归 | checkpoint验证、失败回滚和训练/验证隔离 |
++| G26-07 | 研究规划 | Activation Steering与跨模型人格迁移 | G26-06及独立科学试验 | 干预实验、行为一致性、跨模型消融与安全测试 |
++
++## D. 下一轮可直接交给开发程序的最小工作包
++
++**唯一建议的下一轮开发范围：C26-01 + G26-01（仅共用证据链最小实现）**。不要同时追加 F26-01/F26-02，也不要重做 D/E。开发交付必须有：1）原始输入—稳定事件 ID—证据—候选—应用—状态版本的完整回放；2）自动+手动双路径重复处理同一记录不重复改变长期人格；3）重试、失败、并发、旧数据迁移回归；4）可从日志或现有诊断入口追到结果；5）旧人格、情绪、语言与 QQ 回归；6）按编号列真实修改文件和未完成项。**本文件不授权直接改代码**。
++
++## E. 如何判断何时进入下一批
++
++- **第1批通过**：同一事件在记忆与学习路径都可追溯且不双重计数 → 可开发第2批 F26-03 + F26-01。
++- **第2批通过**：真实对象、情境、关系图式可查询；未知/推断和事实分离 → 可开发第3批 F26-02。
++- **第3批通过**：固定模型下人格条件变化能对应改变人际评价，且有理由/证据与行动版本 → 可以启动关系发展批。
++- **F26-04/05通过**：冲突/修复、双向不对称和关系变化稳定 → 再整合社会网络、主动联系。
++- **G26-01通过**：可单独启动自主回忆的实验性沙箱；想要稳定的关系反思，建议 F26-05 完成后集成。
++
++**重要限制**：工程可观察和消融测试≠人格真实心理学效度；真实云模型／Windows／QQ 的行为不得由模拟结果外推；不清除旧记录，也不让单个 AI 生成回复直接成为自身人格监督真值。
+--- a/persona/consolidation.py
++++ b/persona/consolidation.py
+@@ -107,22 +107,31 @@
+                         from .registry import ensure_profile
+                         other=ensure_profile(others.get(key,empty_profile(key,person)),'model_of_other')
+                         # Generated self language remains observation, not a style target or stable truth.
++                        ur=e.evidence.normalize(ur,scope,person);sr=e.evidence.normalize(sr,scope,sr['speaker'])
++                        e.evidence.register([ur,sr],'consolidation')
+                         self_before=copy.deepcopy(p);other_before=copy.deepcopy(other)
+                         self_report,self_gate=learn.live_report(e,'self',f.get('self_observations',{}),session,manual=manual)
+                         other_report,other_gate=learn.live_report(e,'other',f.get('interlocutor',{}),session,manual=manual)
++                        other_duplicate=e.evidence.processed('other',ur)
++                        if other_duplicate:other_report={}
+                         p,_=apply_distillation(p,self_report,[sr] if sr['text'] and self_gate['allowed'] else [],source='generated')
+-                        other,_=apply_distillation(other,other_report,[ur] if other_gate['allowed'] else [],source='observed')
+-                        if other_gate['allowed'] and (manual or other_gate['mode']=='automatic'):other,_=traits.review(other,True,strength=other_gate['strength'])
++                        other,_=apply_distillation(other,other_report,[ur] if other_gate['allowed'] and not other_duplicate else [],source='observed')
++                        if other_gate['allowed'] and not other_duplicate and (manual or other_gate['mode']=='automatic'):other,_=traits.review(other,True,strength=other_gate['strength'])
++                        if other_gate['allowed'] and not other_duplicate:e.evidence.complete('other',[ur],row['id'],{'revision':other_before['revision'],'traits':other_before['trait_profile']['version']},{'revision':other['revision'],'traits':other['trait_profile']['version']},'consolidation')
+                         others[key]=other
+                         relation_gate=learn.permission(e,'relationship',scope,person,manual=manual,observed_only=not session.get('direct_interaction',True))
+                         if not relation_gate['allowed'] or (not manual and relation_gate['mode']!='automatic'):f={**f,'relationship_updates':[]}
+                         memory_gate=learn.permission(e,'memory',scope,person,manual=manual,observed_only=not session.get('direct_interaction',True))
+                         if not memory_gate['allowed'] or (not manual and memory_gate['mode']!='automatic'):f={**f,'memory_ops':[]}
+-                        d=dyads.get(key,dy.empty(person,scope));d,report=dy.update(d,f,ur['text'],row['id'],row['decision']['action'],style_vector(sr['text']),count_interaction=False,strength=relation_gate['strength'] if relation_gate['allowed'] else 0.);dyads[key]=d
++                        if e.evidence.processed('relationship',ur):f={**f,'relationship_updates':[]}
++                        if e.evidence.processed('memory',ur):f={**f,'memory_ops':[]}
++                        d=dyads.get(key,dy.empty(person,scope));relation_before=copy.deepcopy(d);d,report=dy.update(d,f,ur['text'],row['id'],row['decision']['action'],style_vector(sr['text']),count_interaction=False,strength=relation_gate['strength'] if relation_gate['allowed'] else 0.);dyads[key]=d
+                         changes=[]
+                         for op in f.get('memory_ops',[])[:10]:
+                             log=e.apply_memory(op,ur['text'],session,row['id'],visible_ids={m['id'] for m in row['memories']});changes.append(log)
+                             if log['status']=='applied':codes[log['id']]=row['understanding']['semantic']
++                        if f.get('relationship_updates'):e.evidence.complete('relationship',[ur],row['id'],{'digest':__import__('persona.registry',fromlist=['digest']).digest(relation_before)},{'digest':__import__('persona.registry',fromlist=['digest']).digest(d),'accepted':report},'consolidation')
++                        if f.get('memory_ops'):e.evidence.complete('memory',[ur],row['id'],{}, {'changes':changes},'consolidation',{'memory_ids':[r['id'] for r in changes if r.get('status')=='applied']})
+                         # Actual language, appraisal and evidenced hypotheses stay available for later training.
+                         if captured['pmm']['mode']!='legacy' and learn.train_allowed(e,session,manual=manual):
+                             target={k:f['self_appraisal'][k] for k in STATE_KEYS};vv,mm=pack_features(p['psychology'])
+--- a/persona/engine.py
++++ b/persona/engine.py
+@@ -131,6 +131,8 @@
+         pg.validate(store.meta('pmm_pragmatics'))
+         with store.lock,store.db:
+             store.setmeta('pmm_pragmatics',pg.rebuild(store.meta('pmm_pragmatics'),self.profile()['source_records']))
++        from .evidence import Evidence
++        self.evidence=Evidence(self)
+         from .consolidation import Consolidation
+         self.consolidation=Consolidation(self)
+         from .memory_lifecycle import MemoryLifecycle
+@@ -671,6 +673,8 @@
+                         'training_x':plan['training_x'],'boundary_states':self.boundaries.applicable(plan['session']['scope'],plan['session']['person']),
+                         'acknowledged_prefix_only':True})
+                 st.setmeta('consolidation_queue',queue);queued=True
++            source=self.evidence.normalize(plan['user_record'],plan['session']['scope'],plan['session']['person'])
++            self.evidence.complete('interaction',[source],turn_id,{'turn_count':plan['expected_turn_count']},{'turn_count':st.meta('state')['turn_count'],'affect_revision':affect['emotion']['state_revision'] if affect else None},'partial-commit',{'turn_id':turn_id,'actual_bubbles':len(parts)})
+             trace['learning_queued']=queued;self._mark_input(plan,partial=True)
+             st.db.execute('INSERT OR REPLACE INTO events VALUES (?,?,?,?)',(turn_id+':partial','expression_partial',dumps(trace),now()))
+         self.journal.partial_committed(turn_id)
+@@ -719,7 +723,9 @@
+             used_ids={e.get('memory_id',e.get('id')) for e in u.get('supported_memory_evidence',[])}|{identifier for identifier,weight in trace['decoded'].get('memory_focus',{}).items() if weight>0}
+             if memory_gate['allowed'] and memory_gate['mode']=='automatic':self.memory_lifecycle.touch(memories if self.config.get()['cognition']['mode']=='baseline' else [m for m in memories if m['id'] in used_ids])
+             cognitive=context.get('cognitive_decision',{})
+-            if memory_gate['allowed']:self.memory_lifecycle.enqueue(context.get('raw_records') or [plan['user_record']],session['scope'],person,context.get('thread',''),source='direct_interaction' if session.get('direct_interaction',True) else 'observed_group',appraisal=cognitive.get('estimates'),cognitive_id=cognitive.get('cognitive_id'))
++            if memory_gate['allowed']:
++                memory_sources=[{**r,'original_event_id':r.get('event_id'),'event_id':turn_id} for r in (context.get('raw_records') or [plan['user_record']])]
++                self.memory_lifecycle.enqueue(memory_sources,session['scope'],person,context.get('thread',''),source='direct_interaction' if session.get('direct_interaction',True) else 'observed_group',appraisal=cognitive.get('estimates'),cognitive_id=cognitive.get('cognitive_id'))
+             if plan['critical'] or u['semantic'].get('disengagement',0)>=.6:st.setmeta('memory_boundary',True)
+             if plan['deferred']:
+                 queue=st.meta('consolidation_queue') or []
+@@ -741,6 +747,12 @@
+                 self.learning.audit_live(turn_id,session,audit['self_before'],meta['pmm_profile'],audit['other_before'],meta['pmm_interlocutors'].get(key,audit['other_before']),audit['gates'],trace['pmm_before_sha256'],trace['pmm_after_sha256'])
+             graph_gate=learn.permission(self,'social_graph',session['scope'],person,observed_only=not session.get('direct_interaction',True))
+             if graph_gate['allowed']:self.social_graph.observe_membership(session['scope'],person,[plan['user_record']])
++            source=self.evidence.normalize(plan['user_record'],session['scope'],person)
++            self.evidence.complete('interaction',[source],turn_id,{'turn_count':plan['expected_turn_count'],'profile_revision':plan['expected_profile_revision']},{'turn_count':meta['state']['turn_count'],'profile_revision':meta['pmm_profile']['revision'],'affect_revision':meta['pmm_affect']['emotion']['state_revision']},'live-commit',{'turn_id':turn_id,'appraisal_id':trace.get('trait_affect',{}).get('appraisal',{}).get('id'),'memory_ids':[r['id'] for r in st.rows('SELECT id FROM memories WHERE source_turn=?',(turn_id,))]})
++            if not plan['deferred'] and audit and audit['gates']['other']['allowed']:
++                self.evidence.complete('other',[source],turn_id,{'revision':audit['other_before']['revision']},{'revision':meta['pmm_interlocutors'][key]['revision']},'live-feedback')
++            if feedback.get('relationship_updates'):self.evidence.complete('relationship',[source],turn_id,{}, {'accepted':trace['relationship_update']},'live-feedback')
++            if feedback.get('memory_ops'):self.evidence.complete('memory',[source],turn_id,{}, {'changes':memory_log},'live-feedback')
+             trace['memory_changes']=memory_log;st.event('turn',trace);self._mark_input(plan)
+         self.model=candidate or create_pmm(self.config.get(),meta['pmm_checkpoint'],meta['pmm_profile']['id'])
+         self.journal.committed(turn_id)
+--- /dev/null
++++ b/persona/evidence.py
+@@ -0,0 +1,125 @@
++"""Shared provenance and processing receipts for existing PMM state.
++
++This is an index of source records, tasks and state revisions. It owns no
++personality estimates, retrievable memories or alternate decision process.
++All writes participate in the caller's existing SQLite transaction.
++"""
++from __future__ import annotations
++import copy
++from .common import now
++from .registry import digest
++
++SCHEMA='learning-evidence/1'
++
++def empty():
++    return {'schema':SCHEMA,'version':0,'sources':{},'receipts':{},'revisions':[]}
++
++def identity(record,scope=None,person=None):
++    scope=scope if scope is not None else record.get('authorization_scope',record.get('scope','')) or 'self:imported'
++    person=person if person is not None else record.get('person') or record.get('speaker','')
++    raw=record.get('event_id') or record.get('source_event_id') or record.get('batch_id') or record['id'].removesuffix(':u').removesuffix(':a')
++    return digest([scope,person,str(raw)])
++
++def validate(value):
++    if value is None:return
++    if not isinstance(value,dict) or value.get('schema')!=SCHEMA or type(value.get('version')) is not int or value['version']<0:raise ValueError('统一证据索引版本无效')
++    for name in ('sources','receipts'):
++        if not isinstance(value.get(name),dict) or len(value[name])>200000:raise ValueError('证据索引格式或容量无效')
++    if not isinstance(value.get('revisions'),list) or len(value['revisions'])>200000:raise ValueError('状态修订索引无效')
++    for key,r in value['sources'].items():
++        if not isinstance(r,dict) or not all(isinstance(r.get(k),str) for k in ('record_id','text','scope','person','event_id','content_digest')):raise ValueError('证据源字段无效')
++        if key!=digest([r['scope'],r['person'],r['record_id']]) or digest(r['text'])!=r['content_digest']:raise ValueError('证据源摘要或身份不匹配')
++    for key,r in value['receipts'].items():
++        if not isinstance(r,dict) or not all(isinstance(r.get(k),str) for k in ('domain','event_id','task_id')) or not isinstance(r.get('source_keys'),list):raise ValueError('学习回执无效')
++        if key!=digest([r['domain'],r['event_id']]) or any(k not in value['sources'] for k in r['source_keys']):raise ValueError('学习回执缺少原始来源')
++        if any(value['sources'][k]['event_id']!=r['event_id'] for k in r['source_keys']):raise ValueError('学习回执混入其他事件')
++    for r in value['revisions']:
++        if not isinstance(r,dict) or not isinstance(r.get('source_keys'),list) or any(k not in value['sources'] for k in r['source_keys']):raise ValueError('状态修订来源无效')
++
++class Evidence:
++    def __init__(self,engine):
++        self.e=engine;self.st=engine.store
++        validate(self.st.meta('learning_evidence'))
++        if self.st.meta('learning_evidence') is None:
++            with self.st.lock,self.st.db:
++                self.st.setmeta('learning_evidence',empty())
++                # Preserve old state; index only existing raw evidence and known
++                # successful tasks. Unknown historic processing stays unknown.
++                for target,p in [('self',engine.profile()),*[("other",p) for p in (self.st.meta('pmm_interlocutors') or {}).values()]]:
++                    records=[r for r in p.get('source_records',[]) if r.get('source')!='generated']
++                    if records:self.complete(target,records,'migration:existing-profile',{}, {},'legacy_applied_unknown_time')
++                for job in (self.st.meta('learning_center') or {}).get('jobs',[]):
++                    for b in job.get('batches',[]):
++                        if b.get('status')=='applied' and job.get('status')!='rolled_back':self.complete(job['target'],b['records'],job['id'],{}, {},'migration:learning-center')
++                self.st.event('evidence_index_migrated',{'schema':SCHEMA,'existing_states_unchanged':True})
++
++    def state(self):return self.st.meta('learning_evidence') or empty()
++
++    def normalize(self,r,scope=None,person=None):
++        x=copy.deepcopy(r)
++        x['scope']=scope if scope is not None else x.get('authorization_scope',x.get('scope','')) or 'self:imported'
++        x['person']=person if person is not None else x.get('person') or x.get('speaker','')
++        if not isinstance(x.get('id'),str) or not isinstance(x.get('text'),str) or not x['scope'] or not x['person']:raise ValueError('统一证据需要原文 ID、人物及会话范围')
++        # History message IDs and turn:u references must resolve to the same
++        # real turn, never depend on which background path happened to run.
++        rows=self.st.rows('SELECT m.turn_id,m.content,s.scope FROM messages m JOIN sessions s ON s.id=m.session_id WHERE m.id=? AND m.role=\'user\'',(x['id'],))
++        if rows:
++            if rows[0]['scope']!=x['scope'] or rows[0]['content']!=x['text']:raise ValueError('原始消息与声明的范围或内容不同')
++            x['event_id']=rows[0]['turn_id']
++        x['origin_event_id']=identity(x);x['origin_record_key']=digest([x['scope'],x['person'],x['id']])
++        old=self.state()['sources'].get(x['origin_record_key'])
++        if old and (old['content_digest']!=digest(x['text']) or old['event_id']!=x['origin_event_id']):raise ValueError('同一原始证据 ID 的内容或事件已改变；请保留原文并显式建立修订')
++        return x
++
++    def register(self,records,path):
++        value=self.state();out=[];changed=False
++        for record in records:
++            r=self.normalize(record);key=r['origin_record_key'];out.append(r)
++            if key not in value['sources']:
++                if len(value['sources'])>=200000:raise ValueError('来源索引已达容量上限，请先导出；未删除历史证据')
++                value['sources'][key]={'record_id':r['id'],'event_id':r['origin_event_id'],'original_event_id':r.get('event_id') or r.get('batch_id'),
++                    'text':r['text'],'content_digest':digest(r['text']),'scope':r['scope'],'person':r['person'],
++                    'source_type':r.get('source','observed'),'direct_interaction':r.get('direct_interaction'),
++                    'occurred_at':r.get('timestamp'),'first_path':path,'source_locator':{'record_id':r['id'],'session_id':r.get('session_id')}};changed=True
++        if changed:value['version']+=1;self.st.setmeta('learning_evidence',value)
++        return out
++
++    def processed(self,domain,r):
++        r=self.normalize(r);receipt=self.state()['receipts'].get(digest([domain,r['origin_event_id']]))
++        return bool(receipt and not receipt.get('revoked'))
++
++    def fresh(self,domain,records):return [r for r in records if not self.processed(domain,r)]
++
++    def complete(self,domain,records,task_id,before,after,path,links=None):
++        if not records:return None
++        rs=self.register(records,path);value=self.state();keys=sorted({r['origin_record_key'] for r in rs});events={r['origin_event_id'] for r in rs}
++        for event in events:
++            k=digest([domain,event]);prior=value['receipts'].get(k)
++            if prior and not prior.get('revoked'):continue
++            if prior is None and len(value['receipts'])>=200000:raise ValueError('学习回执已达容量上限；原状态未提交')
++            value['receipts'][k]={'domain':domain,'event_id':event,'task_id':task_id,'source_keys':[r['origin_record_key'] for r in rs if r['origin_event_id']==event],'path':path,'at':now(),'revoked':False}
++        signature=digest([task_id,domain,keys,digest(before),digest(after),links or {}])
++        if not any(r['id']==signature for r in value['revisions']):
++            if len(value['revisions'])>=200000:raise ValueError('修订索引已达容量上限；原状态未提交')
++            value['revisions'].append({'id':signature,'task_id':task_id,'domain':domain,'source_keys':keys,'event_ids':sorted(events),
++                'before':copy.deepcopy(before),'after':copy.deepcopy(after),'changed':before!=after,'path':path,'links':copy.deepcopy(links or {}),'at':now()})
++            value['version']+=1
++        self.st.setmeta('learning_evidence',value);return signature
++
++    def revoke(self,task_id):
++        value=self.state()
++        for r in value['receipts'].values():
++            if r['task_id']==task_id:r['revoked']=True
++        for r in value['revisions']:
++            if r['task_id']==task_id:r['rolled_back']=True
++        value['version']+=1;self.st.setmeta('learning_evidence',value)
++
++    def trace(self,scope=None,person=None,event_id=None,offset=0,limit=20):
++        value=self.state();sources={k:r for k,r in value['sources'].items() if (scope is None or r['scope']==scope) and (person is None or r['person']==person) and (event_id is None or r['event_id']==event_id)}
++        rows=[r for r in value['revisions'] if set(r['source_keys'])&sources.keys()]
++        rows.sort(key=lambda r:(r['at'],r['id']),reverse=True);offset=max(0,int(offset));limit=max(1,min(50,int(limit)));page=rows[offset:offset+limit]
++        # A scoped caller receives no other source fragments from a mixed task.
++        page=[{**r,'source_keys':[k for k in r['source_keys'] if k in sources],
++            **({'before':None,'after':None,'links':{},'mixed_scope_details_redacted':True} if set(r['source_keys'])-sources.keys() else {})} for r in page]
++        selected={k for r in page for k in r['source_keys']}
++        return {'schema':SCHEMA,'version':value['version'],'total':len(rows),'offset':offset,'limit':limit,'revisions':page,'sources':{k:sources[k] for k in selected}}
+--- a/persona/learning.py
++++ b/persona/learning.py
+@@ -210,14 +210,15 @@
+             if type(limit) is not int or not 1<=limit<=100000:raise ValueError('消息数量应为1–100000')
+             filtered=filtered[-limit:]
+         if len(filtered)>100000:raise ValueError('历史范围超过10万条，请分时间窗处理')
++        filtered=[self.e.evidence.normalize(r) for r in filtered]
+         return filtered,skipped
+     def cursor_key(self,target,r):return digest([target,r['scope'],r['person'],r['id']])
+     def preview(self,body):
+-        records,skipped=self._source_rows(body);target=body['target'];state=self.state();duplicates=[r for r in records if self.cursor_key(target,r) in state['cursors']]
++        records,skipped=self._source_rows(body);target=body['target'];state=self.state();duplicates=[r for r in records if self.cursor_key(target,r) in state['cursors'] or self.e.evidence.processed(target,r)]
+         for r in duplicates:
+-            entry=state['cursors'][self.cursor_key(target,r)]
++            entry=state['cursors'].get(self.cursor_key(target,r),{})
+             if entry.get('text_digest') and entry['text_digest']!=digest(r['text']):raise ValueError('已处理的原文ID被用于不同内容；请保留旧原文并给修订分配新ID')
+-        if body.get('reanalyse') is not True:records=[r for r in records if self.cursor_key(target,r) not in state['cursors']]
++        if body.get('reanalyse') is not True:records=[r for r in records if r not in duplicates]
+         chars=sum(len(r['text'])+len(r.get('context','')) for r in records);budget=policy(self.e)['budget'];n=max(1,budget['batch_records'])
+         estimate=math.ceil(len(records)/n);token_estimate=chars+estimate*6500
+         return {'target':target,'source_count':len(records),'duplicate_count':len(duplicates),'excluded_count':len(skipped),'excluded':skipped[:30],
+@@ -236,7 +237,7 @@
+             if intent not in ('analysis','review','apply'):raise ValueError('任务模式应为仅分析、候选审核或证据晋升')
+             if body.get('origin','manual') not in ('manual','automatic'):raise ValueError('任务触发来源无效')
+             records,_=self._source_rows(body);state=self.state()
+-            if body.get('reanalyse') is not True:records=[r for r in records if self.cursor_key(body['target'],r) not in state['cursors']]
++            if body.get('reanalyse') is not True:records=[r for r in records if self.cursor_key(body['target'],r) not in state['cursors'] and not self.e.evidence.processed(body['target'],r)]
+             if len(state['jobs'])>=2000:raise ValueError('已有2000个学习任务，请先导出归档；未丢弃历史')
+             job={'schema':JOB_FORMAT,'id':uid(),'created_at':now(),'updated_at':now(),'source':body.get('source','history'),'target':body['target'],'intent':intent,
+                 'status':'ready','cursor':0,'records':records,'policy':policy(self.e),'source_digest':preview['source_digest'],'scopes':list(body['scopes']),
+@@ -305,6 +306,13 @@
+         for r in records:
+             g=permission(self.e,target,r['scope'],r['person'],manual=True,observed_only=r.get('direct_interaction') is False)
+             if not g['allowed']:raise ValueError('当前学习政策不再允许此批次：'+','.join(g['reasons']))
++        original_records=records
++        records=self.e.evidence.fresh(target,records)
++        if not records:
++            batch.update(status='applied',applied_at=now(),duplicate_only=True)
++            audit=[{'destination':target,'status':'already_processed','changed_fields':[],'weights_updated':False}]
++            job['audit'].extend(audit);job['rollback'].append({'batch_id':batch['id'],'writes':[]});return audit
++        self.e.evidence.register(records,'learning:'+job['id'])
+         strength=policy(self.e)['domains'][target]['strength']
+         def write(key,value):
+             old=self.st.meta(key)
+@@ -403,7 +411,8 @@
+                 self.st.db.execute('INSERT INTO memories VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(mid,row['content'][:6000],row['kind'],r['scope'],r['person'],min(.75,confidence)*strength,importance,'active',r.get('event_id') or r['id'],q,now(),now(),1,'原文来源:'+r['id']))
+                 created.append(mid)
+             audit.append({'destination':'memories','created_ids':created,'rejected':rejected,'weights_updated':False});writes.append({'memory_ids':created})
+-        for r in records:state['cursors'][self.cursor_key(target,r)]={'job_id':job['id'],'batch_id':batch['id'],'at':now(),'text_digest':digest(r['text'])}
++        self.e.evidence.complete(target,records,job['id'],{'state_digests':{w['key']:digest(w['before']) for w in writes if 'key' in w}}, {'state_digests':{w['key']:w['after_digest'] for w in writes if 'key' in w},'changes':audit},'learning-center',{'batch_id':batch['id'],'memory_ids':[m for w in writes for m in w.get('memory_ids',[])]})
++        for r in original_records:state['cursors'][self.cursor_key(target,r)]={'job_id':job['id'],'batch_id':batch['id'],'at':now(),'text_digest':digest(r['text'])}
+         batch.update(status='applied',applied_at=now());job['audit'].extend(audit);job['rollback'].append({'batch_id':batch['id'],'writes':writes});return audit
+     def run(self,identifier,progress=lambda _:None):
+         if not self.lock.acquire(False):raise ValueError('已有学习任务运行中')
+@@ -501,6 +510,7 @@
+                     for w in block['writes']:
+                         for mid in w.get('memory_ids',[]):self.st.db.execute("UPDATE memories SET status='deleted',revision=revision+1,updated_at=? WHERE id=?",(now(),mid))
+                 state['cursors']={k:v for k,v in state['cursors'].items() if v['job_id']!=identifier}
++                self.e.evidence.revoke(identifier)
+                 j.update(status='rolled_back',updated_at=now());self.st.event('learning_job_rolled_back',{'id':identifier,'raw_sources_preserved':True})
+             else:raise ValueError('未知学习任务操作')
+             self.st.setmeta('learning_center',state);return self.public(j)
+--- a/persona/memory_lifecycle.py
++++ b/persona/memory_lifecycle.py
+@@ -59,6 +59,9 @@
+             self.st.setmeta('memory_pending',rows)
+     def enqueue(self,records,scope,person,thread='',source='direct_interaction',appraisal=None,cognitive_id=None):
+         if not self.e.config.get()['memory']['enabled']:return
++        records=[self.e.evidence.normalize(r,scope,person) for r in records]
++        records=self.e.evidence.fresh('memory_gist',records)
++        self.e.evidence.register(records,'memory-enqueue')
+         rows=self.st.meta('memory_pending') or [];known={s['id'] for r in rows for s in r['records']}
+         records=[copy.deepcopy(r) for r in records if r['id'] not in known]
+         if not records:return
+@@ -169,7 +172,7 @@
+                     if not isinstance(v,dict) or v.get('record_id') not in records or not isinstance(v.get('quote'),str) or not v['quote'].strip() or v['quote'] not in records[v['record_id']]['text']:raise ValueError('记忆证据与原文不匹配')
+                 item=copy.deepcopy(item)
+                 for v in item['evidence']:v['source_text']=records[v['record_id']]['text']
+-                if item['layer']=='semantic' and len({v['record_id'] for v in evidence})<2:item['layer']='gist'
++                if item['layer']=='semantic' and len({self.e.evidence.normalize(records[v['record_id']],first['scope'],first['person'])['origin_event_id'] for v in evidence})<2:item['layer']='gist'
+                 links=item.get('links',[])
+                 if not isinstance(links,list) or len(links)>6:raise ValueError('再巩固关联无效')
+                 for link in links:
+@@ -179,6 +182,8 @@
+                 if generation!=self.st.meta('consolidation_generation') or c['pmm']!=self.e.config.get()['pmm']:raise ValueError('状态已恢复或连接改变，旧蒸馏结果未应用')
+                 if not all(self.eligible(r,manual) for r in batch):raise ValueError('记忆学习权限已改变，本批未写入；原文保留')
+                 traces=self.st.meta('memory_traces') or {};saved=[]
++                duplicate=all(self.e.evidence.processed('memory_gist',self.e.evidence.normalize(r,first['scope'],first['person'])) for r in records.values())
++                if duplicate:checked=[]
+                 for item in checked:
+                     text=item['summary']+'\n'+'\n'.join(label+item[f] for f,label in [('conclusion','结论：'),('emotion','情绪线索：'),('uncertainty','不确定：')] if item.get(f))
+                     evidence=item['evidence'];mid=self.e.add_memory(text,item['layer'],first,evidence[0]['record_id'],evidence[0]['quote'],.6,.6)
+@@ -192,6 +197,7 @@
+                             old['links']=(old.get('links',[])+[{'memory_id':mid,'relation':link['relation']}])[-100:]
+                             if link['relation']=='contradicts':old['uncertainty']=max(old.get('uncertainty',.5),.75)
+                     self.st.event('memory_reconsolidated',{'id':mid,'event_id':first.get('event_id'),'links':item['links'],'source_ids':[v['record_id'] for v in evidence],'old_text_preserved':True})
++                self.e.evidence.complete('memory_gist',[self.e.evidence.normalize(r,first['scope'],first['person']) for r in records.values()],','.join(sorted(ids)),{}, {'memory_ids':saved},'memory-consolidation',{'memory_ids':saved,'segmented_event_id':first.get('event_id')})
+                 self.st.setmeta('memory_traces',traces);self.st.setmeta('memory_pending',[r for r in self.st.meta('memory_pending') or [] if r['id'] not in ids]);self.st.setmeta('memory_boundary',False)
+                 result={'ok':True,'processed':len(ids),'saved':saved,'scope':first['scope'],'source_ids':list(records),'at':now()};self.st.setmeta('memory_last',result);self.st.event('memory_consolidated',result)
+             return result
+--- a/persona/packages.py
++++ b/persona/packages.py
+@@ -12,10 +12,12 @@
+ 
+ FORMAT='persona-package/2.3'
+ COMPATIBLE_FORMATS=('persona-package/2.0','persona-package/2.1',FORMAT)
+-META_KEYS=('learning_policy','learning_center','learning_observed_sources','social_graph','pmm_pragmatics','pmm_affect','identity','state','pmm_profile','pmm_activity','pmm_interlocutors','pmm_memory_codes','pmm_expression','pmm_synthesis','pmm_training_records','api_retrieval','pmm_checkpoint','pmm_dyads','consolidation_queue','memory_pending','memory_traces','cognitive_head','cognitive_feedback','memory_open_events','boundary_model','claim_memory')
++META_KEYS=('learning_evidence','learning_policy','learning_center','learning_observed_sources','social_graph','pmm_pragmatics','pmm_affect','identity','state','pmm_profile','pmm_activity','pmm_interlocutors','pmm_memory_codes','pmm_expression','pmm_synthesis','pmm_training_records','api_retrieval','pmm_checkpoint','pmm_dyads','consolidation_queue','memory_pending','memory_traces','cognitive_head','cognitive_feedback','memory_open_events','boundary_model','claim_memory')
+ 
+ 
+ def validate_metadata(meta):
++    from .evidence import validate as validate_evidence
++    validate_evidence(meta.get('learning_evidence'))
+     from .learning import validate_policy,validate_state as validate_learning,validate_observed
+     if meta.get('learning_policy') is not None:validate_policy(meta['learning_policy'])
+     validate_learning(meta.get('learning_center'))
+@@ -95,7 +97,7 @@
+         rows=engine.store.rows("SELECT payload FROM events WHERE kind='boundary_appraisal' ORDER BY created_at,id")
+         if rows:meta['boundary_model']['recent']=[json.loads(r['payload']) for r in rows]
+     return {'format':FORMAT,'scope':'continuity','exported_at':now(),'identity':meta['identity'],'profile':meta['pmm_profile'],
+-            'learning_center':meta['learning_center'],'learning_policy':meta['learning_policy'],'learning_observed_sources':meta['learning_observed_sources'],'social_graph':meta['social_graph'],
++            'learning_evidence':meta['learning_evidence'],'learning_center':meta['learning_center'],'learning_policy':meta['learning_policy'],'learning_observed_sources':meta['learning_observed_sources'],'social_graph':meta['social_graph'],
+             'state':meta['state'],'pragmatics':meta['pmm_pragmatics'],'affect_state':meta['pmm_affect'],'trait_affect_contract':'trait-affect/1','activity':meta['pmm_activity'],'expression':meta['pmm_expression'],'synthesis':meta['pmm_synthesis'],
+             'memories':engine.store.memories(all_status=True),'relationships':engine.store.rows('SELECT * FROM relations'),
+             'psychology_contract':copy.deepcopy(CONTRACT),'dyads':meta['pmm_dyads'] or {},'interlocutors':meta['pmm_interlocutors'] or {},'memory_codes':meta['pmm_memory_codes'] or {},
+@@ -119,7 +121,7 @@
+           'pmm_interlocutors':pack.get('interlocutors',{}),'pmm_memory_codes':pack.get('memory_codes',{}),
+           'pmm_training_records':learning.get('pending',[]),'api_retrieval':learning.get('retrieval'),'pmm_checkpoint':checkpoint}
+     meta.update(boundary_model=pack.get('boundary_model'),claim_memory=pack.get('claim_memory',[]))
+-    meta.update({k:pack.get(k) for k in ('learning_center','learning_policy','learning_observed_sources','social_graph')})
++    meta.update({k:pack.get(k) for k in ('learning_evidence','learning_center','learning_policy','learning_observed_sources','social_graph')})
+     cognition=pack.get('cognitive_state',{})
+     if not isinstance(cognition,dict):raise ValueError('认知连续状态无效')
+     meta.update(cognitive_head=cognition.get('head'),cognitive_feedback=cognition.get('feedback',[]))
+--- a/persona/server.py
++++ b/persona/server.py
+@@ -132,6 +132,7 @@
+         from .affect import CATALOG,label_details
+         result['emotion_catalog']=CATALOG;result['emotion_details']=label_details(self.store.meta('pmm_affect'))
+         result['learning_center']=optional('learning',self.engine.learning.status,None)
++        result['evidence_trace']=optional('evidence',self.engine.evidence.trace,None)
+         result['trait_review']=self.engine.review_traits(False)
+         from .pragmatics import status as pragmatic_status
+         result['pragmatics']=optional('pragmatics',lambda:pragmatic_status(self.store.meta('pmm_pragmatics')),None)
+@@ -509,6 +510,7 @@
+                 if path=='/api/pmm/core/export':return self.send(self.app.engine.export_core())
+                 if path=='/api/pmm/adapter/export':return self.send(self.app.engine.export_adapter())
+                 if path=='/api/pmm/export':return self.send(dumps(self.app.engine.export_weights()).encode(),extra={'Content-Disposition':'attachment; filename="pmm_weights.json"'})
++                if path=='/api/evidence':return self.send(self.app.engine.evidence.trace(qs.get('scope',[None])[0],qs.get('person',[None])[0],qs.get('event_id',[None])[0],int(qs.get('offset',['0'])[0]),int(qs.get('limit',['20'])[0])))
+                 if path=='/api/de/turns':
+                     from .joint_expression import timeline
+                     return self.send(timeline(self.app.engine,int(qs.get('offset',['0'])[0]),int(qs.get('limit',['12'])[0])))
+--- a/persona/storage.py
++++ b/persona/storage.py
+@@ -102,6 +102,8 @@
+                     if set(row)!=set(cols): raise ValueError('快照列不兼容')
+                     probe.execute('INSERT INTO '+t+' VALUES ('+','.join('?'*len(cols))+')', [row[c] for c in cols])
+             meta={x['key']:json.loads(x['value']) for x in ts['meta']}
++            from .evidence import validate as validate_evidence
++            validate_evidence(meta.get('learning_evidence'))
+             from .learning import validate_policy,validate_state as validate_learning,validate_observed
+             if meta.get('learning_policy') is not None:validate_policy(meta['learning_policy'])
+             validate_learning(meta.get('learning_center'));validate_observed(meta.get('learning_observed_sources'))
+--- a/persona/traits.py
++++ b/persona/traits.py
+@@ -147,7 +147,7 @@
+     for k in (*LONG_IDS,*DISPOSITIONS):
+         obs=[o for o in observations if o['feature_id']==k and o.get('source') in ('imported','observed','human') and o.get('confidence',0)>=PROMOTION_POLICY['min_confidence']]
+         if not obs:continue
+-        events=set();contexts=set();times=[];used=[];evidence=[]
++        events=set();contexts=set();times=[];used=[];evidence=[];event_votes={}
+         for o in obs:
+             valid=False
+             for ev in o['evidence']:
+@@ -156,7 +156,10 @@
+                 # batch_id deliberately prevents multiple quotes from one imported
+                 # transcript or one generated turn counting as independent events.
+                 if r.get('source')=='generated' or not timestamp or not context or not event:continue
+-                events.add((context,str(event)));contexts.add(context);times.append(timestamp);evidence.append(ev);valid=True
++                from .evidence import identity
++                event_key=identity(r)
++                events.add(event_key);contexts.add(context);times.append(timestamp);evidence.append(ev);valid=True
++                event_votes.setdefault(event_key,[]).append(o)
+             if valid:used.append(o)
+         spread=max([o['estimate'] for o in used],default=0)-min([o['estimate'] for o in used],default=0)
+         span=max(times)-min(times) if times else 0
+@@ -168,18 +171,26 @@
+         if span<86400:reasons.append('证据跨度不足 24 小时或时间不明')
+         if spread>.4:reasons.append('存在显著反例，需要人工核对')
+         if old.get('source_type') in ('owner_seed','questionnaire'):reasons.append('明确设定/量表记录不能被聊天候选覆盖')
+-        signature=digest({'feature_id':k,'observations':[o['id'] for o in used]})
+-        if any(h.get('evidence_signature')==signature for h in t['promotion_history']):reasons.append('同一批证据已经审查，不重复晋升')
++        signature=digest({'feature_id':k,'independent_events':sorted(events)})
++        def historic_events(h):
++            after=h.get('after',{});ids=after.get('evidence_ids',[]) or [e['record_id'] for e in after.get('evidence',[])]
++            return set(h.get('event_ids',[])) or {identity(records[i]) for i in ids if i in records}
++        if any(h.get('evidence_signature')==signature or h.get('feature_id')==k and events and events<=historic_events(h) for h in t['promotion_history']):reasons.append('同一批证据已经审查，不重复晋升')
+         row={'feature_id':k,'eligible':not reasons,'reasons':reasons,'independent_events':len(events),'contexts':len(contexts),'span_seconds':span,'counterevidence_spread':spread,'method':PROMOTION_POLICY['version']}
+         rows.append(row)
+         if not apply or reasons:continue
+-        mean=sum(o['estimate']*o['confidence'] for o in used)/sum(o['confidence'] for o in used)
++        # Correlated quotes/hypotheses cannot increase the event's weight.
++        votes=[]
++        for os in event_votes.values():
++            unique={(o['estimate'],o['confidence']) for o in os}
++            votes.append(sum(v*w for v,w in unique)/sum(w for _,w in unique))
++        mean=sum(votes)/len(votes)
+         before=copy.deepcopy(old);previous=old['estimate']
+         value=mean if previous is None else previous+max(-.03*strength,min(.03*strength,mean-previous))
+         ids=sorted({e['record_id'] for e in evidence});uncertainty=max(.25,1-strength*len(events)/(len(events)+3))
+         if k in DISPOSITIONS:old.update(estimate=value,uncertainty=uncertainty,source_type='promoted_evidence',evidence=evidence,updated_at=now())
+         else:old.update(estimate=value,posterior_uncertainty=uncertainty,evidence_ids=ids,evidence_count=len(ids),source_type='promoted_evidence',updated_at=now(),method_version=PROMOTION_POLICY['version'],conflict=False)
+-        changes.append({'id':uid(),'at':now(),'feature_id':k,'before':before,'after':copy.deepcopy(old),'evidence_signature':signature,'method':PROMOTION_POLICY['version'],'counterevidence_spread':spread,'independent_events':len(events),'contexts':len(contexts),'span_seconds':span})
++        changes.append({'id':uid(),'at':now(),'feature_id':k,'before':before,'after':copy.deepcopy(old),'evidence_signature':signature,'event_ids':sorted(events),'source_evidence':copy.deepcopy(evidence),'method':PROMOTION_POLICY['version'],'counterevidence_spread':spread,'independent_events':len(events),'contexts':len(contexts),'span_seconds':span})
+     if changes:
+         t['version']+=1;t['updated_at']=now();p['revision']+=1;p['updated_at']=now()
+         for change in changes:change['trait_version']=t['version']
+--- /dev/null
++++ b/tests/test_v27_stage1.py
+@@ -0,0 +1,66 @@
++"""Stage I gate: actual SQLite/tasks, source identity and failure recovery."""
++import copy,json,unittest
++from unittest.mock import patch
++from test_v212 import Base,ROOT
++import test_v250 as prior_learning
++import test_trait_affect_v230 as prior_traits
++from persona import traits,evidence
++from persona.server import Runtime
++from persona.packages import export_continuity,validate_pack,apply_pack
++from persona.registry import digest
++
++class EvidenceCases(Base):
++    policy=prior_learning.LearningCases.policy;records=prior_learning.LearningCases.records;body=prior_learning.LearningCases.body;create=prior_learning.LearningCases.create
++    def test_automatic_then_manual_cannot_repeat_other_evidence(self):
++        e=self.r.engine;self.policy('other',mode='automatic');out=self.turn();e.consolidation.run();before=copy.deepcopy(e.store.meta('pmm_interlocutors'))
++        b={'source':'history','target':'other','person':'qq:123','scopes':['private:qq:123'],'intent':'apply'}
++        self.assertEqual(e.learning.preview(b)['source_count'],0)
++        j=self.create({**b,'reanalyse':True});e.learning.run(j['id']);self.assertEqual(before,e.store.meta('pmm_interlocutors'));self.assertTrue(e.learning.detail(j['id'])['batches'][0]['duplicate_only'])
++    def test_manual_then_automatic_does_not_reapply(self):
++        e=self.r.engine;self.policy('other',mode='automatic');out=self.turn()
++        b={'source':'history','target':'other','person':'qq:123','scopes':['private:qq:123'],'intent':'apply'}
++        j=self.create(b);e.learning.run(j['id']);before=copy.deepcopy(e.store.meta('pmm_interlocutors'));e.consolidation.run();self.assertEqual(before,e.store.meta('pmm_interlocutors'))
++    def test_two_proposed_jobs_only_one_can_commit(self):
++        e=self.r.engine;a=self.create();b=self.create();e.learning.run(a['id']);e.learning.run(b['id']);e.learning.control(a['id'],'approve');before=e.profile();e.learning.control(b['id'],'approve');self.assertEqual(e.profile(),before)
++    def test_post_write_failure_rolls_back_sources_receipts_and_model(self):
++        e=self.r.engine;j=self.create(self.body(intent='apply',train_weights=True));before=e.evidence.state();weights=e.model.export();original=e.learning._apply
++        def fail(*a,**kw):original(*a,**kw);raise ValueError('after-write fault')
++        with patch.object(e.learning,'_apply',side_effect=fail),self.assertRaises(ValueError):e.learning.run(j['id'])
++        self.assertEqual(before,e.evidence.state());self.assertEqual(weights,e.model.export());e.learning.control(j['id'],'resume');e.learning.run(j['id']);self.assertEqual(len(e.profile()['source_records']),3)
++    def test_source_mutation_and_cross_scope_alias_are_rejected(self):
++        e=self.r.engine;sid=self.session();out=self.turn(sid=sid);r={'id':out['turn_id']+':u','text':out['trace']['trait_affect']['appraisal']['evidence_quote'],'scope':'private:qq:123','person':'qq:123'}
++        r['text']=e.store.history(sid)[0]['content'];good=e.evidence.normalize(r)
++        with self.assertRaises(ValueError):e.evidence.normalize({**r,'scope':'private:qq:other'})
++        with self.assertRaises(ValueError):e.evidence.normalize({**r,'text':r['text']+'改写'})
++        self.assertEqual(good['origin_event_id'],e.evidence.normalize({**r,'event_id':out['turn_id']})['origin_event_id'])
++    def test_memory_reenqueue_after_completion_has_no_new_task(self):
++        e=self.r.engine;self.turn();pending=e.store.meta('memory_pending');self.assertTrue(pending);e.memory_lifecycle.run(manual=True);before=e.store.memories(all_status=True)
++        with e.store.lock,e.store.db:
++            for p in pending:e.memory_lifecycle.enqueue(p['records'],p['scope'],p['person'],p['thread'],p['source'])
++        self.assertEqual(e.store.meta('memory_pending'),[]);self.assertEqual(e.store.memories(all_status=True),before)
++    def test_trace_connects_event_appraisal_memory_and_revision(self):
++        e=self.r.engine;out=self.turn();e.memory_lifecycle.run(manual=True);trace=e.evidence.trace(scope='private:qq:123');self.assertTrue(trace['sources']);rows=trace['revisions'];self.assertTrue(any(r['links'].get('appraisal_id') for r in rows));self.assertTrue(any(r['links'].get('memory_ids') for r in rows));self.assertTrue(all(r['source_keys'] for r in rows))
++    def test_platform_raw_and_turn_record_share_one_event(self):
++        e=self.r.engine;sid=self.session();out=e.turn(sid,'我喜欢安静。',turn_context={'sources':['platform-11'],'raw_records':[{'id':'platform-11','text':'我喜欢安静。','source':'observed'}]})
++        sources=e.evidence.state()['sources'].values();ids={r['record_id']:r['event_id'] for r in sources};self.assertEqual(ids['platform-11'],ids[out['turn_id']+':u'])
++    def test_restart_and_continuity_preserve_receipts(self):
++        e=self.r.engine;j=self.create(self.body(intent='apply'));e.learning.run(j['id']);before=e.evidence.state();pack=export_continuity(e);meta,_,_=validate_pack(pack);self.assertEqual(meta['learning_evidence'],before)
++        self.r.close();self.r=Runtime(self.tmp.name,ROOT);self.fixture();self.assertEqual(self.r.engine.evidence.state(),before);self.assertEqual(self.r.engine.learning.preview(self.body())['source_count'],0)
++    def test_invalid_provenance_import_is_atomic(self):
++        e=self.r.engine;j=self.create(self.body(intent='apply'));e.learning.run(j['id']);pack=export_continuity(e);before=e.evidence.state();next(iter(pack['learning_evidence']['sources'].values()))['text']='伪造'
++        with self.assertRaises(ValueError):validate_pack(pack)
++        self.assertEqual(before,e.evidence.state())
++    def test_old_metadata_migration_does_not_change_trained_state(self):
++        e=self.r.engine;j=self.create(self.body(intent='apply'));e.learning.run(j['id']);before=e.profile();weights=e.model.export();e.store.setmeta('learning_evidence',None);e.evidence=evidence.Evidence(e);first=e.evidence.state();e.evidence=evidence.Evidence(e)
++        self.assertEqual(e.profile(),before);self.assertEqual(e.model.export(),weights);self.assertEqual(first,e.evidence.state());self.assertEqual(e.learning.preview(self.body())['source_count'],0)
++
++class IndependentSupport(unittest.TestCase):
++    def test_duplicate_hypotheses_do_not_reweight_or_repromote(self):
++        p=prior_traits.TypingAndTraitTests().evidence_profile();obs=p['psychology']['observations'];obs[0]['estimate']=.6;obs[1]['estimate']=.8;obs[2]['estimate']=.7
++        expected,_=traits.review(p,True);p['psychology']['observations'] += [{**copy.deepcopy(obs[0]),'id':'repeat-'+str(i)} for i in range(20)]
++        got,_=traits.review(p,True);k='hexaco.e.anxiety';self.assertEqual(expected['psychology']['features'][k]['estimate'],got['psychology']['features'][k]['estimate'])
++        got['psychology']['observations'].append({**copy.deepcopy(obs[0]),'id':'new-analysis'});_,report=traits.review(got,True);self.assertEqual(report['promoted'],0)
++    def test_v26_legacy_promotion_does_not_repeat_on_new_event_hash(self):
++        p,_=traits.review(prior_traits.TypingAndTraitTests().evidence_profile(),True);h=p['trait_profile']['promotion_history'][0];h.pop('event_ids');h['evidence_signature']='legacy-observation-id-hash';before=copy.deepcopy(p);after,report=traits.review(p,True);self.assertEqual(report['promoted'],0);self.assertEqual(after,before)
++
++if __name__=='__main__':unittest.main()
+--- /dev/null
++++ b/tests/upgrade_v27.py
+@@ -0,0 +1,39 @@
++"""Execute archived 2.6 itself; synthetic trained subjects only."""
++import argparse,json,os,subprocess,sys,tempfile
++from pathlib import Path
++ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
++from upgrade_trait_affect_v230 import OLD_SCRIPT,metadata
++from persona.server import Runtime
++from persona.packages import validate_pack,export_continuity
++from persona.registry import digest
++
++def main():
++    parser=argparse.ArgumentParser();parser.add_argument('--old-root',type=Path,required=True);args=parser.parse_args()
++    script=OLD_SCRIPT.replace("assert VERSION in ('2.2.1','2.2.2','2.2.3')","assert VERSION=='2.6'")
++    # The shared legacy fixture writes profile rows directly. Finalize its
++    # derived language cache with the archived runtime, as its import API does.
++    script=script.replace('        snapshots[ident]=r.snapshot();',"        from persona import pragmatics as pg\n        with st.lock,st.db:st.setmeta('pmm_pragmatics',pg.rebuild(st.meta('pmm_pragmatics'),profile['source_records']))\n        snapshots[ident]=r.snapshot();")
++    with tempfile.TemporaryDirectory(prefix='huai-an-27-upgrade-') as tmp:
++        base=Path(tmp);data=base/'旧训练资料';expected=base/'expected.json'
++        subprocess.run([sys.executable,'-c',script,str(args.old_root.resolve()),str(data),str(expected)],check=True,env={**os.environ,'OPENBLAS_NUM_THREADS':'1'})
++        before=json.loads(expected.read_text());r=Runtime(data,ROOT);checks=[];indices={}
++        try:
++            assert r.config.get()==before['config'] and r.subjects.catalog==before['catalog']
++            for ident,snap in before['snapshots'].items():
++                st,_,e,_=r.context(ident);after=st.snapshot();om=metadata(snap);nm=metadata(after)
++                for table in ('sessions','messages','memories','relations'):assert after['tables'][table]==snap['tables'][table],table
++                for key,value in om.items():assert nm[key]==value,key
++                assert e.model.export()==om['pmm_checkpoint'];indices[ident]=e.evidence.state()
++                model=e.model.fork();e.ingest_samples(model,st.meta('pmm_training_records'));model.fit(2);assert model.steps>e.model.steps
++                validate_pack(export_continuity(e));checks.append({'checkpoint_sha256':digest(e.model.export()),'steps_before':e.model.steps,'steps_after':model.steps,'old_metadata_exact':True})
++        finally:r.close()
++        r=Runtime(data,ROOT)
++        try:
++            for ident,idx in indices.items():assert r.context(ident)[2].evidence.state()==idx
++        finally:r.close()
++        fresh=Runtime(base/'fresh',ROOT)
++        try:
++            ident=before['active'];snap=before['snapshots'][ident];fresh.create_persona({'name':'旧包迁移','package':before['packs'][ident]});assert fresh.engine.model.export()==metadata(snap)['pmm_checkpoint'];fresh.restore(snap);assert fresh.engine.model.export()==metadata(snap)['pmm_checkpoint'];assert fresh.engine.profile()==metadata(snap)['pmm_profile']
++        finally:fresh.close()
++        print(json.dumps({'from':'2.6','phase':'I','archived_runtime_executed':True,'subjects':2,'old_metadata_and_tables_unchanged':True,'new_evidence_index_only':True,'restart_idempotent':True,'old_package_import':True,'old_snapshot_restore':True,'continued_training':True,'production_database':False,'checks':checks},ensure_ascii=False,indent=2))
++if __name__=='__main__':main()

@@ -1,0 +1,776 @@
+--- a/persona/consolidation.py
++++ b/persona/consolidation.py
+@@ -86,8 +86,8 @@
+             from .engine import FEEDBACK,validate_feedback,memory_context
+             client=APIPMM(captured,e.pmm_provider_factory).provider if captured['pmm']['mode']=='api' else e.provider_factory(captured)
+             client.trace_context={'turn_ids':sorted(ids),'trace_ids':[(e.journal.get(v) or {}).get('trace_id') for v in sorted(ids)]};client.stage='后台长期学习'
+-            payload=[{'turn_id':r['id'],'user_record':r['user_record'],'self_record':r['self_record'],'decision':r['decision'],'memories':memory_context(r['memories']),'boundary_feedback':r['understanding'].get('boundary_feedback',{}),'boundary_states':r.get('boundary_states',[]),'claim_memory':e.claims.recent(r['session']['scope'])} for r in batch]
+-            response=client.complete([{'role':'system','content':BATCH+'\n'+FEEDBACK},{'role':'user','content':dumps({'turns':payload,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS})}],structured=True)
++            payload=[{'turn_id':r['id'],'user_record':r['user_record'],'self_record':r['self_record'],'prior_interactions':e.formation.interactions(r['session']['scope'],r['session']['person'],before=r['created_at']),'decision':r['decision'],'memories':memory_context(r['memories']),'boundary_feedback':r['understanding'].get('boundary_feedback',{}),'boundary_states':r.get('boundary_states',[]),'claim_memory':e.claims.recent(r['session']['scope'])} for r in batch]
++            response=client.complete([{'role':'system','content':BATCH+'\n'+FEEDBACK},{'role':'user','content':dumps({'turns':payload,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS,'disposition_registry':traits.DISPOSITION_REGISTRY})}],structured=True)
+             items=response.get('items') if isinstance(response,dict) else None
+             if not isinstance(items,list) or len(items)!=len(ids) or any(not isinstance(i,dict) for i in items) or {i.get('turn_id') for i in items}!=ids:raise ProviderError('批量整理没有完整对应原始轮次，未提交任何更新')
+             reports={i['turn_id']:validate_feedback(i.get('feedback')) for i in items}
+@@ -118,6 +118,9 @@
+                         other,_=apply_distillation(other,other_report,[ur] if other_gate['allowed'] and not other_duplicate else [],source='observed')
+                         if other_gate['allowed'] and not other_duplicate and (manual or other_gate['mode']=='automatic'):other,_=traits.review(other,True,strength=other_gate['strength'])
+                         if other_gate['allowed'] and not other_duplicate:e.evidence.complete('other',[ur],row['id'],{'revision':other_before['revision'],'traits':other_before['trait_profile']['version']},{'revision':other['revision'],'traits':other['trait_profile']['version']},'consolidation')
++                        if f.get('self_experience_updates'):
++                            p,formation_report=e.formation.collect(p,f['self_experience_updates'],[ur],session,manual=manual)
++                            logs.append({'turn_id':row['id'],'self_formation':formation_report})
+                         others[key]=other
+                         relation_gate=learn.permission(e,'relationship',scope,person,manual=manual,observed_only=not session.get('direct_interaction',True))
+                         if not relation_gate['allowed'] or (not manual and relation_gate['mode']!='automatic'):f={**f,'relationship_updates':[]}
+--- a/persona/engine.py
++++ b/persona/engine.py
+@@ -57,7 +57,8 @@
+ 
+ from .boundaries import CUE_INSTRUCTION,FEEDBACK_INSTRUCTION
+ UNDERSTAND+=CUE_INSTRUCTION
+-FEEDBACK+=FEEDBACK_INSTRUCTION
++from .formation import INSTRUCTION as FORMATION_INSTRUCTION
++FEEDBACK+=FEEDBACK_INSTRUCTION+FORMATION_INSTRUCTION+'\nrelationship_updates 也接受 field=role/norm/expectation，附 statement、knowledge_type=reported/inferred、confidence、quote；reported 的 statement 必须逐字来自 quote，仍只表示对方陈述，不能自动认证为事实。'
+ REALIZE+=xp.REALIZE_INSTRUCTION+'\n[DE_EXPRESSION_V1] 遵守 interaction_plan 的当前交际目标与候选策略。expression_plan.delivery_tone 为本轮外显语气（restrained 克制、warm 温暖、steady 平稳）；只调节已有信息的措辞和强度。语言习惯与情绪分别提供，不能虚构情绪、义务或补发内容。'
+ 
+ def validate_understanding(x):
+@@ -147,6 +148,9 @@
+         self.boundaries=Boundaries(self);self.claims=ClaimMemory(self)
+         from .social_graph import SocialGraph
+         self.social_graph=SocialGraph(self)
++        from .people import People
++        from .formation import Formation
++        self.people=People(self);self.formation=Formation(self)
+         self.learning=learn.Learning(self)
+         from .execution import ExecutionJournal
+         self.journal=ExecutionJournal(self.store.directory)
+@@ -184,13 +188,15 @@
+                     if k not in CONTRACT['feature_order']:continue # New habit heads are explicitly unsupported by the legacy neural encoder.
+                     feature=profile['psychology']['features'][k];target=[None]*len(CONTRACT['feature_order'])
+                     target[CONTRACT['feature_order'].index(k)]=feature['estimate']
+-                    for rid in feature['evidence_ids']:
+-                        record=records[rid]
++                    for record in tr.promotion_records(profile,change):
++                        rid=record['id']
+                         x=extend_vector(vector(record['text'],{},before),before['psychology'])
+                         pending=self.queue_sample(pending,'promotion:'+change['id']+':'+rid,x,psychology_target=target,source='trait_promotion',group_id=record.get('event_id') or record.get('batch_id') or rid,
+                             training_context={'schema':'typed-supervision/1','target_entity':'trait_promotion','event_id':record.get('event_id') or record.get('batch_id') or rid,'scope':record.get('scope',''),'at':tr.event_time(record) or 0.})
+                 with self.store.lock,self.store.db:
+                     self.store.setmeta('pmm_profile',profile);self.store.setmeta('pmm_training_records',pending);self.store.event('trait_evidence_promoted',report)
++                    evidence=[r for change in profile['trait_profile']['promotion_history'][-report['promoted']:] for r in tr.promotion_records(profile,change)]
++                    self.evidence.complete('trait_promotion',evidence,'review:'+str(profile['trait_profile']['version']),{'trait_version':before['trait_profile']['version']},{'trait_version':profile['trait_profile']['version'],'changes':profile['trait_profile']['promotion_history'][-report['promoted']:]},'slow-review')
+             return report
+     def language_review(self,op,body):
+         from . import language_learning as ll
+@@ -538,7 +544,7 @@
+             else:
+                 try:
+                     feedback_provider=pmm_api.provider if pmm_api else provider
+-                    feedback=feedback_provider.complete([{'role':'system','content':FEEDBACK},{'role':'user','content':dumps({'user_record':user_record,'self_record':self_record,'previous_emotion':activity,'decision':decision,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS,'memories':memory_context(memories),'boundary_feedback':u.get('boundary_feedback',{}),'boundary_states':boundary_states,'claim_memory':self.claims.recent(session['scope'])})}],structured=True)
++                    feedback=feedback_provider.complete([{'role':'system','content':FEEDBACK},{'role':'user','content':dumps({'user_record':user_record,'self_record':self_record,'prior_interactions':self.formation.interactions(session['scope'],person),'disposition_registry':tr.DISPOSITION_REGISTRY,'previous_emotion':activity,'decision':decision,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS,'memories':memory_context(memories),'boundary_feedback':u.get('boundary_feedback',{}),'boundary_states':boundary_states,'claim_memory':self.claims.recent(session['scope'])})}],structured=True)
+                     feedback=validate_feedback(feedback)
+                     target={k:clamp(feedback['self_appraisal'][k],-1 if k=='valence' else 0,1) for k in STATE_KEYS}
+                     self_report,self_gate=learn.live_report(self,'self',feedback.get('self_observations',{}),session)
+@@ -753,6 +759,9 @@
+                 self.evidence.complete('other',[source],turn_id,{'revision':audit['other_before']['revision']},{'revision':meta['pmm_interlocutors'][key]['revision']},'live-feedback')
+             if feedback.get('relationship_updates'):self.evidence.complete('relationship',[source],turn_id,{}, {'accepted':trace['relationship_update']},'live-feedback')
+             if feedback.get('memory_ops'):self.evidence.complete('memory',[source],turn_id,{}, {'changes':memory_log},'live-feedback')
++            if not plan['deferred'] and feedback.get('self_experience_updates'):
++                formed,formation_report=self.formation.collect(self.profile(),feedback['self_experience_updates'],[source],session)
++                st.setmeta('pmm_profile',formed);trace['self_formation']=formation_report
+             trace['memory_changes']=memory_log;st.event('turn',trace);self._mark_input(plan)
+         self.model=candidate or create_pmm(self.config.get(),meta['pmm_checkpoint'],meta['pmm_profile']['id'])
+         self.journal.committed(turn_id)
+--- a/persona/evidence.py
++++ b/persona/evidence.py
+@@ -65,6 +65,8 @@
+         rows=self.st.rows('SELECT m.turn_id,m.content,s.scope FROM messages m JOIN sessions s ON s.id=m.session_id WHERE m.id=? AND m.role=\'user\'',(x['id'],))
+         if rows:
+             if rows[0]['scope']!=x['scope'] or rows[0]['content']!=x['text']:raise ValueError('原始消息与声明的范围或内容不同')
++            origin=self.st.rows("SELECT json_extract(payload,'$.person') AS person FROM events WHERE kind IN ('turn','expression_partial') AND json_extract(payload,'$.turn_id')=? LIMIT 1",(rows[0]['turn_id'],))
++            if origin and origin[0]['person'] and origin[0]['person']!=x['person']:raise ValueError('原始回合的人物与声明不一致')
+             x['event_id']=rows[0]['turn_id']
+         x['origin_event_id']=identity(x);x['origin_record_key']=digest([x['scope'],x['person'],x['id']])
+         old=self.state()['sources'].get(x['origin_record_key'])
+@@ -80,7 +82,7 @@
+                 value['sources'][key]={'record_id':r['id'],'event_id':r['origin_event_id'],'original_event_id':r.get('event_id') or r.get('batch_id'),
+                     'text':r['text'],'content_digest':digest(r['text']),'scope':r['scope'],'person':r['person'],
+                     'source_type':r.get('source','observed'),'direct_interaction':r.get('direct_interaction'),
+-                    'occurred_at':r.get('timestamp'),'first_path':path,'source_locator':{'record_id':r['id'],'session_id':r.get('session_id')}};changed=True
++                    'subject_entity':r.get('subject_entity'),'experience_turn_id':r.get('experience_turn_id'),'experience_event_key':r.get('experience_event_key'),'occurred_at':r.get('timestamp'),'first_path':path,'source_locator':{'record_id':r['id'],'session_id':r.get('session_id')}};changed=True
+         if changed:value['version']+=1;self.st.setmeta('learning_evidence',value)
+         return out
+ 
+--- /dev/null
++++ b/persona/formation.py
+@@ -0,0 +1,106 @@
++"""External experience evidence feeds the existing trait profile and slow gate.
++
++No alternate personality state. Generated replies locate actual experiences but
++cannot supply a target label. Engineering eligibility is not psychometric validity.
++"""
++from __future__ import annotations
++import copy
++from .common import now
++from .registry import LONG_IDS, digest, update_trait_evidence
++from . import traits as tr, learning as learn
++
++INSTRUCTION='''\n[SELF_EXPERIENCE_V27] 可选 self_experience_updates 只从 user_record 中明确评价 AI 既往行为的外部反馈提取，不使用 self_record、用户自述的性格或本轮情绪。没有明确反馈时返回 []。
++每项含 target_entity="agent_self", evidence_kind="external_feedback", experience_turn_id（prior_interactions 中真实回合ID）, feature_id（稳定人格或 BEQ/ERQ/PANAS 长期字段）, estimate, confidence, timeframe（人格 sustained；长期习惯按注册表）, evidence:[{record_id,quote}]。引用逐字原文；这是待审查假设，不能自称正式测量或直接修改人格。单个事件和多次评价只算一个独立经历。'''
++
++class Formation:
++    def __init__(self,engine):self.e=engine;self.st=engine.store
++    def interactions(self,scope,person,limit=20,before=None):
++        return self.st.rows("SELECT m.turn_id,MIN(m.created_at) AS timestamp,GROUP_CONCAT(m.content, char(10)) AS actual_reply FROM messages m JOIN sessions s ON m.session_id=s.id WHERE EXISTS (SELECT 1 FROM events ev WHERE ev.kind IN ('turn','expression_partial') AND json_extract(ev.payload,'$.turn_id')=m.turn_id AND json_extract(ev.payload,'$.scope')=? AND json_extract(ev.payload,'$.person')=?) AND m.role='assistant' AND m.content<>'' AND m.created_at<? GROUP BY m.turn_id ORDER BY timestamp DESC LIMIT ?",(scope,person,before if before is not None else now(),max(1,min(50,limit))))
++    def collect(self,profile,rows,records,session,manual=False):
++        p=tr.ensure_traits(profile);gate=learn.permission(self.e,'self',session['scope'],session['person'],manual=manual,observed_only=not session.get('direct_interaction',True))
++        report={'accepted':0,'rejected':[],'promoted':0,'source_keys':[]}
++        if not gate['allowed']:report['blocked']=gate['reasons'];return p,report
++        byid={r['id']:r for r in records};valid_records=[]
++        if not isinstance(rows,list):return p,{**report,'rejected':['invalid_list']}
++        for row in rows[:100]:
++            try:
++                if not isinstance(row,dict) or row.get('target_entity')!='agent_self' or row.get('evidence_kind') not in ('external_feedback','owner_evaluation'):raise ValueError('不是对 AI 自身行为的独立外部评价')
++                k=row.get('feature_id')
++                if k not in (*LONG_IDS,*tr.DISPOSITIONS):raise ValueError('即时状态不能写入长期人格')
++                required=tr.DISPOSITIONS[k]['required_timeframe'] if k in tr.DISPOSITIONS else 'sustained'
++                if row.get('timeframe')!=required:raise ValueError('缺少相应长期时间框架')
++                ev=row.get('evidence',[])
++                if not isinstance(ev,list) or len(ev)!=1:raise ValueError('每条评价必须明确一个原始反馈来源')
++                raw=byid.get(ev[0].get('record_id'));q=ev[0].get('quote')
++                if not raw or raw.get('source') not in ('human','observed','imported') or not isinstance(q,str) or not q.strip() or q not in raw['text']:raise ValueError('原文无效或来自生成回复')
++                if raw.get('scope')!=session['scope'] or (raw.get('person') or raw.get('speaker')) not in (session['person'],'owner'):raise ValueError('反馈人物或范围不匹配')
++                target=row.get('experience_turn_id')
++                turns=self.st.rows("SELECT m.created_at,json_extract(ev.payload,'$.scope') AS scope,json_extract(ev.payload,'$.person') AS person FROM messages m JOIN events ev ON ev.kind IN ('turn','expression_partial') AND json_extract(ev.payload,'$.turn_id')=m.turn_id WHERE m.turn_id=? AND m.role='assistant' AND m.content<>'' LIMIT 1",(target,))
++                if not turns or turns[0]['scope']!=session['scope'] or turns[0]['person']!=session['person']:raise ValueError('被评价经历未实际发送或不属于当前人物/范围')
++                if (tr.event_time(raw) or 0)<turns[0]['created_at']:raise ValueError('反馈不能早于被评价的经历')
++                if target==raw.get('event_id') and raw.get('source')!='human':raise ValueError('当前输入不能评价尚未发出的回复')
++                # Same experience receives one independent vote, even from many
++                # raters/quotes/feedback messages. Never manufacture chronology.
++                record={**copy.deepcopy(raw),'subject_entity':'agent_self','evidence_kind':row['evidence_kind'],
++                    'experience_turn_id':target,'experience_event_key':digest([session['scope'],p['id'],target]),
++                    'experience_timestamp':turns[0]['created_at']}
++                existing={r['id']:r for r in p['psychology']['evidence_records']}.get(record['id'])
++                if existing and existing.get('experience_turn_id')!=target:raise ValueError('同一反馈原文不能重定向到另一经历')
++                candidate={k2:copy.deepcopy(row[k2]) for k2 in ('feature_id','estimate','confidence','evidence','timeframe') if k2 in row}
++                if k in tr.DISPOSITIONS:
++                    p,stats=tr.observe_dispositions(p,[candidate],[record],'human' if row['evidence_kind']=='owner_evaluation' else 'observed')
++                    if stats['accepted'] and not existing:p['psychology']['evidence_records'].append(record)
++                else:p['psychology'],stats=update_trait_evidence(p['psychology'],[candidate],[record],'human' if row['evidence_kind']=='owner_evaluation' else 'observed')
++                if stats['rejected']:raise ValueError('特征数值或逐字证据无效')
++                if stats['accepted']:report['accepted']+=stats['accepted'];valid_records.append(record)
++            except (ValueError,TypeError,KeyError) as exc:report['rejected'].append(str(exc))
++        if valid_records:
++            p['revision']+=1;p['updated_at']=now()
++            if manual or gate['mode']=='automatic':p,promotion=tr.review(p,True,strength=gate['strength']);report['promotion']=promotion;report['promoted']=promotion['promoted']
++            rs=self.e.evidence.register(valid_records,'self-experience')
++            report['source_keys']=[r['origin_record_key'] for r in rs]
++            self.e.evidence.complete('self_experience',valid_records,'experience:'+digest(report['source_keys']),
++                {'trait_version':profile['trait_profile']['version'],'revision':profile['revision']},
++                {'trait_version':p['trait_profile']['version'],'revision':p['revision'],'changes':p['trait_profile']['promotion_history'][len(profile['trait_profile']['promotion_history']):]},
++                'external-experience',{'experience_turn_ids':sorted({r['experience_turn_id'] for r in valid_records})})
++        return p,report
++    def annotate(self,body):
++        with self.e.lock,self.st.lock,self.st.db:
++            p=self.e.profile()
++            if body.get('expected_version')!=p['trait_profile']['version']:raise ValueError('人格版本已变化，请刷新')
++            turn=body.get('experience_turn_id');rows=self.st.rows("SELECT m.created_at,json_extract(ev.payload,'$.scope') AS scope,json_extract(ev.payload,'$.person') AS person FROM messages m JOIN events ev ON ev.kind IN ('turn','expression_partial') AND json_extract(ev.payload,'$.turn_id')=m.turn_id WHERE m.turn_id=? AND m.role='assistant' AND m.content<>'' LIMIT 1",(turn,))
++            if not rows:raise ValueError('只能评价确实发送过的经历')
++            s=rows[0];note=body.get('note','').strip()
++            if not note or len(note)>6000:raise ValueError('请填写具体行为依据，最多6000字')
++            rid='owner-evaluation:'+digest([turn,note]);record={'id':rid,'speaker':'owner','person':'owner','scope':s['scope'],'text':note,'context':'','event_id':turn,'timestamp':now(),'source':'human'}
++            row={**body,'target_entity':'agent_self','evidence_kind':'owner_evaluation','evidence':[{'record_id':rid,'quote':note}]}
++            new,report=self.collect(p,[row],[record],s,manual=True)
++            if report.get('blocked'):raise ValueError('自身学习未获授权：'+','.join(report['blocked']))
++            if report['rejected']:raise ValueError(report['rejected'][0])
++            self.st.setmeta('pmm_profile',new);self.st.event('self_experience_evaluated',report)
++            return report
++    def withdraw(self,body):
++        with self.e.lock,self.st.lock,self.st.db:
++            p=self.e.profile();t=p['trait_profile']
++            if body.get('expected_version')!=t['version']:raise ValueError('人格版本已变化，请刷新')
++            reason=str(body.get('reason','')).strip();rid=body.get('record_id')
++            r=next((r for r in p['psychology']['evidence_records'] if r['id']==rid and r.get('subject_entity')=='agent_self'),None)
++            if not r or not reason:raise ValueError('请指定经历证据并填写撤回理由')
++            if r.get('withdrawn'):return {'ok':True,'duplicate':True}
++            r['withdrawn']=True;r['withdrawal_reason']=reason[:1000];changes=[]
++            for k in (*LONG_IDS,*tr.DISPOSITIONS):
++                f=t['dispositions'][k] if k in tr.DISPOSITIONS else p['psychology']['features'][k]
++                ids=f.get('evidence_ids',[]) or [e['record_id'] for e in f.get('evidence',[])]
++                if rid not in ids or f.get('source_type')!='promoted_evidence':continue
++                before=copy.deepcopy(f)
++                # Do not silently recover an older estimate still based on the
++                # invalid source; remove the affected derived prior for review.
++                f.update(estimate=None,source_type='unknown',updated_at=now())
++                if k in tr.DISPOSITIONS:f.update(uncertainty=None,evidence=[])
++                else:f.update(posterior_uncertainty=None,evidence_ids=[],evidence_count=0,conflict=True)
++                changes.append({'id':digest([rid,k,'withdraw']),'feature_id':k,'method':'source_withdrawal/1','before':before,'after':copy.deepcopy(f),'source_evidence':[{'record_id':rid,'quote':r['text']}],'at':now()})
++            t['version']+=1;p['revision']+=1;p['updated_at']=now()
++            for c in changes:c['trait_version']=t['version']
++            t['promotion_history'].extend(changes);self.st.setmeta('pmm_profile',p)
++            self.e.evidence.complete('source_withdrawal',[r],'withdraw:'+rid,{'trait_version':t['version']-1},{'trait_version':t['version'],'changes':changes},'owner-review')
++            return {'ok':True,'invalidated':len(changes),'trait_version':t['version']}
+--- a/persona/learning.py
++++ b/persona/learning.py
+@@ -285,7 +285,7 @@
+             contract=DISTILL+'\n只依据target_records；target=self 表示主人明确授权的人格示范，target=other 表示该对象原话。'
+             payload={'target':target,'target_records':records,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS,'disposition_registry':DISPOSITION_REGISTRY}
+         elif target=='relationship':
+-            contract='[LEARNING_RELATION_V250] 仅依据目标人物的原话，整理AI与此人的双边关系，不把旁观当交往。返回JSON {"relationship_updates":[{"record_id":"原文ID","field":"trust/affiliation/熟悉度familiarity/已知preferences字段","estimate":0.5,"quote":"连续原文"}]}。不能按聊天次数提高熟悉度；不确定留空。无关自述、同群或第三方朋友关系不代表与AI亲近。'
++            contract='[LEARNING_RELATION_V250] 仅依据目标人物的原话，整理AI与此人的双边关系，不把旁观当交往。返回JSON {"relationship_updates":[{"record_id":"原文ID","field":"trust/affiliation/熟悉度familiarity/已知preferences字段/role/norm/expectation","estimate":0.5,"quote":"连续原文"}]}。不能按聊天次数提高熟悉度；不确定留空。无关自述、同群或第三方朋友关系不代表与AI亲近。role/norm/expectation 须附 statement、knowledge_type=reported/inferred、confidence；reported 的 statement 必须是 quote 中原话，推断须标记 inferred。'
+             from .relationships import PREFERENCES
+             payload={'records':records,'allowed_preferences':PREFERENCES}
+         elif target=='social_graph':
+@@ -370,8 +370,9 @@
+                             k=change['feature_id']
+                             if k not in CONTRACT['feature_order']:continue
+                             feature=new['psychology']['features'][k];labels=[None]*len(CONTRACT['feature_order']);labels[CONTRACT['feature_order'].index(k)]=feature['estimate']
+-                            for rid in feature['evidence_ids']:
+-                                r=evidence[rid];event=r.get('event_id') or r.get('batch_id') or rid
++                            from .traits import promotion_records
++                            for r in promotion_records(new,change):
++                                rid=r['id'];event=r.get('event_id') or r.get('batch_id') or rid
+                                 pending=self.e.queue_sample(pending,'promotion:'+change['id']+':'+rid,extend_vector(vector(r['text'],{},old),old['psychology']),psychology_target=labels,source='trait_promotion',group_id=event,training_context={'schema':'typed-supervision/1','target_entity':'trait_promotion','event_id':event,'scope':r.get('scope',''),'at':event_time(r) or 0.})
+                     for r in rs:
+                         if 'import:'+r['id'] in existing or not language_allowed:continue
+--- /dev/null
++++ b/persona/people.py
+@@ -0,0 +1,62 @@
++"""Scoped identity evidence on existing social-graph memberships and profiles."""
++import copy
++from .common import now
++from .registry import digest
++from . import relationships as dy
++
++class People:
++    def __init__(self,engine):self.e=engine;self.st=engine.store
++    def query(self,scope,person=None):
++        if not isinstance(scope,str) or not scope or scope=='*':raise ValueError('必须明确选择会话范围')
++        g=self.e.social_graph.state();members=[m for m in g['memberships'] if m['context_id']==scope]
++        observed=self.st.rows("SELECT DISTINCT json_extract(payload,'$.person') AS person FROM events WHERE kind IN ('turn','expression_partial') AND json_extract(payload,'$.scope')=?",(scope,))
++        ids={r['person'] for r in observed if r['person']}|{m['person_id'] for m in members}|{s['person'] for s in self.st.sessions() if s['scope']==scope}
++        sources=self.e.evidence.state()['sources'];others=self.st.meta('pmm_interlocutors') or {};dyads=self.st.meta('pmm_dyads') or {};rows=[]
++        for pid in sorted(ids):
++            if person is not None and pid!=person:continue
++            member=next((m for m in members if m['person_id']==pid),{});annotation=member.get('identity',{})
++            evidence=[{**copy.deepcopy(r),'source_key':k} for k,r in sources.items() if r['scope']==scope and r['person']==pid]
++            direct=bool(self.st.rows("SELECT id FROM events WHERE kind IN ('turn','expression_partial') AND json_extract(payload,'$.scope')=? AND json_extract(payload,'$.person')=? AND COALESCE(json_extract(payload,'$.turn_context.direct_interaction'),1)=1 LIMIT 1",(scope,pid)))
++            k=self.e.other_key(scope,pid);p=others.get(k)
++            rows.append({'entity_id':k,'person_id':pid,'scope':scope,'entity_type':'interlocutor' if direct else 'third_party',
++                'alias':annotation.get('alias',pid),'identity_status':annotation.get('status','platform_identifier' if pid.startswith('qq:') else 'local_identifier_unverified'),
++                'uncertainty':annotation.get('uncertainty',.25 if pid.startswith('qq:') else 1.),'identity_evidence':copy.deepcopy(annotation.get('evidence',[])),
++                'profile':copy.deepcopy(p),'relationship':dy.ensure(dyads[k]) if k in dyads else None,'sources':evidence[-50:],
++                'source_count':len(evidence),'direct_interaction':direct,'scope_access':'exact_scope_only'})
++        return {'version':g['version'],'scope':scope,'self':{'entity_type':'agent_self','persona_id':self.st.meta('identity')['id']},'people':rows,
++            'identity_rule':'昵称不自动合并；同一标识跨会话的私密资料各自隔离；第三方出现不代表认识 AI'}
++    def edit(self,body):
++        with self.e.lock,self.st.lock,self.st.db:
++            g=self.e.social_graph.state()
++            if body.get('expected_version')!=g['version']:raise ValueError('人物证据版本已变化，请刷新')
++            scope=body.get('scope');pid=body.get('person');alias=str(body.get('alias','')).strip();op=body.get('op','annotate')
++            if pid==self.st.meta('identity')['id'] or pid=='agent_self':raise ValueError('AI 自身不能作为他人身份')
++            source=self.e.evidence.state()['sources'].get(body.get('source_key'))
++            if not source or source['scope']!=scope or source['source_type']=='generated':raise ValueError('身份证据须来自本范围原始真人记录')
++            if op not in ('annotate','dispute') or not alias or len(alias)>100:raise ValueError('请填写本范围昵称与有效核验操作')
++            q=body.get('quote')
++            if not isinstance(q,str) or not q.strip() or q not in source['text']:raise ValueError('身份依据必须逐字引用原文')
++            self.e.social_graph._person(g,pid);self.e.social_graph._context(g,scope)
++            m=next((m for m in g['memberships'] if m['person_id']==pid and m['context_id']==scope),None)
++            if m is None:
++                # An explicit owner-assigned local reference for a mentioned
++                # third party, not platform identity resolution or a friendship.
++                m={'person_id':pid,'context_id':scope,'since':now(),'until':None,'evidence_ids':[],'status':'mentioned_third_party'};g['memberships'].append(m)
++            previous=copy.deepcopy(m.get('identity'));ev={'source_key':body['source_key'],'record_id':source['record_id'],'scope':scope,'person':source['person'],'quote':q,'knowledge_type':'owner_annotation','at':now()}
++            m['identity']={'alias':alias,'status':'disputed' if op=='dispute' else 'owner_annotated','uncertainty':.75 if op=='dispute' else .25,'evidence':(previous or {}).get('evidence',[])+[ev]}
++            g['version']+=1;g['events'].append({'id':digest([pid,scope,g['version']]),'kind':'identity_'+op,'person_id':pid,'scope':scope,'before':previous,'after':copy.deepcopy(m['identity']),'at':now()})
++            self.st.setmeta('social_graph',g);return self.query(scope,pid)
++    def relation_edit(self,body):
++        with self.e.lock,self.st.lock,self.st.db:
++            k=dy.key(body.get('person',''),body.get('scope',''));ds=self.st.meta('pmm_dyads') or {}
++            if k not in ds:raise ValueError('当前人物与范围不存在关系档案')
++            old=ds[k];ds[k]=dy.revise(old,body);self.st.setmeta('pmm_dyads',ds)
++            self.st.event('relationship_schema_revised',{'key':k,'before_version':dy.ensure(old)['schema_revision'],'after_version':ds[k]['schema_revision'],'reason':body.get('reason')})
++            return {'ok':True,'relationship':ds[k]}
++    def context(self,scope,person):
++        # Neither all identities nor global aliases are exposed to model prompts.
++        rows=self.query(scope,person)['people']
++        return {'self':{'type':'agent_self','id':self.st.meta('identity')['id']},'scope':scope,
++            'interlocutor':{k:rows[0][k] for k in ('entity_id','person_id','alias','identity_status','uncertainty','entity_type')} if rows else {'person_id':person,'entity_type':'interlocutor','identity_status':'unknown'},
++            'third_parties':[{k:r[k] for k in ('person_id','alias','identity_status','uncertainty')} for r in self.query(scope)['people'] if r['entity_type']=='third_party'],
++            'rule':'仅本会话范围；记录的身份和推断不是已确认的现实身份'}
+--- a/persona/relationships.py
++++ b/persona/relationships.py
+@@ -1,6 +1,7 @@
+ """Context-specific dyads, source-backed preferences and observable trajectories."""
+ import copy, hashlib, math
+ from .common import now,clamp
++from .registry import digest
+ 
+ PREFERENCES=('humor_tolerance','action_preference','empathy_need','directness','boundary_sensitivity','information_density')
+ def key(person,scope):return hashlib.sha256((scope+'|'+person).encode()).hexdigest()[:32]
+@@ -9,12 +10,14 @@
+         'interactions':0,'preferences':{k:None for k in PREFERENCES},'conflict_history':[],'shared_jokes':[],
+         'preferred_addressing':None,'belief_provenance':[],'trajectory':[],'updated_at':None}
+ def policy_relation(d):
+-    d=copy.deepcopy(d)
++    d=ensure(d)
++    d['schema_history']=[]
++    d['schemata']=[{k:copy.deepcopy(v) for k,v in r.items() if k!='history'} for r in d['schemata'] if r['status']=='active'][-20:]
+     for field in ('trajectory','belief_provenance','conflict_history','shared_jokes'):d[field]=d[field][-20:]
+     return {'trust':d['trust'] if d['trust'] is not None else .5,'familiarity':d['familiarity'],
+         'affection':d['affiliation'] if d['affiliation'] is not None else .5,'interactions':d['interactions'],'dyad':copy.deepcopy(d),
+         'baseline_note':'缺少信任/亲近证据时，程序用 .5 作为行动计算基线；记录值仍为 null。'}
+-def update(d,feedback,text,turn_id,action,reply_style,count_interaction=True,strength=1.):
++def _update_legacy(d,feedback,text,turn_id,action,reply_style,count_interaction=True,strength=1.):
+     out=copy.deepcopy(d);accepted=[];rejected=0
+     rows=feedback.get('relationship_updates',[])
+     if not isinstance(rows,list):rows=[]
+@@ -59,4 +62,97 @@
+         if type(d.get('interactions')) is not int or d['interactions']<0:raise ValueError('关系互动计数无效')
+         for ev in d['belief_provenance']:
+             if not isinstance(ev,dict) or not isinstance(ev.get('quote'),str) or not ev['quote'].strip() or not isinstance(ev.get('turn_id'),str):raise ValueError('关系证据格式无效')
++        validate_schema(d)
+     return dyads
++
++SCHEMA_KINDS=('role','norm','expectation')
++def ensure(d):
++    out=copy.deepcopy(d)
++    out.setdefault('schema_revision',0);out.setdefault('schemata',[]);out.setdefault('schema_history',[]);out.setdefault('uncertainties',{})
++    out.setdefault('entities',{'self':'agent_self','other':d['other_id'],'scope':d['context_id'],'kind':'specific_dyad'})
++    return out
++
++def validate_schema(d):
++    if 'schema_revision' not in d:return
++    if type(d['schema_revision']) is not int or d['schema_revision']<0 or not isinstance(d.get('schemata'),list) or not isinstance(d.get('schema_history'),list):raise ValueError('关系图式版本或历史无效')
++    seen=set()
++    for r in d['schemata']:
++        if not isinstance(r,dict) or r.get('id') in seen or r.get('kind') not in SCHEMA_KINDS or r.get('status') not in ('active','disputed','retracted') or r.get('knowledge_type') not in ('reported','inferred'):raise ValueError('关系图式类别或状态无效')
++        seen.add(r['id'])
++        if not isinstance(r.get('statement'),str) or not r['statement'].strip() or not isinstance(r.get('evidence'),list) or not r['evidence']:raise ValueError('关系图式缺少原文')
++        if type(r.get('uncertainty')) not in (int,float) or not math.isfinite(r['uncertainty']) or not 0<=r['uncertainty']<=1:raise ValueError('关系不确定性无效')
++        for e in r['evidence']:
++            if e.get('scope')!=d['context_id'] or e.get('person')!=d['other_id'] or not isinstance(e.get('quote'),str) or not e['quote']:raise ValueError('关系图式证据越界')
++
++def update(d,feedback,text,turn_id,action,reply_style,count_interaction=True,strength=1.):
++    before=ensure(d);rows=feedback.get('relationship_updates',[])
++    rows=rows if isinstance(rows,list) else []
++    simple=[r for r in rows if not isinstance(r,dict) or r.get('field') not in SCHEMA_KINDS]
++    out,report=_update_legacy(before,{**feedback,'relationship_updates':simple},text,turn_id,action,reply_style,count_interaction,strength)
++    changes=[]
++    for field in (*PREFERENCES,'trust','affiliation','familiarity','shared_jokes','preferred_addressing','conflict_history'):
++        a=before['preferences'][field] if field in PREFERENCES else before[field];b=out['preferences'][field] if field in PREFERENCES else out[field]
++        if a!=b:
++            evidence=[e for e in out['belief_provenance'][len(before['belief_provenance']):] if e['field']==field]
++            out['uncertainties'][field]={'estimate':.5,'semantics':'未校准工程不确定性','knowledge_type':'inferred','event_ids':sorted({e['turn_id'] for e in out['belief_provenance'] if e['field']==field})}
++            changes.append({'field':field,'before':copy.deepcopy(a),'after':copy.deepcopy(b),'evidence':copy.deepcopy(evidence)})
++    for row in [r for r in rows if isinstance(r,dict) and r.get('field') in SCHEMA_KINDS][:20] if strength>0 else []:
++        try:
++            kind=row['field'];q=row.get('quote');statement=row.get('statement');kt=row.get('knowledge_type');confidence=row.get('confidence',.4)
++            if not isinstance(q,str) or not q.strip() or q not in text or not isinstance(statement,str) or not statement.strip() or len(statement)>1000:raise ValueError()
++            if kt not in ('reported','inferred') or type(confidence) not in (int,float) or not math.isfinite(confidence) or not 0<=confidence<=1:raise ValueError()
++            # 'reported' describes a recorded statement, never verified truth.
++            if kt=='reported' and statement not in q:raise ValueError()
++            identifier='schema:'+digest([kind,statement])[:24];old=next((r for r in out['schemata'] if r['id']==identifier),None)
++            if old and any(e['event_id']==turn_id for e in old['evidence']):continue
++            if old and old['status']=='retracted':continue
++            ev={'record_id':row.get('record_id',turn_id+':u'),'event_id':turn_id,'scope':d['context_id'],'person':d['other_id'],'quote':q,'source':'recorded_statement','at':now()}
++            previous=copy.deepcopy(old)
++            if old:
++                old['evidence'].append(ev);old['version']+=1
++                old['uncertainty']=max(.25,1-min(.75,confidence)*strength)
++            else:
++                old={'id':identifier,'kind':kind,'statement':statement,'knowledge_type':kt,'uncertainty':max(.25,1-min(.75,confidence)*strength),'status':'active','version':1,'evidence':[ev],'history':[]};out['schemata'].append(old)
++            old['history'].append({'version':old['version'],'before':{k:v for k,v in previous.items() if k!='history'} if previous else None,'event_id':turn_id,'at':now()})
++            changes.append({'field':kind,'schema_id':identifier,'before':{k:v for k,v in previous.items() if k!='history'} if previous else None,'after':{k:copy.deepcopy(v) for k,v in old.items() if k!='history'},'evidence':[ev]});report['accepted']+=1
++        except (ValueError,TypeError,KeyError):report['rejected']+=1
++    if changes:
++        out['schema_revision']+=1
++        out['schema_history'].append({'version':out['schema_revision'],'event_id':turn_id,'changes':changes,'at':now()})
++    validate_schema(out);report['schema_revision']=out['schema_revision']
++    return out,report
++
++def revise(d,body):
++    out=ensure(d)
++    if body.get('expected_version')!=out['schema_revision']:raise ValueError('关系图式已变化，请刷新')
++    r=next((r for r in out['schemata'] if r['id']==body.get('id')),None);op=body.get('op');reason=str(body.get('reason','')).strip()
++    if not r or op not in ('dispute','retract','restore') or not reason:raise ValueError('请指定图式与修订理由')
++    before=copy.deepcopy(r);r['status']={'dispute':'disputed','retract':'retracted','restore':'active'}[op];r['version']+=1
++    r['owner_review']={'reason':reason[:1000],'at':now(),'source':'owner_annotation'}
++    if op=='dispute':r['uncertainty']=max(.75,r['uncertainty'])
++    r['history'].append({'version':r['version'],'before':{k:v for k,v in before.items() if k!='history'},'at':now(),'op':op})
++    out['schema_revision']+=1;out['schema_history'].append({'version':out['schema_revision'],'schema_id':r['id'],'before':before,'after':copy.deepcopy(r),'reason':reason,'at':now()})
++    validate_schema(out);return out
++
++def cognition(traits,understanding,relation,enabled=True):
++    """Transparent, bounded relational appraisal; empirical coefficients pending."""
++    sem=understanding['semantic'];d=ensure(relation['dyad']);fields=traits['hexaco_facets']|traits['interpersonal_dispositions']|traits['value_priorities']
++    read=[]
++    def prior(k):
++        f=fields.get(k,{});v=f.get('estimate');unc=f.get('posterior_uncertainty')
++        if v is None or not enabled:return 0.
++        read.append({'feature_id':k,'estimate':v,'uncertainty':unc,'source_type':f.get('source_type')})
++        return (v-.5)*2*(1-(unc if unc is not None else 1))
++    patience=prior('hexaco.a.patience');prudence=prior('hexaco.c.prudence');communion=prior('social.communion');anxiety=prior('hexaco.e.anxiety')
++    uncertainty=d.get('uncertainties',{}).get('trust',{}).get('estimate',.5)
++    trust=(d['trust']-.5)*2*(1-uncertainty) if d['trust'] is not None else 0.
++    hostility=sem.get('hostility',0);ambiguity=sem.get('ambiguity',0);social=sem.get('social',0)
++    threat=clamp(hostility+.12*anxiety*ambiguity-.12*patience*hostility-.1*trust*social)
++    clarification=clamp(ambiguity+.15*prudence*ambiguity-.06*trust*social)
++    support=clamp(social*.5+.15*communion*social+.1*trust*social)
++    return {'schema':'relational-appraisal/1','trait_version':traits['trait_version'],'trait_digest':traits['trait_digest'],'relation_version':d['schema_revision'],
++        'scope':d['context_id'],'person':d['other_id'],'self_entity':'agent_self','source_features':read,
++        'relationship_sources':[r['id'] for r in d['schemata'] if r['status']=='active'],
++        'estimates':{'threat':threat,'clarification_need':clarification,'support_orientation':support},
++        'baseline':{'threat':hostility,'clarification_need':ambiguity,'support_orientation':social*.5},
++        'interpretation':'可复现工程假设；不更改输入事实、人物身份或长期人格，不代表心理学效度'}
+--- a/persona/server.py
++++ b/persona/server.py
+@@ -510,6 +510,8 @@
+                 if path=='/api/pmm/core/export':return self.send(self.app.engine.export_core())
+                 if path=='/api/pmm/adapter/export':return self.send(self.app.engine.export_adapter())
+                 if path=='/api/pmm/export':return self.send(dumps(self.app.engine.export_weights()).encode(),extra={'Content-Disposition':'attachment; filename="pmm_weights.json"'})
++                if path=='/api/people':return self.send(self.app.engine.people.query(qs.get('scope',[''])[0],qs.get('person',[None])[0]))
++                if path=='/api/formation/interactions':return self.send(self.app.engine.formation.interactions(qs.get('scope',[''])[0],qs.get('person',[''])[0]))
+                 if path=='/api/evidence':return self.send(self.app.engine.evidence.trace(qs.get('scope',[None])[0],qs.get('person',[None])[0],qs.get('event_id',[None])[0],int(qs.get('offset',['0'])[0]),int(qs.get('limit',['20'])[0])))
+                 if path=='/api/de/turns':
+                     from .joint_expression import timeline
+@@ -557,6 +559,10 @@
+                 if path=='/api/social-graph/edit':
+                     if body.get('persona_id')!=app.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新后操作')
+                     return self.send(app.engine.social_graph.edit(body))
++                if path in ('/api/people/edit','/api/relationships/revise','/api/formation/annotate','/api/formation/withdraw'):
++                    if body.get('persona_id')!=app.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新')
++                    action={'/api/people/edit':app.engine.people.edit,'/api/relationships/revise':app.engine.people.relation_edit,'/api/formation/annotate':app.engine.formation.annotate,'/api/formation/withdraw':app.engine.formation.withdraw}[path]
++                    return self.send(action(body))
+                 if path in ('/api/traits/disposition','/api/traits/review','/api/affect/parameters'):
+                     app.ensure_idle()
+                     if body.get('persona_id')!=app.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新后再修改')
+--- a/persona/traits.py
++++ b/persona/traits.py
+@@ -8,7 +8,7 @@
+ SCHEMA='trait-profile/1'
+ DISPOSITION_REGISTRY=json.loads(Path(__file__).with_name('trait_disposition_registry.json').read_text('utf8'))
+ DISPOSITIONS={f['id']:f for f in DISPOSITION_REGISTRY['fields']}
+-PROMOTION_POLICY={'version':'cross-context-evidence/1','independent_events':3,'contexts':2,'span_seconds':86400,'min_confidence':.4,'max_spread':.4,'max_step':.03}
++PROMOTION_POLICY={'version':'cross-context-evidence/2','independent_events':3,'contexts':2,'span_seconds':86400,'min_confidence':.4,'max_spread':.4,'max_step':.03}
+ 
+ def ensure_traits(profile,scope='agent_self'):
+     p=copy.deepcopy(profile)
+@@ -145,19 +145,25 @@
+     records={r['id']:r for r in p['source_records']+p['psychology'].get('evidence_records',[])}
+     observations=p['psychology']['observations']+t['disposition_observations']
+     for k in (*LONG_IDS,*DISPOSITIONS):
+-        obs=[o for o in observations if o['feature_id']==k and o.get('source') in ('imported','observed','human') and o.get('confidence',0)>=PROMOTION_POLICY['min_confidence']]
++        obs=[o for o in observations if o['feature_id']==k and o.get('source') in ('imported','observed','human') and o.get('confidence',0)>=PROMOTION_POLICY['min_confidence'] and o.get('status') not in ('rejected','withdrawn')]
+         if not obs:continue
++        from .evidence import identity
++        def prior_events(h):
++            after=h.get('after',{});ids=after.get('evidence_ids',[]) or [e['record_id'] for e in after.get('evidence',[])]
++            return set(h.get('event_ids',[])) or {records[i].get('experience_event_key') or identity(records[i]) for i in ids if i in records}
++        consumed=set().union(*(prior_events(h) for h in t['promotion_history'] if h.get('feature_id')==k and h.get('evidence_signature')))
+         events=set();contexts=set();times=[];used=[];evidence=[];event_votes={}
+         for o in obs:
+             valid=False
+             for ev in o['evidence']:
+-                r=records.get(ev['record_id'],{});timestamp=event_time(r);timestamp=timestamp if timestamp and timestamp<=now()+300 else None;context=r.get('scope') or r.get('context_id') or r.get('conversation_id')
++                r=records.get(ev['record_id'],{});timestamp=event_time({'timestamp':r.get('experience_timestamp')}) if r.get('subject_entity')=='agent_self' else event_time(r);timestamp=timestamp if timestamp and timestamp<=now()+300 else None;context=r.get('scope') or r.get('context_id') or r.get('conversation_id')
+                 event=r.get('event_id') or r.get('source_event_id') or r.get('batch_id')
+                 # batch_id deliberately prevents multiple quotes from one imported
+                 # transcript or one generated turn counting as independent events.
+-                if r.get('source')=='generated' or not timestamp or not context or not event:continue
++                if r.get('source')=='generated' or r.get('withdrawn') or not timestamp or not context or not event:continue
+                 from .evidence import identity
+-                event_key=identity(r)
++                event_key=r.get('experience_event_key') or identity(r)
++                if event_key in consumed:continue
+                 events.add(event_key);contexts.add(context);times.append(timestamp);evidence.append(ev);valid=True
+                 event_votes.setdefault(event_key,[]).append(o)
+             if valid:used.append(o)
+@@ -176,7 +182,7 @@
+             after=h.get('after',{});ids=after.get('evidence_ids',[]) or [e['record_id'] for e in after.get('evidence',[])]
+             return set(h.get('event_ids',[])) or {identity(records[i]) for i in ids if i in records}
+         if any(h.get('evidence_signature')==signature or h.get('feature_id')==k and events and events<=historic_events(h) for h in t['promotion_history']):reasons.append('同一批证据已经审查，不重复晋升')
+-        row={'feature_id':k,'eligible':not reasons,'reasons':reasons,'independent_events':len(events),'contexts':len(contexts),'span_seconds':span,'counterevidence_spread':spread,'method':PROMOTION_POLICY['version']}
++        row={'feature_id':k,'eligible':not reasons,'reasons':reasons,'independent_events':len(events),'previously_consumed_events':len(consumed),'contexts':len(contexts),'span_seconds':span,'counterevidence_spread':spread,'method':PROMOTION_POLICY['version']}
+         rows.append(row)
+         if not apply or reasons:continue
+         # Correlated quotes/hypotheses cannot increase the event's weight.
+@@ -192,6 +198,7 @@
+         else:old.update(estimate=value,posterior_uncertainty=uncertainty,evidence_ids=ids,evidence_count=len(ids),source_type='promoted_evidence',updated_at=now(),method_version=PROMOTION_POLICY['version'],conflict=False)
+         changes.append({'id':uid(),'at':now(),'feature_id':k,'before':before,'after':copy.deepcopy(old),'evidence_signature':signature,'event_ids':sorted(events),'source_evidence':copy.deepcopy(evidence),'method':PROMOTION_POLICY['version'],'counterevidence_spread':spread,'independent_events':len(events),'contexts':len(contexts),'span_seconds':span})
+     if changes:
++        t['promotion_policy']=copy.deepcopy(PROMOTION_POLICY)
+         t['version']+=1;t['updated_at']=now();p['revision']+=1;p['updated_at']=now()
+         for change in changes:change['trait_version']=t['version']
+         t['promotion_history'].extend(changes)
+@@ -204,3 +211,17 @@
+     for k,f in t['dispositions'].items():
+         if any(e['record_id'] not in ids for e in f['evidence']):t['dispositions'][k]={'estimate':None,'uncertainty':None,'source_type':'unknown','evidence':[],'updated_at':None,'measurement':None}
+     t['promotion_history']=[]
++
++
++def promotion_records(profile,change):
++    """One supervised sample per independent event, not per repeated quote."""
++    from .evidence import identity
++    records={r['id']:r for r in profile['source_records']+profile['psychology']['evidence_records']}
++    ids=[e['record_id'] for e in change.get('source_evidence',[])] or change['after'].get('evidence_ids',[])
++    seen=set();out=[]
++    for rid in ids:
++        if rid not in records:continue
++        r=records[rid];key=r.get('experience_event_key') or identity(r)
++        if key in seen or r.get('withdrawn'):continue
++        seen.add(key);out.append(r)
++    return out
+--- /dev/null
++++ b/tests/test_ui_v27.js
+@@ -0,0 +1,16 @@
++'use strict';
++const assert=require('node:assert/strict'),{server,client}=require('./test_ui_v251'),{harness}=require('./dom_harness_v222');
++async function main(){const app=await server(),c=client(app.base);let ui,count=0;const ok=s=>console.log('PASS '+(++count)+' '+s);
++ try{const html=await(await c.fetch('/')).text(),build=html.match(/name="app-build" content="([^\"]+)"/)[1];ui=harness(app.nodes,await(await c.fetch('/app.js')).text(),c.fetch,build);await ui.boot;assert(ui.run('uiReady'));assert.equal(ui.all.filter(n=>n.classList.contains('page')).length,10);ok('启动保留十页且新增控件初始化');
++  for(const id of ['formationForm','formationHistory','peopleV27','unifiedEvidenceTrace'])assert.equal(ui.ids.get(id).closest('.page').id,'profiles');ok('新增操作位于现有人物页');
++  const turn=await app.control('cbm');await ui.run('refresh()');const sessions=ui.run('state.sessions');const s=sessions.find(s=>s.scope==='private:web:owner')||sessions[0];
++  ui.ids.get('formationSession').value=s.id;await ui.event(ui.ids.get('loadFormationTurns'));assert(ui.ids.get('formationTurn').innerHTML.includes(turn.turn_id));ok('实际已发送回复可选，回合 ID 保留');
++  ui.ids.get('formationTurn').value=turn.turn_id;ui.ids.get('formationFeature').value='erq.cognitive_reappraisal';ui.ids.get('formationValue').value='.7';ui.ids.get('formationConfidence').value='.7';ui.ids.get('formationNote').value='外部评价：这次你先理解不同解释，再表达结论。';await ui.submit('formationForm');assert(ui.ids.get('formationResult').textContent.includes('晋升 0'));assert(ui.ids.get('formationEvidence').innerHTML.includes('外部评价：'));assert(ui.ids.get('traitReviewPanel').innerHTML.includes('少于 3'));ok('外部评价真实写入，单次经历不晋升');
++  ui.ids.get('peopleScope').value=s.scope;await ui.event(ui.ids.get('loadPeople'));assert(ui.ids.get('peopleV27').innerHTML.includes(s.person));assert(ui.ids.get('identitySource').innerHTML.includes('option'));ok('人物和来源按明确范围读取');
++  const result=ui.run('peopleV27Result');const src=result.people.flatMap(p=>p.sources).find(x=>x.source_type!=='generated');ui.ids.get('identityPerson').value=s.person;ui.ids.get('identityAlias').value='本范围称呼';ui.ids.get('identitySource').value=src.source_key;ui.ids.get('identityQuote').value=src.text;ui.ids.get('identityOp').value='annotate';await ui.submit('identityEvidenceForm');assert(ui.ids.get('peopleV27').innerHTML.includes('本范围称呼'));ok('身份核验保留来源与不确定性');
++  ui.ids.get('evidenceScope').value=s.scope;await ui.event(ui.ids.get('loadEvidenceTrace'));assert(ui.ids.get('unifiedEvidenceTrace').innerHTML.includes('状态'));assert(ui.ids.get('unifiedEvidenceTrace').innerHTML.includes('interaction'));ok('统一链能查看原文、状态差异和去向');
++  const p=ui.run('state.profile'),record=p.psychology.evidence_records.find(r=>r.subject_entity==='agent_self');assert(record);await ui.run(`api('/api/formation/withdraw',{persona_id:state.identity.id,expected_version:state.profile.trait_profile.version,record_id:${JSON.stringify(record.id)},reason:'界面测试撤回'})`);await ui.run('refresh()');assert(ui.ids.get('formationEvidence').innerHTML.includes('已撤回'));ok('撤回接口和界面一致，历史仍可见');
++  assert(!c.requests.some(r=>r.status>=500));ok('新流程无服务端 500');console.log(`${count} v2.7 HTTP / DOM scenarios passed.`);
++ }finally{if(ui)ui.run('stopAffectPolling()');await app.close();}}
++if(require.main===module)main().catch(e=>{console.error(e);process.exitCode=1;});
++module.exports={main};
+--- /dev/null
++++ b/tests/test_v27_stage2.py
+@@ -0,0 +1,147 @@
++"""Stage II independent assertions over real state and local transactions.
++Synthetic externally scored experiences; no psychological validity inference.
++"""
++import copy,json,unittest
++from unittest.mock import patch
++from test_v212 import Base,ROOT,PatchProvider
++from persona.common import now
++from persona.registry import digest
++from persona import traits,relationships as dy
++from persona.server import Runtime
++from persona.packages import export_continuity,validate_pack,apply_pack
++import test_v250 as old
++
++class FormationCases(Base):
++    policy=old.LearningCases.policy
++    def episodes(self,n=3):
++        out=[]
++        for i in range(n):
++            sid=self.session('123',group=i%2==1);t=self.turn('请先确认我的意思。'+str(i),sid=sid)
++            # Fixture clock: real committed turns, backdated only by this test.
++            with self.r.store.lock,self.r.store.db:self.r.store.db.execute('UPDATE messages SET created_at=? WHERE turn_id=?',(now()-400000+i*50000,t['turn_id']))
++            out.append(t['turn_id'])
++        return out
++    def body(self,turn,feature='hexaco.c.prudence',value=.7,note='你在多次处理类似问题时会先核对依据。'):
++        return {'experience_turn_id':turn,'feature_id':feature,'estimate':value,'confidence':.7,'timeframe':'habitual' if feature.startswith(('beq.','erq.')) else 'generally' if feature.startswith('panas.') else 'sustained','note':note,'expected_version':self.r.engine.profile()['trait_profile']['version']}
++    def test_three_independent_experiences_promote_with_raw_before_after(self):
++        e=self.r.engine;turns=self.episodes();before=copy.deepcopy(e.store.meta('pmm_affect'))
++        for t in turns:r=e.formation.annotate(self.body(t))
++        self.assertEqual(r['promoted'],1);p=e.profile();f=p['psychology']['features']['hexaco.c.prudence'];self.assertAlmostEqual(f['estimate'],.7);h=p['trait_profile']['promotion_history'][-1]
++        self.assertEqual(len(h['event_ids']),3);self.assertIsNone(h['before']['estimate']);self.assertEqual(len(h['source_evidence']),3);self.assertEqual(before,e.store.meta('pmm_affect'))
++        self.assertTrue(any(r['domain']=='self_experience' and r['after'].get('changes') for r in e.evidence.trace()['revisions']))
++    def test_many_ratings_of_one_experience_cannot_promote(self):
++        e=self.r.engine;t=self.episodes(1)[0]
++        for i in range(5):e.formation.annotate(self.body(t,note='你先核对依据。不同评价'+str(i)))
++        self.assertIsNone(e.profile()['psychology']['features']['hexaco.c.prudence']['estimate']);r=e.review_traits(False)['candidates'][0];self.assertEqual(r['independent_events'],1)
++    def test_repeating_owner_annotation_and_restart_does_not_relearn(self):
++        e=self.r.engine;turns=self.episodes()
++        for t in turns:e.formation.annotate(self.body(t))
++        before=e.profile();e.formation.annotate(self.body(turns[0]));self.assertEqual(before,e.profile())
++        self.r.close();self.r=Runtime(self.tmp.name,ROOT);self.fixture();e=self.r.engine;e.formation.annotate(self.body(turns[0]));self.assertEqual(before,e.profile())
++    def test_new_revision_needs_three_fresh_events_not_one(self):
++        e=self.r.engine;turns=self.episodes(6)
++        for t in turns[:3]:e.formation.annotate(self.body(t))
++        version=e.profile()['trait_profile']['version'];e.formation.annotate(self.body(turns[3],value=.8));self.assertEqual(e.profile()['trait_profile']['version'],version)
++        for t in turns[4:]:e.formation.annotate(self.body(t,value=.8))
++        self.assertEqual(e.profile()['trait_profile']['version'],version+1);self.assertAlmostEqual(e.profile()['psychology']['features']['hexaco.c.prudence']['estimate'],.7+.03*e.learning.status()['policy']['domains']['self']['strength'])
++    def test_counterevidence_blocks_promotion(self):
++        e=self.r.engine
++        for t,v in zip(self.episodes(),(.1,.9,.2)):e.formation.annotate(self.body(t,value=v))
++        self.assertIsNone(e.profile()['psychology']['features']['hexaco.c.prudence']['estimate']);self.assertGreater(e.review_traits(False)['candidates'][0]['counterevidence_spread'],.4)
++    def test_dispositions_learn_without_affect_write(self):
++        e=self.r.engine;ts=self.episodes();aff=copy.deepcopy(e.store.meta('pmm_affect'))
++        for t in ts:e.formation.annotate(self.body(t,'erq.cognitive_reappraisal'))
++        self.assertAlmostEqual(e.profile()['trait_profile']['dispositions']['erq.cognitive_reappraisal']['estimate'],.7);self.assertEqual(aff,e.store.meta('pmm_affect'));validate_pack(export_continuity(e))
++    def test_current_emotion_and_wrong_timeframe_rejected(self):
++        e=self.r.engine;t=self.episodes(1)[0];before=e.profile()
++        with self.assertRaises(ValueError):e.formation.annotate(self.body(t,'affect.state.anger'))
++        with self.assertRaises(ValueError):e.formation.annotate({**self.body(t,'erq.expressive_suppression'),'timeframe':'now'})
++        self.assertEqual(before,e.profile())
++    def test_generated_or_wrong_subject_and_scope_rejected(self):
++        e=self.r.engine;t=self.episodes(1)[0];s={'scope':'private:qq:123','person':'qq:123'}
++        record={'id':'fake','text':'我有耐心','scope':s['scope'],'person':s['person'],'source':'generated','timestamp':now()}
++        row={**self.body(t),'target_entity':'agent_self','evidence_kind':'external_feedback','evidence':[{'record_id':'fake','quote':record['text']}]}
++        _,r=e.formation.collect(e.profile(),[row],[record],s);self.assertEqual(r['accepted'],0)
++        record['source']='observed'
++        _,r=e.formation.collect(e.profile(),[{**row,'target_entity':'interlocutor'}],[record],s);self.assertEqual(r['accepted'],0)
++        _,r=e.formation.collect(e.profile(),[row],[{**record,'scope':'other'}],s);self.assertEqual(r['accepted'],0)
++    def test_withdraw_deactivates_derived_prior_keeps_history(self):
++        e=self.r.engine
++        for t in self.episodes():e.formation.annotate(self.body(t))
++        p=e.profile();rid=p['psychology']['features']['hexaco.c.prudence']['evidence_ids'][0];r=e.formation.withdraw({'record_id':rid,'expected_version':p['trait_profile']['version'],'reason':'原评价不可靠'})
++        self.assertEqual(r['invalidated'],1);self.assertIsNone(e.profile()['psychology']['features']['hexaco.c.prudence']['estimate']);self.assertEqual(e.review_traits(True)['promoted'],0);validate_pack(export_continuity(e))
++    def test_owner_seed_protected(self):
++        e=self.r.engine;e.edit_disposition({'feature_id':'hexaco.c.prudence','expected_version':0,'estimate':.4})
++        for t in self.episodes():e.formation.annotate(self.body(t))
++        self.assertEqual(e.profile()['psychology']['features']['hexaco.c.prudence']['estimate'],.4)
++    def test_failed_commit_is_atomic(self):
++        e=self.r.engine;t=self.episodes(1)[0];p=e.profile();ev=e.evidence.state();original=e.store.event
++        def fail(k,*a):
++            if k=='self_experience_evaluated':raise ValueError('after writes')
++            return original(k,*a)
++        with patch.object(e.store,'event',side_effect=fail),self.assertRaises(ValueError):e.formation.annotate(self.body(t))
++        self.assertEqual(p,e.profile());self.assertEqual(ev,e.evidence.state());e.formation.annotate(self.body(t));self.assertEqual(len(e.profile()['psychology']['observations']),1)
++    def test_policy_zero_and_stale_version_rejected(self):
++        e=self.r.engine;t=self.episodes(1)[0];self.policy('self',strength=0)
++        with self.assertRaises(ValueError):e.formation.annotate(self.body(t))
++        self.policy('self',strength=1)
++        with self.assertRaises(ValueError):e.formation.annotate({**self.body(t),'expected_version':99})
++    def test_background_external_feedback_uses_same_gate_and_dedup(self):
++        e=self.r.engine;turns=self.episodes()
++        while e.consolidation.status()['pending']:e.consolidation.run()
++        class External(PatchProvider):
++            def complete(self,messages,**kw):
++                result=super().complete(messages,**kw)
++                if '[CONSOLIDATE_V212]' in messages[0]['content']:
++                    payload=json.loads(messages[-1]['content'])
++                    for r,item in zip(payload['turns'],result['items']):
++                        ur=r['user_record'];target=ur['text'].split(':')[-1]
++                        if not ur['text'].startswith('你上次会核对:'):continue
++                        assert target in {x['turn_id'] for x in r['prior_interactions']}
++                        item['feedback']['self_experience_updates']=[{'target_entity':'agent_self','evidence_kind':'external_feedback','experience_turn_id':target,'feature_id':'hexaco.c.prudence','estimate':.7,'confidence':.7,'timeframe':'sustained','evidence':[{'record_id':ur['id'],'quote':ur['text']}]}]
++                return result
++        e.pmm_provider_factory=External
++        for i,t in enumerate(turns):self.turn('你上次会核对:'+t,sid=self.session(group=i%2==1));e.consolidation.run()
++        p=e.profile();self.assertIsNotNone(p['psychology']['features']['hexaco.c.prudence']['estimate']);self.assertEqual(len(p['trait_profile']['promotion_history']),1)
++        for t in turns:e.formation.annotate(self.body(t,note='同一真实经历的人工重复评价'))
++        self.assertEqual(e.profile()['trait_profile']['version'],p['trait_profile']['version'])
++    def test_later_or_other_person_experience_cannot_be_referenced(self):
++        e=self.r.engine;t=self.episodes(1)[0];raw={'id':'feedback','source':'observed','scope':'private:qq:123','speaker':'qq:123','text':'你很谨慎','timestamp':1}
++        row={**self.body(t),'target_entity':'agent_self','evidence_kind':'external_feedback','evidence':[{'record_id':'feedback','quote':raw['text']}]}
++        _,r=e.formation.collect(e.profile(),[row],[raw],{'scope':raw['scope'],'person':'qq:123'});self.assertEqual(r['accepted'],0)
++        raw['timestamp']=now();raw['speaker']='qq:other'
++        _,r=e.formation.collect(e.profile(),[row],[raw],{'scope':raw['scope'],'person':'qq:other'});self.assertEqual(r['accepted'],0)
++
++class PeopleCases(Base):
++    def test_same_id_scoped_profiles_alias_and_evidence_isolated(self):
++        e=self.r.engine;self.turn('本私聊的名字是秘密甲',sid=self.session());self.turn('本群的名字是公开乙',sid=self.session(group=True))
++        scope='private:qq:123';src=next((k,r) for k,r in e.evidence.state()['sources'].items() if r['scope']==scope and r['source_type']!='generated')
++        e.people.edit({'scope':scope,'person':'qq:123','alias':'秘密甲','source_key':src[0],'quote':src[1]['text'],'expected_version':e.social_graph.state()['version']})
++        private=e.people.context(scope,'qq:123');group=e.people.context('group:qq:123','qq:123');self.assertEqual(private['interlocutor']['alias'],'秘密甲');self.assertNotIn('秘密甲',json.dumps(group,ensure_ascii=False));self.assertNotEqual(private['interlocutor']['entity_id'],group['interlocutor']['entity_id'])
++    def test_third_party_distinct_from_ai_and_interlocutor(self):
++        e=self.r.engine;self.turn('小王今天也在。');scope='private:qq:123';src=next(iter(e.evidence.state()['sources'].items()))
++        body={'scope':scope,'person':'local:wang','alias':'小王','source_key':src[0],'quote':'小王','expected_version':e.social_graph.state()['version']}
++        e.people.edit(body);r=e.people.query(scope,'local:wang')['people'][0];self.assertEqual(r['entity_type'],'third_party');self.assertIsNone(r['relationship']);self.assertIsNone(r['profile'])
++        with self.assertRaises(ValueError):e.people.edit({**body,'person':e.profile()['id'],'expected_version':e.social_graph.state()['version']})
++    def test_wrong_scope_identity_evidence_rejected(self):
++        e=self.r.engine;self.turn('小王在这里');k,r=next(iter(e.evidence.state()['sources'].items()))
++        with self.assertRaises(ValueError):e.people.edit({'scope':'group:other','person':'x','alias':'王','source_key':k,'quote':'小王','expected_version':e.social_graph.state()['version']})
++
++class RelationshipCases(unittest.TestCase):
++    def test_role_norm_expectation_trace_dedupe_and_retraction(self):
++        d=dy.empty('person','scope');text='你是我的学习伙伴；回答前先确认；我希望你有疑问时问我。'
++        updates=[{'field':k,'statement':q,'quote':q,'knowledge_type':'reported','confidence':.7} for k,q in [('role','你是我的学习伙伴'),('norm','回答前先确认'),('expectation','我希望你有疑问时问我')]]
++        d,r=dy.update(d,{'relationship_updates':updates},text,'e1','reply',[],False);self.assertEqual(r['accepted'],3);self.assertEqual(d['schema_revision'],1);self.assertEqual(d['interactions'],0)
++        again,_=dy.update(d,{'relationship_updates':updates},text,'e1','reply',[],False);self.assertEqual(again['schemata'],d['schemata']);self.assertEqual(again['schema_revision'],1)
++        d=dy.revise(d,{'expected_version':1,'id':d['schemata'][0]['id'],'op':'dispute','reason':'尚未确认'});self.assertEqual(d['schema_revision'],2);self.assertGreaterEqual(d['schemata'][0]['uncertainty'],.75);self.assertEqual(len(dy.policy_relation(d)['dyad']['schemata']),2);dy.validate({dy.key('person','scope'):d})
++    def test_inference_cannot_masquerade_as_report_or_foreign_scope(self):
++        d,r=dy.update(dy.empty('p','s'),{'relationship_updates':[{'field':'role','statement':'亲密好友','quote':'你好','knowledge_type':'reported'}]},'你好','e','reply',[],False);self.assertEqual(r['accepted'],0)
++        d,r=dy.update(d,{'relationship_updates':[{'field':'role','statement':'可能是伙伴','quote':'你好','knowledge_type':'inferred'}]},'你好','e','reply',[],False);self.assertEqual(r['accepted'],1);d['schemata'][0]['evidence'][0]['scope']='other'
++        with self.assertRaises(ValueError):dy.validate({dy.key('p','s'):d})
++    def test_personality_changes_relational_appraisal_without_writes(self):
++        from persona.psychology import empty_profile
++        p=empty_profile('me','Me');p=traits.edit_disposition(p,{'feature_id':'hexaco.a.patience','estimate':.1,'expected_version':0});q=traits.edit_disposition(p,{'feature_id':'hexaco.a.patience','estimate':.9,'expected_version':1})
++        u={'semantic':{'hostility':.7,'social':.7,'ambiguity':.3}};d=dy.policy_relation(dy.empty('p','s'));before=copy.deepcopy(d)
++        a=dy.cognition(traits.snapshot(p),u,d);b=dy.cognition(traits.snapshot(q),u,d);self.assertNotEqual(a['estimates']['threat'],b['estimates']['threat']);self.assertEqual(d,before)
++
++if __name__=='__main__':unittest.main()
+--- a/web/app.js
++++ b/web/app.js
+@@ -203,9 +203,9 @@
+  $('psychologyPanel').innerHTML='<h3>HEXACO · 六域与 24＋1 面向</h3><p class="fine">情绪性是长期倾向，不是今天的恐惧或悲伤。展开面向可查看估计、来源和不确定性。</p><div class="domain-grid">'+domainCards+'</div><details data-disclosure="hexaco-additional"><summary>附加面向</summary>'+reg.filter(f=>f.id.startsWith('hexaco.interstitial.')).map(f=>traitRow(p,f)).join('')+'</details><details data-disclosure="values"><summary>Schwartz · 19 项价值优先级</summary><div class="trait-grid">'+reg.filter(f=>f.group==='价值').map(f=>traitRow(p,f)).join('')+'</div></details><details data-disclosure="interpersonal"><summary>稳定人际倾向</summary><div class="trait-grid">'+reg.filter(f=>f.group==='人际倾向').map(f=>traitRow(p,f)).join('')+'</div></details>';
+  $('languageIdentity').innerHTML='<details data-disclosure="language-identity"><summary>已有语言身份估计与依据</summary><div class="trait-grid">'+reg.filter(f=>f.group==='语言身份').map(f=>traitRow(p,f)).join('')+'</div></details>';
+  const dispositions=p.trait_profile?.dispositions||{};for(const [prefix,id] of [['beq.','beqPanel'],['erq.','erqPanel'],['panas.','panasPanel']])$(id).innerHTML=(state.disposition_registry?.fields||[]).filter(f=>f.id.startsWith(prefix)).map(f=>{const v=dispositions[f.id]||{};return `<article class="habit-card"><h4>${esc(f.name_zh)}</h4>${v.estimate==null?'<p class="unknown-label">未知 · 尚无足够证据</p>':traitMeter('特征估计值',v.estimate)+traitMeter('工程不确定性',v.uncertainty,'uncertainty')}<p class="fine">${esc(sourceName(v.source_type))} · ${v.updated_at?date(v.updated_at):'更新时间未记录'}</p><p class="record-id">来源类型 ID：${esc(v.source_type||'unknown')} · ${esc(f.id)}</p><button data-habit-edit="${esc(f.id)}">编辑设定</button><button data-habit-evidence="${esc(f.id)}">来源依据</button></article>`}).join('');
+- renderTraitReview(state.trait_review);
+-}
+-function dyadHTML(d){if(!d)return '';return `<div class="callout"><h3>这段关系 · ${esc(d.context_id)}</h3><p>互动 ${d.interactions} 次</p><div class="metric-grid">${meter('信任',d.trust)}${meter('亲近',d.affiliation)}${meter('熟悉度',d.familiarity)}${Object.entries(d.preferences||{}).map(([k,v])=>meter(({humor_tolerance:'幽默接受度',action_preference:'行动倾向',empathy_need:'共情需要',directness:'直接程度',boundary_sensitivity:'边界敏感度',information_density:'信息密度'})[k]||k,typeof v==='number'?v:v?.estimate)).join('')}</div><details><summary>关系偏好、共享语境与轨迹</summary><pre>${esc(JSON.stringify({preferences:d.preferences,shared_jokes:d.shared_jokes,preferred_addressing:d.preferred_addressing,belief_provenance:d.belief_provenance,trajectory:d.trajectory.slice(-20)},null,2))}</pre></details></div>`;}
++ renderTraitReview(state.trait_review);renderFormationStatus();
++}
++function dyadHTML(d){if(!d)return '';return `<div class="callout"><h3>这段关系 · ${esc(d.context_id)}</h3><p>互动 ${d.interactions} 次</p><div class="metric-grid">${meter('信任',d.trust)}${meter('亲近',d.affiliation)}${meter('熟悉度',d.familiarity)}${Object.entries(d.preferences||{}).map(([k,v])=>meter(({humor_tolerance:'幽默接受度',action_preference:'行动倾向',empathy_need:'共情需要',directness:'直接程度',boundary_sensitivity:'边界敏感度',information_density:'信息密度'})[k]||k,typeof v==='number'?v:v?.estimate)).join('')}</div><details><summary>关系偏好、共享语境与轨迹</summary><pre>${esc(JSON.stringify({preferences:d.preferences,shared_jokes:d.shared_jokes,preferred_addressing:d.preferred_addressing,belief_provenance:d.belief_provenance,trajectory:d.trajectory.slice(-20)},null,2))}</pre></details>${relationshipSchemaHTML(d)}</div>`;}
+ function deliberationHTML(d){if(!d)return '';return `<div class="callout"><strong>内部协商 · ${esc(d.mode)} · ${d.multi_view?'已运行多视角':'单路径'}</strong><p>规则 ${esc(d.rule_version)} · ${esc(d.reason)}</p><div class="row">${Object.entries(d.scores||{}).map(([k,v])=>`${meter(k,v)}`).join('')}</div>${(d.rounds||[]).map(r=>`<details><summary>第 ${r.index} 轮 · PMM 复核</summary>${r.candidates.map(v=>`${meter(v.label+' · 权重',v.weight)}<p>${esc(v.source_features.join('、')||'当前主体综合状态')}</p><p class="record-id">${esc(v.evidence_ids.join('、'))}</p>`).join('')}<p>${esc(r.pmm_review.summary)}</p><pre>${esc(JSON.stringify(r.pmm_review,null,2))}</pre></details>`).join('')}<p class="fine">${d.unresolved_conflict?'保留未解决分歧。':''}内部候选与推演不会写成真实经历。</p></div>`;}
+ 
+ function seconds(ms){return typeof ms==='number'?(ms/1000).toFixed(2)+' 秒':'未记录';}
+@@ -610,4 +610,38 @@
+ $('deFeedbackForm').onsubmit=guard(async()=>{const res=await api('/api/pragmatics/target',{persona_id:state.identity.id,turn_id:$('deTargetTurn').value,field:$('deTargetField').value,value:Number($('deTargetValue').value),note:$('deTargetNote').value});await refresh();notice('已记录人工目标，可在“已有学习证据”核对候选。语言档案 v'+res.version);});
+ $('deReviewForm').onsubmit=guard(async e=>{const action=e.submitter?.dataset?.deReview||'apply',p=state.pragmatics,c=p.learning_candidates.find(x=>x.id===$('deCandidate').value);if(!c)throw Error('请选择要审核的候选');const result=await api('/api/pragmatics/review',{persona_id:state.identity.id,candidate_id:c.id,evidence_digest:c.evidence_digest,expected_version:p.profile.version,action,note:$('deReviewNote').value});if(!result.ok)throw Error('未应用：'+deReason(result.reasons));await refresh();notice('审核已记录，语言档案 v'+result.version+'。到“蒸馏 → 结果与证据”可核对字段前后值。');});
+ 
++// 2.7: existing profiles/other pages, same PMM state and provenance index.
++let peopleV27Result=null,evidenceV27Offset=0,evidenceV27Total=0;
++function v27FeatureName(k){return state.psychology_registry.find(f=>f.id===k)?.name_zh||state.disposition_registry.fields.find(f=>f.id===k)?.name_zh||k;}
++function preserveOptions(id,items){const el=$(id),old=el.value;el.innerHTML=items.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('');if(items.some(([v])=>v===old))el.value=old;}
++function renderFormationStatus(){
++ if(!$('formationHistory'))return;
++ preserveOptions('formationSession',state.sessions.map(s=>[s.id,`${s.person} · ${s.scope} · ${s.title||'对话'}`]));
++ const scopes=[...new Set(state.sessions.map(s=>s.scope))];for(const id of ['peopleScope','evidenceScope'])preserveOptions(id,scopes.map(s=>[s,s]));
++ preserveOptions('formationFeature',[...state.psychology_registry.filter(f=>f.feature_temporality==='long'),...state.disposition_registry.fields].map(f=>[f.id,f.name_zh]));
++ const history=state.profile.trait_profile.promotion_history.slice(-20).reverse();
++ $('formationHistory').innerHTML=history.map(h=>`<article class="evidence"><h4>${esc(v27FeatureName(h.feature_id))} · 版本 ${h.trait_version}</h4><div class="metric-grid">${meter('更新前',h.before?.estimate)}${meter('更新后',h.after?.estimate)}</div><p class="fine">${esc(h.method)} · ${h.independent_events??'—'} 个独立事件 · ${h.contexts??'—'} 个情境</p>${(h.source_evidence||[]).map(e=>`<blockquote>${esc(e.quote)}</blockquote><p class="record-id">${esc(e.record_id)}</p>`).join('')}</article>`).join('')||'<p class="empty">尚无长期修订。</p>';
++ const ev=state.profile.psychology.evidence_records.filter(r=>r.subject_entity==='agent_self').slice(-30).reverse();
++ $('formationEvidence').innerHTML=ev.map(r=>`<article class="evidence"><p>${esc(r.scope)} · 经历 ${esc(r.experience_turn_id)}</p><blockquote>${esc(r.text)}</blockquote><p>${r.withdrawn?'已撤回：'+esc(r.withdrawal_reason):'外部评价；估计仍受独立证据门槛约束'}</p>${r.withdrawn?'':`<button type="button" data-formation-withdraw="${esc(r.id)}">撤回此依据</button>`}</article>`).join('')||'<p class="empty">尚无针对 AI 实际经历的外部评价。</p>';
++}
++function relationshipSchemaHTML(d){const rows=d.schemata||[];return `<h4>关系图式 · 版本 ${d.schema_revision||0}</h4><p class="fine">角色、规范与期待均附来源；未知不推断为友谊。</p>`+(rows.map(r=>`<article class="evidence"><p>${esc({role:'角色',norm:'交往规范',expectation:'互动期待'}[r.kind])} · ${r.knowledge_type==='reported'?'原话陈述':'模型推断'} · ${esc({active:'当前有效',disputed:'有争议',retracted:'已撤回'}[r.status])}</p><p>${esc(r.statement)}</p>${meter('不确定性（未校准）',r.uncertainty)}${r.evidence.slice(-3).map(e=>`<blockquote>${esc(e.quote)}</blockquote><p class="record-id">${esc(e.event_id)}</p>`).join('')}<button type="button" data-rel-revise="${esc(r.id)}" data-rel-person="${esc(d.other_id)}" data-rel-scope="${esc(d.context_id)}" data-rel-version="${d.schema_revision}" data-rel-op="${r.status==='active'?'dispute':'restore'}">${r.status==='active'?'标记争议':'恢复候选'}</button> <button type="button" data-rel-revise="${esc(r.id)}" data-rel-person="${esc(d.other_id)}" data-rel-scope="${esc(d.context_id)}" data-rel-version="${d.schema_revision}" data-rel-op="retract">撤回图式</button></article>`).join('')||'<p class="empty">尚无有依据的关系图式。</p>')+`<details><summary>关系修订历史（最近20项）</summary><pre>${esc(JSON.stringify((d.schema_history||[]).slice(-20),null,2))}</pre></details>`;}
++async function loadPeopleV27(){const scope=$('peopleScope').value;if(!scope)throw new Error('请选择会话范围');const r=await api('/api/people?scope='+encodeURIComponent(scope));peopleV27Result=r;
++ $('peopleV27').innerHTML=`<p class="fine">${esc(r.identity_rule)}</p>`+r.people.map(p=>`<article class="evidence"><h4>${esc(p.alias)} · ${p.entity_type==='interlocutor'?'交谈对象':'提及的第三方'}</h4><p class="record-id">${esc(p.person_id)} · ${esc(p.scope)}</p>${meter('身份不确定性',p.uncertainty)}<p>${esc(p.identity_status)} · ${p.source_count} 条本范围来源</p>${p.relationship?relationshipSchemaHTML(p.relationship):'<p class="fine">尚无与 AI 的特定关系证据。</p>'}<details><summary>人物原始证据（最近50条）</summary>${p.sources.map(e=>`<blockquote>${esc(e.text)}</blockquote><p class="record-id">${esc(e.record_id)} · ${esc(e.source_type)}</p>`).join('')}</details></article>`).join('');
++ const sources=r.people.flatMap(p=>p.sources).filter(s=>s.source_type!=='generated');preserveOptions('identitySource',sources.map(s=>[s.source_key,`${s.person}：${s.text.slice(0,80)}`]));
++}
++async function loadEvidenceV27(){const scope=$('evidenceScope').value;if(!scope)throw new Error('请选择会话范围');const r=await api('/api/evidence?scope='+encodeURIComponent(scope)+'&offset='+evidenceV27Offset+'&limit=10');evidenceV27Total=r.total;
++ $('unifiedEvidenceTrace').innerHTML=`<p>共 ${r.total} 项修订 · 当前 ${r.offset+1}–${Math.min(r.offset+r.revisions.length,r.total)}</p>`+r.revisions.map(v=>`<details class="evidence"><summary>${esc(v.domain)} · ${date(v.at)} · ${v.changed?'有状态变化':'仅登记来源'}</summary>${v.source_keys.map(k=>`<blockquote>${esc(r.sources[k].text)}</blockquote><p class="record-id">${esc(r.sources[k].record_id)} · ${esc(r.sources[k].event_id)}</p>`).join('')}<p>${v.mixed_scope_details_redacted?'跨范围任务的其他详情已隐藏。':''}</p><pre>${esc(JSON.stringify({before:v.before,after:v.after,links:v.links,path:v.path,rolled_back:v.rolled_back},null,2))}</pre></details>`).join('');
++ $('previousEvidenceTrace').disabled=evidenceV27Offset===0;$('nextEvidenceTrace').disabled=evidenceV27Offset+10>=r.total;
++}
++$('loadPeople').onclick=guard(loadPeopleV27);
++$('identityEvidenceForm').onsubmit=guard(async()=>{if(!peopleV27Result||peopleV27Result.scope!==$('peopleScope').value)throw new Error('请先读取当前范围人物');await api('/api/people/edit',{persona_id:state.identity.id,expected_version:peopleV27Result.version,scope:$('peopleScope').value,person:$('identityPerson').value.trim(),alias:$('identityAlias').value.trim(),source_key:$('identitySource').value,quote:$('identityQuote').value,op:$('identityOp').value});await loadPeopleV27();notice('本范围身份依据已保存。');});
++$('loadFormationTurns').onclick=guard(async()=>{const s=state.sessions.find(s=>s.id===$('formationSession').value);if(!s)throw new Error('请选择经历所在会话');const rows=await api('/api/formation/interactions?scope='+encodeURIComponent(s.scope)+'&person='+encodeURIComponent(s.person));preserveOptions('formationTurn',rows.map(r=>[r.turn_id,`${date(r.timestamp)} · ${r.actual_reply.slice(0,100)}`]));});
++$('formationSession').onchange=()=>{$('formationTurn').innerHTML='<option value="">请重新读取这个会话的经历</option>';};
++for(const id of ['formationValue','formationConfidence'])$(id).oninput=()=>$(id+'Out').textContent=Number($(id).value).toFixed(2);
++$('formationForm').onsubmit=guard(async()=>{const feature=$('formationFeature').value,field=state.disposition_registry.fields.find(f=>f.id===feature);const r=await api('/api/formation/annotate',{persona_id:state.identity.id,expected_version:state.profile.trait_profile.version,experience_turn_id:$('formationTurn').value,feature_id:feature,estimate:Number($('formationValue').value),confidence:Number($('formationConfidence').value),timeframe:field?.required_timeframe||'sustained',note:$('formationNote').value});await refresh();$('formationResult').textContent=`新增候选 ${r.accepted} 项；晋升 ${r.promoted} 项。详细门槛与变化见上方审查表及下方修订记录。`;});
++$('loadEvidenceTrace').onclick=guard(async()=>{evidenceV27Offset=0;await loadEvidenceV27();});$('previousEvidenceTrace').onclick=guard(async()=>{evidenceV27Offset=Math.max(0,evidenceV27Offset-10);await loadEvidenceV27();});$('nextEvidenceTrace').onclick=guard(async()=>{if(evidenceV27Offset+10<evidenceV27Total)evidenceV27Offset+=10;await loadEvidenceV27();});
++document.addEventListener('click',guard(async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.formationWithdraw){const reason=prompt('请填写撤回依据。依赖此依据晋升的字段会转为未知，历史会保留。');if(!reason)return;await api('/api/formation/withdraw',{persona_id:state.identity.id,expected_version:state.profile.trait_profile.version,record_id:b.dataset.formationWithdraw,reason});await refresh();}if(b.dataset.relRevise){const reason=prompt('请填写关系图式修订理由');if(!reason)return;await api('/api/relationships/revise',{persona_id:state.identity.id,person:b.dataset.relPerson,scope:b.dataset.relScope,expected_version:Number(b.dataset.relVersion),id:b.dataset.relRevise,op:b.dataset.relOp,reason});await refresh();if(peopleV27Result)await loadPeopleV27();}}));
++
++
+ refresh().then(async()=>{if(!state)return;restoreRoute();if(state.pmm_start_error)notice(state.pmm_start_error,true);const pending=state.active_jobs?.[0];if(pending)await runJob({job_id:pending.id},pending.kind);}).catch(e=>notice(e.message,true));
++
+--- a/web/index.html
++++ b/web/index.html
+@@ -180,7 +180,10 @@
+ <details><summary>可选：通常的情感倾向 · PANAS</summary><p class="fine">仅接受“总体上/通常”的时间框架；PA/NA 不能替代当前 VA。</p>
+ <div id="panasPanel" class="trait-grid"></div></details><div class="trait-actions"><button id="editTraitSeed" type="button">编辑长期倾向设定</button></div></article></section><section id="otherPage" class="tab-panel" role="tabpanel" aria-labelledby="otherPage-tab" tabindex="0" hidden=""><label for="otherSearch">查找人物或情境</label><input id="otherSearch" type="search" placeholder="名称、对象标识或情境"><article class="card"><div class="step">对交谈对象的暂时判断</div>
+ <label for="otherSelect">选择对象与情境</label><select id="otherSelect"></select><div id="otherPanel"></div>
+-<p class="fine">这些判断只描述当前可见互动；证据不足的维度保留未知，不据此作心理诊断。</p></article><div id="otherLearningStatus" class="card"></div></section><section id="profiles-boundaries" class="tab-panel" role="tabpanel" aria-labelledby="profiles-boundaries-tab" tabindex="0" hidden=""><article class="card"><div class="row spread">
++<p class="fine">这些判断只描述当前可见互动；证据不足的维度保留未知，不据此作心理诊断。</p></article><div id="otherLearningStatus" class="card"></div>
++<article class="card"><h3>人物身份与权限范围</h3><label for="peopleScope">会话范围</label><select id="peopleScope"></select><button id="loadPeople" type="button">查看本范围人物</button><div id="peopleV27"></div>
++<details><summary>添加或核对本范围身份</summary><form id="identityEvidenceForm"><label for="identityPerson">稳定人物标识</label><input id="identityPerson" required placeholder="qq:123 或 local:第三方编号"><label for="identityAlias">此范围内的称呼</label><input id="identityAlias" maxlength="100" required>
++<label for="identitySource">原始证据</label><select id="identitySource" required></select><label for="identityQuote">逐字依据</label><textarea id="identityQuote" required rows="2"></textarea><label for="identityOp">核验记录</label><select id="identityOp"><option value="annotate">主人标注（保留不确定性）</option><option value="dispute">标记有争议</option></select><button type="submit">保存本范围身份记录</button></form></details></article></section><section id="profiles-boundaries" class="tab-panel" role="tabpanel" aria-labelledby="profiles-boundaries-tab" tabindex="0" hidden=""><article class="card"><div class="row spread">
+ <div>
+ <div class="step">情境、情绪与关系</div>
+ <h2>人际边界</h2>
+@@ -206,6 +209,16 @@
+ <div class="row">
+ <span id="boundaryHistoryCount" class="fine"></span><button id="boundaryHistoryPrevious" type="button">上一页</button><button id="boundaryHistoryNext" type="button">下一页</button><button id="boundaryEvidence" type="button">查看证据、反例与变化记录</button><button id="boundaryMetrics" type="button">查看校准与对照指标</button>
+ </div></article></section><section id="profiles-evidence" class="tab-panel" role="tabpanel" aria-labelledby="profiles-evidence-tab" tabindex="0" hidden=""><button id="reviewTraitEvidence" type="button">审查并应用满足门槛的证据</button><div id="traitReviewPanel"></div>
++<article class="card"><h3>从实际经历学习自身人格</h3><p>评价确实发生的行为；相同经历的多次评价只计一次。新一轮更新仍需至少三个独立事件、两个情境与一天跨度，且没有显著反例。</p>
++<form id="formationForm"><label for="formationSession">经历所在会话</label><select id="formationSession" required></select><button id="loadFormationTurns" type="button">读取已发送经历</button>
++<label for="formationTurn">被评价的实际回复</label><select id="formationTurn" required><option value="">先读取经历</option></select>
++<label for="formationFeature">稳定特征或长期倾向</label><select id="formationFeature" required></select>
++<label for="formationValue">候选估计 <output id="formationValueOut">0.70</output></label><input id="formationValue" type="range" min="0" max="1" step="0.01" value="0.7">
++<label for="formationConfidence">评价置信度 <output id="formationConfidenceOut">0.70</output></label><input id="formationConfidence" type="range" min="0.4" max="0.75" step="0.01" value="0.7">
++<label for="formationNote">具体行为、依据与可能的反例</label><textarea id="formationNote" rows="3" maxlength="6000" required placeholder="描述你观察到的行为；避免仅用此刻的情绪作长期判断"></textarea>
++<button type="submit" class="primary">提交外部评价并检查证据门槛</button></form><div id="formationResult" aria-live="polite"></div>
++<details><summary>最近长期修订与原始依据</summary><div id="formationHistory"></div></details><details><summary>外部评价及撤回</summary><div id="formationEvidence"></div></details></article>
++<article class="card"><h3>统一来源与状态修订</h3><label for="evidenceScope">查看范围</label><select id="evidenceScope"></select><div class="row"><button id="loadEvidenceTrace" type="button">读取证据链</button><button id="previousEvidenceTrace" type="button">上一页</button><button id="nextEvidenceTrace" type="button">下一页</button></div><div id="unifiedEvidenceTrace"></div></article>
+ <article class="card"><div class="row spread">
+ <h3>人格证据整理报告 <span class="badge">仅分析 · 未应用</span>
+ </h3>

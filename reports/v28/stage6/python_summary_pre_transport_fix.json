@@ -1,0 +1,28 @@
+{
+  "python": "3.12.14",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "fixture_transport": true,
+  "live_Qwen_QQ_Windows": false,
+  "groups": {
+    "inherited": {
+      "tests": 580,
+      "seconds": 219.402,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": true
+    },
+    "v28": {
+      "tests": 72,
+      "seconds": 20.818,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": true
+    }
+  },
+  "numpy": "2.3.5",
+  "torch": "2.15.0+cpu",
+  "total": 652,
+  "passed": true
+}

@@ -1,0 +1,906 @@
+{
+  "registry_id": "pmm.psychology.canonical.v1",
+  "schema_version": "2.1.0",
+  "state_schema_version": "2.1.0",
+  "status": "design_contract_not_trained_weights",
+  "source_refs": {
+    "hexaco": "https://hexaco.org/scaledescriptions",
+    "hexaco_history": "https://hexaco.org/history",
+    "schwartz": "https://doi.org/10.1037/a0029393",
+    "bfi2": "https://pubmed.ncbi.nlm.nih.gov/27055049/",
+    "scherer": "https://pubmed.ncbi.nlm.nih.gov/18540750/"
+  },
+  "storage_semantics": {
+    "missing": "null (unknown) is never mapped to a neutral value",
+    "estimate": "real number only if evidence supports inference; field scale and method must be explicit",
+    "uncertainty": "uncertainty or confidence must be stored separately",
+    "evidence": "provenance IDs and observation timestamps mandatory",
+    "namespace": "personality / values / affect / relationship / style must never conflate",
+    "training": "fixed deterministic registry order + masks + encoder version; raw evidence replay retained"
+  },
+  "constructs": {
+    "hexaco_pi_r": {
+      "primary": true,
+      "domains": [
+        {
+          "domain_id": "H",
+          "name_zh": "诚实—谦逊",
+          "name_en": "Honesty-Humility",
+          "facets": [
+            {
+              "id": "hexaco.h.sincerity",
+              "name_zh": "真诚",
+              "name_en": "Sincerity",
+              "default": null
+            },
+            {
+              "id": "hexaco.h.fairness",
+              "name_zh": "公平",
+              "name_en": "Fairness",
+              "default": null
+            },
+            {
+              "id": "hexaco.h.greed_avoidance",
+              "name_zh": "不贪婪",
+              "name_en": "Greed Avoidance",
+              "default": null
+            },
+            {
+              "id": "hexaco.h.modesty",
+              "name_zh": "谦逊",
+              "name_en": "Modesty",
+              "default": null
+            }
+          ]
+        },
+        {
+          "domain_id": "E",
+          "name_zh": "情绪性",
+          "name_en": "Emotionality",
+          "facets": [
+            {
+              "id": "hexaco.e.fearfulness",
+              "name_zh": "畏惧倾向",
+              "name_en": "Fearfulness",
+              "default": null
+            },
+            {
+              "id": "hexaco.e.anxiety",
+              "name_zh": "焦虑倾向",
+              "name_en": "Anxiety",
+              "default": null
+            },
+            {
+              "id": "hexaco.e.dependence",
+              "name_zh": "情感支持需要",
+              "name_en": "Dependence",
+              "default": null
+            },
+            {
+              "id": "hexaco.e.sentimentality",
+              "name_zh": "情感依恋",
+              "name_en": "Sentimentality",
+              "default": null
+            }
+          ]
+        },
+        {
+          "domain_id": "X",
+          "name_zh": "外向性",
+          "name_en": "Extraversion",
+          "facets": [
+            {
+              "id": "hexaco.x.social_self_esteem",
+              "name_zh": "社会自尊",
+              "name_en": "Social Self Esteem",
+              "default": null
+            },
+            {
+              "id": "hexaco.x.social_boldness",
+              "name_zh": "社交自信",
+              "name_en": "Social Boldness",
+              "default": null
+            },
+            {
+              "id": "hexaco.x.sociability",
+              "name_zh": "合群性",
+              "name_en": "Sociability",
+              "default": null
+            },
+            {
+              "id": "hexaco.x.liveliness",
+              "name_zh": "活力",
+              "name_en": "Liveliness",
+              "default": null
+            }
+          ]
+        },
+        {
+          "domain_id": "A",
+          "name_zh": "宜人性",
+          "name_en": "Agreeableness",
+          "facets": [
+            {
+              "id": "hexaco.a.forgivingness",
+              "name_zh": "宽恕",
+              "name_en": "Forgivingness",
+              "default": null
+            },
+            {
+              "id": "hexaco.a.gentleness",
+              "name_zh": "温和",
+              "name_en": "Gentleness",
+              "default": null
+            },
+            {
+              "id": "hexaco.a.flexibility",
+              "name_zh": "灵活妥协",
+              "name_en": "Flexibility",
+              "default": null
+            },
+            {
+              "id": "hexaco.a.patience",
+              "name_zh": "耐心",
+              "name_en": "Patience",
+              "default": null
+            }
+          ]
+        },
+        {
+          "domain_id": "C",
+          "name_zh": "尽责性",
+          "name_en": "Conscientiousness",
+          "facets": [
+            {
+              "id": "hexaco.c.organization",
+              "name_zh": "条理性",
+              "name_en": "Organization",
+              "default": null
+            },
+            {
+              "id": "hexaco.c.diligence",
+              "name_zh": "勤奋",
+              "name_en": "Diligence",
+              "default": null
+            },
+            {
+              "id": "hexaco.c.perfectionism",
+              "name_zh": "完美主义",
+              "name_en": "Perfectionism",
+              "default": null
+            },
+            {
+              "id": "hexaco.c.prudence",
+              "name_zh": "审慎",
+              "name_en": "Prudence",
+              "default": null
+            }
+          ]
+        },
+        {
+          "domain_id": "O",
+          "name_zh": "经验开放性",
+          "name_en": "Openness to Experience",
+          "facets": [
+            {
+              "id": "hexaco.o.aesthetic_appreciation",
+              "name_zh": "审美欣赏",
+              "name_en": "Aesthetic Appreciation",
+              "default": null
+            },
+            {
+              "id": "hexaco.o.inquisitiveness",
+              "name_zh": "求知欲",
+              "name_en": "Inquisitiveness",
+              "default": null
+            },
+            {
+              "id": "hexaco.o.creativity",
+              "name_zh": "创造性",
+              "name_en": "Creativity",
+              "default": null
+            },
+            {
+              "id": "hexaco.o.unconventionality",
+              "name_zh": "非传统性",
+              "name_en": "Unconventionality",
+              "default": null
+            }
+          ]
+        }
+      ],
+      "interstitial_facets": [
+        {
+          "id": "hexaco.interstitial.altruism",
+          "name_zh": "利他性（对抗性反向）",
+          "default": null
+        }
+      ],
+      "note": "24 facets + 1 interstitial scale; facet scores inferred from chat are NOT certified HEXACO questionnaire scores"
+    },
+    "schwartz_refined_values": {
+      "primary": true,
+      "higher_order": [
+        {
+          "id": "open_to_change",
+          "name_zh": "开放变革",
+          "values": [
+            {
+              "id": "value.self_direction_thought",
+              "name_zh": "自主思想",
+              "default": null
+            },
+            {
+              "id": "value.self_direction_action",
+              "name_zh": "自主行动",
+              "default": null
+            },
+            {
+              "id": "value.stimulation",
+              "name_zh": "刺激与新奇",
+              "default": null
+            },
+            {
+              "id": "value.hedonism",
+              "name_zh": "享乐",
+              "default": null
+            }
+          ]
+        },
+        {
+          "id": "self_enhancement",
+          "name_zh": "自我提升",
+          "values": [
+            {
+              "id": "value.achievement",
+              "name_zh": "成就",
+              "default": null
+            },
+            {
+              "id": "value.power_dominance",
+              "name_zh": "支配权力",
+              "default": null
+            },
+            {
+              "id": "value.power_resources",
+              "name_zh": "资源权力",
+              "default": null
+            },
+            {
+              "id": "value.face",
+              "name_zh": "维护社会形象",
+              "default": null
+            }
+          ]
+        },
+        {
+          "id": "conservation",
+          "name_zh": "保守维护",
+          "values": [
+            {
+              "id": "value.security_personal",
+              "name_zh": "个人安全",
+              "default": null
+            },
+            {
+              "id": "value.security_societal",
+              "name_zh": "社会安全",
+              "default": null
+            },
+            {
+              "id": "value.tradition",
+              "name_zh": "传统",
+              "default": null
+            },
+            {
+              "id": "value.conformity_rules",
+              "name_zh": "遵守规则",
+              "default": null
+            },
+            {
+              "id": "value.conformity_interpersonal",
+              "name_zh": "人际顺从",
+              "default": null
+            },
+            {
+              "id": "value.humility",
+              "name_zh": "谦卑",
+              "default": null
+            }
+          ]
+        },
+        {
+          "id": "self_transcendence",
+          "name_zh": "自我超越",
+          "values": [
+            {
+              "id": "value.benevolence_dependability",
+              "name_zh": "善意—可靠",
+              "default": null
+            },
+            {
+              "id": "value.benevolence_caring",
+              "name_zh": "善意—关怀",
+              "default": null
+            },
+            {
+              "id": "value.universalism_tolerance",
+              "name_zh": "普世—包容",
+              "default": null
+            },
+            {
+              "id": "value.universalism_concern",
+              "name_zh": "普世—关切",
+              "default": null
+            },
+            {
+              "id": "value.universalism_nature",
+              "name_zh": "普世—自然",
+              "default": null
+            }
+          ]
+        }
+      ],
+      "note": "19 value motivations with circumplex relations; do not treat as hard policy constraints"
+    },
+    "affect": {
+      "vad": [
+        {
+          "id": "affect.vad.valence",
+          "name_zh": "愉悦度",
+          "default": null
+        },
+        {
+          "id": "affect.vad.arousal",
+          "name_zh": "唤醒度",
+          "default": null
+        },
+        {
+          "id": "affect.vad.dominance",
+          "name_zh": "主导感",
+          "default": null
+        }
+      ],
+      "emotion_families": [
+        {
+          "id": "affect.label.joy",
+          "name_zh": "喜悦",
+          "default": null
+        },
+        {
+          "id": "affect.label.sadness",
+          "name_zh": "悲伤",
+          "default": null
+        },
+        {
+          "id": "affect.label.anger",
+          "name_zh": "愤怒",
+          "default": null
+        },
+        {
+          "id": "affect.label.fear",
+          "name_zh": "恐惧",
+          "default": null
+        },
+        {
+          "id": "affect.label.disgust",
+          "name_zh": "厌恶",
+          "default": null
+        },
+        {
+          "id": "affect.label.surprise",
+          "name_zh": "惊讶",
+          "default": null
+        },
+        {
+          "id": "affect.label.interest",
+          "name_zh": "兴趣",
+          "default": null
+        },
+        {
+          "id": "affect.label.shame",
+          "name_zh": "羞耻",
+          "default": null
+        },
+        {
+          "id": "affect.label.guilt",
+          "name_zh": "内疚",
+          "default": null
+        },
+        {
+          "id": "affect.label.gratitude",
+          "name_zh": "感激",
+          "default": null
+        },
+        {
+          "id": "affect.label.pride",
+          "name_zh": "自豪",
+          "default": null
+        },
+        {
+          "id": "affect.label.frustration",
+          "name_zh": "挫败",
+          "default": null
+        }
+      ],
+      "appraisal_groups": [
+        {
+          "stage": "relevance",
+          "checks": [
+            {
+              "id": "affect.appraisal.novelty",
+              "name_zh": "新奇性",
+              "default": null
+            },
+            {
+              "id": "affect.appraisal.intrinsic_pleasantness",
+              "name_zh": "直接愉快性",
+              "default": null
+            },
+            {
+              "id": "affect.appraisal.goal_relevance",
+              "name_zh": "目标相关性",
+              "default": null
+            }
+          ]
+        },
+        {
+          "stage": "implications",
+          "checks": [
+            {
+              "id": "affect.appraisal.agency_attribution",
+              "name_zh": "因果归因",
+              "default": null
+            },
+            {
+              "id": "affect.appraisal.outcome_likelihood",
+              "name_zh": "结果可能性",
+              "default": null
+            },
+            {
+              "id": "affect.appraisal.goal_conduciveness",
+              "name_zh": "目标促进或妨碍",
+              "default": null
+            },
+            {
+              "id": "affect.appraisal.urgency",
+              "name_zh": "紧迫性",
+              "default": null
+            }
+          ]
+        },
+        {
+          "stage": "coping",
+          "checks": [
+            {
+              "id": "affect.appraisal.control",
+              "name_zh": "可控制性",
+              "default": null
+            },
+            {
+              "id": "affect.appraisal.power",
+              "name_zh": "应对资源",
+              "default": null
+            },
+            {
+              "id": "affect.appraisal.adjustment_capacity",
+              "name_zh": "适应能力",
+              "default": null
+            }
+          ]
+        },
+        {
+          "stage": "normative",
+          "checks": [
+            {
+              "id": "affect.appraisal.internal_norm_compatibility",
+              "name_zh": "与自身价值规范兼容性",
+              "default": null
+            },
+            {
+              "id": "affect.appraisal.external_norm_compatibility",
+              "name_zh": "与社会规范兼容性",
+              "default": null
+            }
+          ]
+        }
+      ],
+      "regulation": [
+        {
+          "id": "affect.regulation.situation_selection",
+          "name_zh": "情境选择",
+          "default": null
+        },
+        {
+          "id": "affect.regulation.situation_modification",
+          "name_zh": "情境改变",
+          "default": null
+        },
+        {
+          "id": "affect.regulation.attentional_deployment",
+          "name_zh": "注意分配",
+          "default": null
+        },
+        {
+          "id": "affect.regulation.cognitive_change",
+          "name_zh": "认知重评",
+          "default": null
+        },
+        {
+          "id": "affect.regulation.response_modulation",
+          "name_zh": "反应调节",
+          "default": null
+        }
+      ],
+      "decay": {
+        "required_fields": [
+          "last_event_timestamp",
+          "baseline_reference",
+          "time_constant_or_policy"
+        ]
+      },
+      "note": "VAD, labels, appraisals and regulation strategies are complementary descriptions, not one flat psychometric scale"
+    },
+    "interpersonal": {
+      "circumplex": [
+        {
+          "id": "social.agency",
+          "name_zh": "能动—支配倾向",
+          "default": null
+        },
+        {
+          "id": "social.communion",
+          "name_zh": "亲和—联结倾向",
+          "default": null
+        }
+      ],
+      "dyadic_schema_fields": [
+        "other_id",
+        "context_id",
+        "trust",
+        "familiarity",
+        "affiliation",
+        "conflict_history",
+        "shared_jokes",
+        "preferred_addressing",
+        "belief_provenance",
+        "updated_at"
+      ],
+      "note": "relationships stored per counterpart and context; AI self and AI beliefs about users are separate scopes"
+    },
+    "linguistic_identity": {
+      "style_features": [
+        {
+          "id": "style.brevity",
+          "name_zh": "简洁偏好",
+          "default": null
+        },
+        {
+          "id": "style.fragmentation",
+          "name_zh": "省略/断句倾向",
+          "default": null
+        },
+        {
+          "id": "style.formality",
+          "name_zh": "正式程度",
+          "default": null
+        },
+        {
+          "id": "style.directness",
+          "name_zh": "直接性",
+          "default": null
+        },
+        {
+          "id": "style.humor",
+          "name_zh": "幽默使用",
+          "default": null
+        },
+        {
+          "id": "style.irony",
+          "name_zh": "反讽使用",
+          "default": null
+        },
+        {
+          "id": "style.teasing",
+          "name_zh": "熟人调侃",
+          "default": null
+        },
+        {
+          "id": "style.empathy_expression",
+          "name_zh": "共情显露",
+          "default": null
+        },
+        {
+          "id": "style.proactive_reply",
+          "name_zh": "主动参与",
+          "default": null
+        },
+        {
+          "id": "style.emoji_frequency",
+          "name_zh": "表情频率",
+          "default": null
+        },
+        {
+          "id": "style.punctuation_density",
+          "name_zh": "标点密度",
+          "default": null
+        },
+        {
+          "id": "style.slang_frequency",
+          "name_zh": "俚语/梗使用",
+          "default": null
+        },
+        {
+          "id": "style.topic_extension",
+          "name_zh": "话题延展",
+          "default": null
+        },
+        {
+          "id": "style.question_back",
+          "name_zh": "反问倾向",
+          "default": null
+        },
+        {
+          "id": "style.length_variability",
+          "name_zh": "情境性长度变化",
+          "default": null
+        }
+      ],
+      "must_retain_contextual_examples": true,
+      "must_distinguish": [
+        "idiolect",
+        "pragmatic_policy",
+        "dialogue_act",
+        "relation_conditioned_style",
+        "group_common_ground"
+      ],
+      "note": "This feature list is extendable; style inference trained on authorized context-response pairs"
+    },
+    "epistemic": {
+      "fields": [
+        "knowledge_scope",
+        "reliability",
+        "evidence_id",
+        "uncertainty",
+        "personal_experience_provenance",
+        "privacy_label",
+        "observation_vs_inference"
+      ]
+    },
+    "optional_alternative_personality_instruments": {
+      "bfi2": {
+        "domain_count": 5,
+        "facet_count": 15,
+        "primary": false,
+        "warning": "alternate psychometric view: DO NOT concat BFI-2 and HEXACO domains as 40 independent trait dimensions"
+      }
+    }
+  },
+  "deliberation_settings": {
+    "enabled": true,
+    "mode": "auto",
+    "max_perspectives": 4,
+    "max_rounds": 2,
+    "auto_triggers": [
+      "value_conflict",
+      "uncertain_action",
+      "relationship_conflict",
+      "nontrivial_risk"
+    ],
+    "bypass_hard_constraints": false,
+    "off_policy": "single_pass_pmm_decision_still_requires_evidence_and_safety",
+    "version": "1.0.0"
+  },
+  "required_state_record": {
+    "feature_id": "registered stable id",
+    "estimate": "number or null",
+    "evidence_count": "int",
+    "evidence_ids": "list",
+    "posterior_uncertainty": "number or null",
+    "scope": "agent_self | model_of_other | relation | group",
+    "source_type": "observation | self_report | inferred | model_generated",
+    "updated_at": "ISO8601 or null",
+    "method_version": "string",
+    "schema_version": "2.1.0"
+  },
+  "compatibility": {
+    "unknown_not_neutral": true,
+    "schema_migration_required": true,
+    "stable_feature_ids_required": true,
+    "rebuildable_model_specific_embeddings": true,
+    "personas_can_load_without_adapters": true,
+    "adapters_require_backend_compatibility": true,
+    "never_drop_raw_evidence_silently": true
+  },
+  "feature_temporality": {
+    "hexaco.h.sincerity": "long",
+    "hexaco.h.fairness": "long",
+    "hexaco.h.greed_avoidance": "long",
+    "hexaco.h.modesty": "long",
+    "hexaco.e.fearfulness": "long",
+    "hexaco.e.anxiety": "long",
+    "hexaco.e.dependence": "long",
+    "hexaco.e.sentimentality": "long",
+    "hexaco.x.social_self_esteem": "long",
+    "hexaco.x.social_boldness": "long",
+    "hexaco.x.sociability": "long",
+    "hexaco.x.liveliness": "long",
+    "hexaco.a.forgivingness": "long",
+    "hexaco.a.gentleness": "long",
+    "hexaco.a.flexibility": "long",
+    "hexaco.a.patience": "long",
+    "hexaco.c.organization": "long",
+    "hexaco.c.diligence": "long",
+    "hexaco.c.perfectionism": "long",
+    "hexaco.c.prudence": "long",
+    "hexaco.o.aesthetic_appreciation": "long",
+    "hexaco.o.inquisitiveness": "long",
+    "hexaco.o.creativity": "long",
+    "hexaco.o.unconventionality": "long",
+    "hexaco.interstitial.altruism": "long",
+    "value.self_direction_thought": "long",
+    "value.self_direction_action": "long",
+    "value.stimulation": "long",
+    "value.hedonism": "long",
+    "value.achievement": "long",
+    "value.power_dominance": "long",
+    "value.power_resources": "long",
+    "value.face": "long",
+    "value.security_personal": "long",
+    "value.security_societal": "long",
+    "value.tradition": "long",
+    "value.conformity_rules": "long",
+    "value.conformity_interpersonal": "long",
+    "value.humility": "long",
+    "value.benevolence_dependability": "long",
+    "value.benevolence_caring": "long",
+    "value.universalism_tolerance": "long",
+    "value.universalism_concern": "long",
+    "value.universalism_nature": "long",
+    "affect.vad.valence": "short",
+    "affect.vad.arousal": "short",
+    "affect.vad.dominance": "short",
+    "affect.label.joy": "short",
+    "affect.label.sadness": "short",
+    "affect.label.anger": "short",
+    "affect.label.fear": "short",
+    "affect.label.disgust": "short",
+    "affect.label.surprise": "short",
+    "affect.label.interest": "short",
+    "affect.label.shame": "short",
+    "affect.label.guilt": "short",
+    "affect.label.gratitude": "short",
+    "affect.label.pride": "short",
+    "affect.label.frustration": "short",
+    "affect.appraisal.novelty": "event",
+    "affect.appraisal.intrinsic_pleasantness": "event",
+    "affect.appraisal.goal_relevance": "event",
+    "affect.appraisal.agency_attribution": "event",
+    "affect.appraisal.outcome_likelihood": "event",
+    "affect.appraisal.goal_conduciveness": "event",
+    "affect.appraisal.urgency": "event",
+    "affect.appraisal.control": "event",
+    "affect.appraisal.power": "event",
+    "affect.appraisal.adjustment_capacity": "event",
+    "affect.appraisal.internal_norm_compatibility": "event",
+    "affect.appraisal.external_norm_compatibility": "event",
+    "affect.regulation.situation_selection": "event",
+    "affect.regulation.situation_modification": "event",
+    "affect.regulation.attentional_deployment": "event",
+    "affect.regulation.cognitive_change": "event",
+    "affect.regulation.response_modulation": "event",
+    "social.agency": "long",
+    "social.communion": "long",
+    "style.brevity": "long",
+    "style.fragmentation": "long",
+    "style.formality": "long",
+    "style.directness": "long",
+    "style.humor": "long",
+    "style.irony": "long",
+    "style.teasing": "long",
+    "style.empathy_expression": "long",
+    "style.proactive_reply": "long",
+    "style.emoji_frequency": "long",
+    "style.punctuation_density": "long",
+    "style.slang_frequency": "long",
+    "style.topic_extension": "long",
+    "style.question_back": "long",
+    "style.length_variability": "long"
+  },
+  "construct_kind": {
+    "hexaco.h.sincerity": "trait",
+    "hexaco.h.fairness": "trait",
+    "hexaco.h.greed_avoidance": "trait",
+    "hexaco.h.modesty": "trait",
+    "hexaco.e.fearfulness": "trait",
+    "hexaco.e.anxiety": "trait",
+    "hexaco.e.dependence": "trait",
+    "hexaco.e.sentimentality": "trait",
+    "hexaco.x.social_self_esteem": "trait",
+    "hexaco.x.social_boldness": "trait",
+    "hexaco.x.sociability": "trait",
+    "hexaco.x.liveliness": "trait",
+    "hexaco.a.forgivingness": "trait",
+    "hexaco.a.gentleness": "trait",
+    "hexaco.a.flexibility": "trait",
+    "hexaco.a.patience": "trait",
+    "hexaco.c.organization": "trait",
+    "hexaco.c.diligence": "trait",
+    "hexaco.c.perfectionism": "trait",
+    "hexaco.c.prudence": "trait",
+    "hexaco.o.aesthetic_appreciation": "trait",
+    "hexaco.o.inquisitiveness": "trait",
+    "hexaco.o.creativity": "trait",
+    "hexaco.o.unconventionality": "trait",
+    "hexaco.interstitial.altruism": "trait",
+    "value.self_direction_thought": "value",
+    "value.self_direction_action": "value",
+    "value.stimulation": "value",
+    "value.hedonism": "value",
+    "value.achievement": "value",
+    "value.power_dominance": "value",
+    "value.power_resources": "value",
+    "value.face": "value",
+    "value.security_personal": "value",
+    "value.security_societal": "value",
+    "value.tradition": "value",
+    "value.conformity_rules": "value",
+    "value.conformity_interpersonal": "value",
+    "value.humility": "value",
+    "value.benevolence_dependability": "value",
+    "value.benevolence_caring": "value",
+    "value.universalism_tolerance": "value",
+    "value.universalism_concern": "value",
+    "value.universalism_nature": "value",
+    "affect.vad.valence": "emotion_state",
+    "affect.vad.arousal": "emotion_state",
+    "affect.vad.dominance": "emotion_state",
+    "affect.label.joy": "emotion_state",
+    "affect.label.sadness": "emotion_state",
+    "affect.label.anger": "emotion_state",
+    "affect.label.fear": "emotion_state",
+    "affect.label.disgust": "emotion_state",
+    "affect.label.surprise": "emotion_state",
+    "affect.label.interest": "emotion_state",
+    "affect.label.shame": "emotion_state",
+    "affect.label.guilt": "emotion_state",
+    "affect.label.gratitude": "emotion_state",
+    "affect.label.pride": "emotion_state",
+    "affect.label.frustration": "emotion_state",
+    "affect.appraisal.novelty": "event_appraisal",
+    "affect.appraisal.intrinsic_pleasantness": "event_appraisal",
+    "affect.appraisal.goal_relevance": "event_appraisal",
+    "affect.appraisal.agency_attribution": "event_appraisal",
+    "affect.appraisal.outcome_likelihood": "event_appraisal",
+    "affect.appraisal.goal_conduciveness": "event_appraisal",
+    "affect.appraisal.urgency": "event_appraisal",
+    "affect.appraisal.control": "event_appraisal",
+    "affect.appraisal.power": "event_appraisal",
+    "affect.appraisal.adjustment_capacity": "event_appraisal",
+    "affect.appraisal.internal_norm_compatibility": "event_appraisal",
+    "affect.appraisal.external_norm_compatibility": "event_appraisal",
+    "affect.regulation.situation_selection": "regulation_operation",
+    "affect.regulation.situation_modification": "regulation_operation",
+    "affect.regulation.attentional_deployment": "regulation_operation",
+    "affect.regulation.cognitive_change": "regulation_operation",
+    "affect.regulation.response_modulation": "regulation_operation",
+    "social.agency": "interpersonal_disposition",
+    "social.communion": "interpersonal_disposition",
+    "style.brevity": "behavioral_disposition",
+    "style.fragmentation": "behavioral_disposition",
+    "style.formality": "behavioral_disposition",
+    "style.directness": "behavioral_disposition",
+    "style.humor": "behavioral_disposition",
+    "style.irony": "behavioral_disposition",
+    "style.teasing": "behavioral_disposition",
+    "style.empathy_expression": "behavioral_disposition",
+    "style.proactive_reply": "behavioral_disposition",
+    "style.emoji_frequency": "behavioral_disposition",
+    "style.punctuation_density": "behavioral_disposition",
+    "style.slang_frequency": "behavioral_disposition",
+    "style.topic_extension": "behavioral_disposition",
+    "style.question_back": "behavioral_disposition",
+    "style.length_variability": "behavioral_disposition"
+  },
+  "typing_contract_version": "trait-affect/1"
+}

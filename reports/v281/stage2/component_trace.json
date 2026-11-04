@@ -1,0 +1,4994 @@
+{
+  "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+  "scope": "private:qq:123",
+  "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+  "timestamp": 1804200060.0,
+  "prior_revision": 0,
+  "evidence_refs": [],
+  "model_versions": {},
+  "uncertainty": {},
+  "provenance": {},
+  "schema_version": "pmm-cooperation/2.8",
+  "turn_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+  "person_id": "qq:123",
+  "text": "这件事情对我很重要，我想和你讨论。",
+  "version": "pmm-coordinator/2.8.1",
+  "mode": "full",
+  "session_id": "d9fffe4a696344e69f32912783f3505c",
+  "components": {
+    "memory": {
+      "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+      "scope": "private:qq:123",
+      "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+      "timestamp": 1804200060.0,
+      "prior_revision": 0,
+      "evidence_refs": [],
+      "model_versions": {
+        "ComponentResult": "existing-scoped-memory/2.8"
+      },
+      "uncertainty": {},
+      "provenance": {
+        "execution": "same_turn_scoped_retrieval",
+        "observed": true
+      },
+      "schema_version": "pmm-cooperation/2.8",
+      "status": "ok",
+      "payload": {
+        "records": [],
+        "source_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "count": 0
+      },
+      "executed": true,
+      "elapsed_ms": 0.087,
+      "applied_to": [
+        "A",
+        "neural",
+        "B",
+        "expression"
+      ]
+    },
+    "reasoner": {
+      "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+      "scope": "private:qq:123",
+      "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+      "timestamp": 1804200060.0,
+      "prior_revision": 0,
+      "evidence_refs": [],
+      "model_versions": {
+        "ReasonerAssessment": "event-reasoner-A/2.8.1"
+      },
+      "uncertainty": {},
+      "provenance": {
+        "execution": "same_turn_A_request",
+        "kind": "appraisal_hypothesis_not_fact"
+      },
+      "schema_version": "pmm-cooperation/2.8",
+      "status": "ok",
+      "payload": {
+        "appraisal": {
+          "valence": 0.6043677771171634,
+          "arousal": 0.549833997312478,
+          "stress": 0.598687660112452,
+          "engagement": 0.574442516811659
+        },
+        "action_probabilities": {
+          "reply": 0.6,
+          "unknown": 0.05,
+          "clarify": 0.15,
+          "disagree": 0.1,
+          "decline": 0.05,
+          "silence": 0.05
+        },
+        "evidence_quote": "这件事情对我很重要，我想和你讨论。",
+        "appraisal_packet": {
+          "checks": {
+            "affect.appraisal.novelty": null,
+            "affect.appraisal.intrinsic_pleasantness": null,
+            "affect.appraisal.goal_relevance": 0.8,
+            "affect.appraisal.agency_attribution": null,
+            "affect.appraisal.outcome_likelihood": null,
+            "affect.appraisal.goal_conduciveness": 0.25,
+            "affect.appraisal.urgency": null,
+            "affect.appraisal.control": 0.7,
+            "affect.appraisal.power": null,
+            "affect.appraisal.adjustment_capacity": null,
+            "affect.appraisal.internal_norm_compatibility": null,
+            "affect.appraisal.external_norm_compatibility": null
+          },
+          "mask": {
+            "affect.appraisal.novelty": false,
+            "affect.appraisal.intrinsic_pleasantness": false,
+            "affect.appraisal.goal_relevance": true,
+            "affect.appraisal.agency_attribution": false,
+            "affect.appraisal.outcome_likelihood": false,
+            "affect.appraisal.goal_conduciveness": true,
+            "affect.appraisal.urgency": false,
+            "affect.appraisal.control": true,
+            "affect.appraisal.power": false,
+            "affect.appraisal.adjustment_capacity": false,
+            "affect.appraisal.internal_norm_compatibility": false,
+            "affect.appraisal.external_norm_compatibility": false
+          },
+          "event_facts": {
+            "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+            "text": "这件事情对我很重要，我想和你讨论。",
+            "scope": "private:qq:123",
+            "person": "qq:123"
+          },
+          "evidence_ids": [
+            "2ddc993b5ef8404ca5deb1eccdcba6da"
+          ],
+          "quote": "这件事情对我很重要，我想和你讨论。",
+          "kind": "model_appraisal_not_fact",
+          "reappraisal_candidate": null
+        },
+        "facts": [
+          {
+            "quote": "这件事情对我很重要，我想和你讨论。",
+            "kind": "reported"
+          }
+        ],
+        "uncertainties": [],
+        "error": null
+      },
+      "executed": true,
+      "elapsed_ms": 4.379,
+      "applied_to": [
+        "appraisal",
+        "decision"
+      ]
+    },
+    "affect": {
+      "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+      "scope": "private:qq:123",
+      "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+      "timestamp": 1804200060.0,
+      "prior_revision": 0,
+      "evidence_refs": [],
+      "model_versions": {
+        "EmotionSnapshot": "affect-state/2.8.1"
+      },
+      "uncertainty": {},
+      "provenance": {
+        "execution": "real_time_OU_then_single_event_jump",
+        "kind": "transaction_draft"
+      },
+      "schema_version": "pmm-cooperation/2.8",
+      "status": "ok",
+      "payload": {
+        "state": {
+          "schema": "trait-affect/1",
+          "emotion_catalog": "emotion-catalog/2",
+          "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+          "scope": "agent_self",
+          "transition_params": {
+            "version": "time-dynamics/1",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "source_type": "uncalibrated",
+            "baseline_ref": "engineering-prior/1",
+            "baseline": {
+              "valence": 0.0,
+              "arousal": 0.25,
+              "dominance": null,
+              "stress": 0.15,
+              "engagement": 0.65
+            },
+            "emotion_tau_seconds": 7200.0,
+            "mood_tau_seconds": 172800.0,
+            "label_tau_seconds": {
+              "joy": 3600,
+              "sadness": 7200,
+              "anger": 1800,
+              "fear": 2400,
+              "disgust": 1800,
+              "surprise": 300,
+              "interest": 3600,
+              "shame": 3600,
+              "guilt": 7200,
+              "gratitude": 7200,
+              "pride": 7200,
+              "frustration": 2400,
+              "anxiety": 5400,
+              "relief": 1800,
+              "calmness": 7200,
+              "amusement": 1200,
+              "disappointment": 5400,
+              "boredom": 3600,
+              "loneliness": 14400,
+              "affection": 10800,
+              "awkwardness": 1800,
+              "awe": 3600,
+              "envy": 5400,
+              "nostalgia": 7200
+            },
+            "reactivity": 0.35,
+            "sensitivity_interval": [
+              0.15,
+              0.6
+            ],
+            "note": "个体可编辑的工程参数；未将 HEXACO 或 PA/NA 换算为 VA 基线，不是人类心理定律"
+          },
+          "emotion": {
+            "entity": "EmotionState",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "valence": 0.5101607510352613,
+            "arousal": 0.5391771615643297,
+            "dominance": 0.4924145272462482,
+            "stress": 0.6154025156505826,
+            "engagement": 0.6003428626415896,
+            "categorical_activations": {
+              "joy": null,
+              "sadness": null,
+              "anger": null,
+              "fear": null,
+              "disgust": null,
+              "surprise": null,
+              "interest": null,
+              "shame": null,
+              "guilt": null,
+              "gratitude": null,
+              "pride": null,
+              "frustration": null,
+              "anxiety": null,
+              "relief": null,
+              "calmness": null,
+              "amusement": null,
+              "disappointment": null,
+              "boredom": null,
+              "loneliness": null,
+              "affection": null,
+              "awkwardness": null,
+              "awe": null,
+              "envy": null,
+              "nostalgia": null
+            },
+            "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+            "appraisal_id": "fd336151ced6e0fb98c3e82cfcbe157b",
+            "onset_at": 1804200060.0,
+            "last_updated": 1804200060.0,
+            "confidence": 0.2,
+            "state_revision": 1,
+            "source_type": "affect_v2_computed"
+          },
+          "mood": {
+            "entity": "MoodState",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "baseline_ref": "engineering-prior/1",
+            "valence": 0.19713838122824842,
+            "arousal": 0.5253358149477035,
+            "dominance": 0.5244762981526511,
+            "updated_at": 1804200060.0,
+            "uncertainty": 0.8,
+            "transition_params_version": "time-dynamics/1",
+            "source_type": "affect_v2_computed"
+          },
+          "appraisals": [
+            {
+              "id": "fd336151ced6e0fb98c3e82cfcbe157b",
+              "event_key": "fd336151ced6e0fb98c3e82cfcbe157b",
+              "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+              "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+              "scope": "private:qq:123",
+              "person_id": "qq:123",
+              "at": 1804200060.0,
+              "checks": {
+                "affect.appraisal.goal_relevance": 0.8,
+                "affect.appraisal.goal_conduciveness": 0.25,
+                "affect.appraisal.control": 0.7
+              },
+              "evidence_quote": "这件事情对我很重要，我想和你讨论。",
+              "method": "latent_affect_v2",
+              "clock": {
+                "elapsed_seconds": 60.0,
+                "event_sequence": 1
+              },
+              "emotion_before": {
+                "valence": null,
+                "arousal": null,
+                "dominance": null,
+                "stress": null,
+                "engagement": null
+              },
+              "mood_before": {
+                "valence": null,
+                "arousal": null,
+                "dominance": null
+              },
+              "emotion_model_version": "4d60b1ed5437b1a6630f0bbe713190216226eb3cc391fed40219acf72beb8fdf"
+            }
+          ],
+          "regulation_actions": [
+            {
+              "id": "fd336151ced6e0fb98c3e82cfcbe157b:reg",
+              "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+              "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+              "appraisal_id": "fd336151ced6e0fb98c3e82cfcbe157b",
+              "at": 1804200060.0,
+              "applied": true,
+              "strategy": "none",
+              "internal_effect": 0.0,
+              "expression_multiplier": 1.0
+            }
+          ],
+          "expressions": [],
+          "trajectory": [
+            {
+              "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+              "at": 1804200060.0,
+              "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+              "event_key": "fd336151ced6e0fb98c3e82cfcbe157b",
+              "scope": "private:qq:123",
+              "emotion": {
+                "entity": "EmotionState",
+                "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+                "valence": 0.5101607510352613,
+                "arousal": 0.5391771615643297,
+                "dominance": 0.4924145272462482,
+                "stress": 0.6154025156505826,
+                "engagement": 0.6003428626415896,
+                "categorical_activations": {
+                  "joy": null,
+                  "sadness": null,
+                  "anger": null,
+                  "fear": null,
+                  "disgust": null,
+                  "surprise": null,
+                  "interest": null,
+                  "shame": null,
+                  "guilt": null,
+                  "gratitude": null,
+                  "pride": null,
+                  "frustration": null,
+                  "anxiety": null,
+                  "relief": null,
+                  "calmness": null,
+                  "amusement": null,
+                  "disappointment": null,
+                  "boredom": null,
+                  "loneliness": null,
+                  "affection": null,
+                  "awkwardness": null,
+                  "awe": null,
+                  "envy": null,
+                  "nostalgia": null
+                },
+                "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+                "appraisal_id": "fd336151ced6e0fb98c3e82cfcbe157b",
+                "onset_at": 1804200060.0,
+                "last_updated": 1804200060.0,
+                "confidence": 0.2,
+                "state_revision": 1,
+                "source_type": "affect_v2_computed"
+              },
+              "mood": {
+                "entity": "MoodState",
+                "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+                "baseline_ref": "engineering-prior/1",
+                "valence": 0.19713838122824842,
+                "arousal": 0.5253358149477035,
+                "dominance": 0.5244762981526511,
+                "updated_at": 1804200060.0,
+                "uncertainty": 0.8,
+                "transition_params_version": "time-dynamics/1",
+                "source_type": "affect_v2_computed"
+              }
+            }
+          ],
+          "migration": null
+        },
+        "trace": {
+          "trait_snapshot": {
+            "schema": "trait-profile/1",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "scope": "agent_self",
+            "trait_version": 0,
+            "trait_digest": "70f0387b4c750adf58519e137d5661d8fb154bf5735598ab5ff8931823705631",
+            "hexaco_facets": {
+              "hexaco.h.sincerity": {
+                "feature_id": "hexaco.h.sincerity",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.h.fairness": {
+                "feature_id": "hexaco.h.fairness",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.h.greed_avoidance": {
+                "feature_id": "hexaco.h.greed_avoidance",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.h.modesty": {
+                "feature_id": "hexaco.h.modesty",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.e.fearfulness": {
+                "feature_id": "hexaco.e.fearfulness",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.e.anxiety": {
+                "feature_id": "hexaco.e.anxiety",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.e.dependence": {
+                "feature_id": "hexaco.e.dependence",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.e.sentimentality": {
+                "feature_id": "hexaco.e.sentimentality",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.x.social_self_esteem": {
+                "feature_id": "hexaco.x.social_self_esteem",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.x.social_boldness": {
+                "feature_id": "hexaco.x.social_boldness",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.x.sociability": {
+                "feature_id": "hexaco.x.sociability",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.x.liveliness": {
+                "feature_id": "hexaco.x.liveliness",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.a.forgivingness": {
+                "feature_id": "hexaco.a.forgivingness",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.a.gentleness": {
+                "feature_id": "hexaco.a.gentleness",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.a.flexibility": {
+                "feature_id": "hexaco.a.flexibility",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.a.patience": {
+                "feature_id": "hexaco.a.patience",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.c.organization": {
+                "feature_id": "hexaco.c.organization",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.c.diligence": {
+                "feature_id": "hexaco.c.diligence",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.c.perfectionism": {
+                "feature_id": "hexaco.c.perfectionism",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.c.prudence": {
+                "feature_id": "hexaco.c.prudence",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.o.aesthetic_appreciation": {
+                "feature_id": "hexaco.o.aesthetic_appreciation",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.o.inquisitiveness": {
+                "feature_id": "hexaco.o.inquisitiveness",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.o.creativity": {
+                "feature_id": "hexaco.o.creativity",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.o.unconventionality": {
+                "feature_id": "hexaco.o.unconventionality",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "hexaco.interstitial.altruism": {
+                "feature_id": "hexaco.interstitial.altruism",
+                "estimate": 0.2,
+                "posterior_uncertainty": 0.4,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "manual_prior",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              }
+            },
+            "value_priorities": {
+              "value.self_direction_thought": {
+                "feature_id": "value.self_direction_thought",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.self_direction_action": {
+                "feature_id": "value.self_direction_action",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.stimulation": {
+                "feature_id": "value.stimulation",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.hedonism": {
+                "feature_id": "value.hedonism",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.achievement": {
+                "feature_id": "value.achievement",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.power_dominance": {
+                "feature_id": "value.power_dominance",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.power_resources": {
+                "feature_id": "value.power_resources",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.face": {
+                "feature_id": "value.face",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.security_personal": {
+                "feature_id": "value.security_personal",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.security_societal": {
+                "feature_id": "value.security_societal",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.tradition": {
+                "feature_id": "value.tradition",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.conformity_rules": {
+                "feature_id": "value.conformity_rules",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.conformity_interpersonal": {
+                "feature_id": "value.conformity_interpersonal",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.humility": {
+                "feature_id": "value.humility",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.benevolence_dependability": {
+                "feature_id": "value.benevolence_dependability",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.benevolence_caring": {
+                "feature_id": "value.benevolence_caring",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.universalism_tolerance": {
+                "feature_id": "value.universalism_tolerance",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.universalism_concern": {
+                "feature_id": "value.universalism_concern",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "value.universalism_nature": {
+                "feature_id": "value.universalism_nature",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              }
+            },
+            "interpersonal_dispositions": {
+              "social.agency": {
+                "feature_id": "social.agency",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "social.communion": {
+                "feature_id": "social.communion",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              }
+            },
+            "behavioral_dispositions": {
+              "style.brevity": {
+                "feature_id": "style.brevity",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.fragmentation": {
+                "feature_id": "style.fragmentation",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.formality": {
+                "feature_id": "style.formality",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.directness": {
+                "feature_id": "style.directness",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.humor": {
+                "feature_id": "style.humor",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.irony": {
+                "feature_id": "style.irony",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.teasing": {
+                "feature_id": "style.teasing",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.empathy_expression": {
+                "feature_id": "style.empathy_expression",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.proactive_reply": {
+                "feature_id": "style.proactive_reply",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.emoji_frequency": {
+                "feature_id": "style.emoji_frequency",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.punctuation_density": {
+                "feature_id": "style.punctuation_density",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.slang_frequency": {
+                "feature_id": "style.slang_frequency",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.topic_extension": {
+                "feature_id": "style.topic_extension",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.question_back": {
+                "feature_id": "style.question_back",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              },
+              "style.length_variability": {
+                "feature_id": "style.length_variability",
+                "estimate": null,
+                "posterior_uncertainty": null,
+                "evidence_ids": [],
+                "evidence_count": 0,
+                "scope": "agent_self",
+                "source_type": "unknown",
+                "updated_at": null,
+                "method_version": "unobserved/1",
+                "schema_version": "2.1.0",
+                "conflict": false
+              }
+            },
+            "manual_seed": {
+              "seed": "你叫未央。表达自然、克制，有好奇心和自己的判断。重视诚实与相互尊重；可以不同意，也可以承认不知道。初始没有虚构的人生经历。通过真实对话积累认识与关系。",
+              "character": {
+                "self_reference": "我",
+                "initial_personality": ""
+              }
+            },
+            "affective_disposition": {
+              "beq.positive_expressivity": {
+                "estimate": null,
+                "uncertainty": null,
+                "source_type": "unknown",
+                "updated_at": null
+              },
+              "beq.negative_expressivity": {
+                "estimate": null,
+                "uncertainty": null,
+                "source_type": "unknown",
+                "updated_at": null
+              },
+              "beq.impulse_strength": {
+                "estimate": null,
+                "uncertainty": null,
+                "source_type": "unknown",
+                "updated_at": null
+              },
+              "erq.cognitive_reappraisal": {
+                "estimate": null,
+                "uncertainty": null,
+                "source_type": "unknown",
+                "updated_at": null
+              },
+              "erq.expressive_suppression": {
+                "estimate": null,
+                "uncertainty": null,
+                "source_type": "unknown",
+                "updated_at": null
+              },
+              "panas.positive_affect": {
+                "estimate": null,
+                "uncertainty": null,
+                "source_type": "unknown",
+                "updated_at": null
+              },
+              "panas.negative_affect": {
+                "estimate": null,
+                "uncertainty": null,
+                "source_type": "unknown",
+                "updated_at": null
+              }
+            },
+            "interpretation": "工程表征；owner_seed 为主人设定，推断候选不等于正式量表分数"
+          },
+          "appraisal": {
+            "id": "fd336151ced6e0fb98c3e82cfcbe157b",
+            "event_key": "fd336151ced6e0fb98c3e82cfcbe157b",
+            "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "scope": "private:qq:123",
+            "person_id": "qq:123",
+            "at": 1804200060.0,
+            "checks": {
+              "affect.appraisal.goal_relevance": 0.8,
+              "affect.appraisal.goal_conduciveness": 0.25,
+              "affect.appraisal.control": 0.7
+            },
+            "evidence_quote": "这件事情对我很重要，我想和你讨论。",
+            "method": "latent_affect_v2",
+            "clock": {
+              "elapsed_seconds": 60.0,
+              "event_sequence": 1
+            },
+            "emotion_before": {
+              "valence": null,
+              "arousal": null,
+              "dominance": null,
+              "stress": null,
+              "engagement": null
+            },
+            "mood_before": {
+              "valence": null,
+              "arousal": null,
+              "dominance": null
+            },
+            "emotion_model_version": "4d60b1ed5437b1a6630f0bbe713190216226eb3cc391fed40219acf72beb8fdf"
+          },
+          "regulation_action": {
+            "id": "fd336151ced6e0fb98c3e82cfcbe157b:reg",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+            "appraisal_id": "fd336151ced6e0fb98c3e82cfcbe157b",
+            "at": 1804200060.0,
+            "applied": true,
+            "strategy": "none",
+            "internal_effect": 0.0,
+            "expression_multiplier": 1.0
+          },
+          "emotion_before": {
+            "valence": null,
+            "arousal": null,
+            "dominance": null,
+            "stress": null,
+            "engagement": null
+          },
+          "mood_before": {
+            "valence": null,
+            "arousal": null,
+            "dominance": null
+          },
+          "emotion_state": {
+            "entity": "EmotionState",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "valence": 0.5101607510352613,
+            "arousal": 0.5391771615643297,
+            "dominance": 0.4924145272462482,
+            "stress": 0.6154025156505826,
+            "engagement": 0.6003428626415896,
+            "categorical_activations": {
+              "joy": null,
+              "sadness": null,
+              "anger": null,
+              "fear": null,
+              "disgust": null,
+              "surprise": null,
+              "interest": null,
+              "shame": null,
+              "guilt": null,
+              "gratitude": null,
+              "pride": null,
+              "frustration": null,
+              "anxiety": null,
+              "relief": null,
+              "calmness": null,
+              "amusement": null,
+              "disappointment": null,
+              "boredom": null,
+              "loneliness": null,
+              "affection": null,
+              "awkwardness": null,
+              "awe": null,
+              "envy": null,
+              "nostalgia": null
+            },
+            "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+            "appraisal_id": "fd336151ced6e0fb98c3e82cfcbe157b",
+            "onset_at": 1804200060.0,
+            "last_updated": 1804200060.0,
+            "confidence": 0.2,
+            "state_revision": 1,
+            "source_type": "affect_v2_computed"
+          },
+          "mood_state": {
+            "entity": "MoodState",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "baseline_ref": "engineering-prior/1",
+            "valence": 0.19713838122824842,
+            "arousal": 0.5253358149477035,
+            "dominance": 0.5244762981526511,
+            "updated_at": 1804200060.0,
+            "uncertainty": 0.8,
+            "transition_params_version": "time-dynamics/1",
+            "source_type": "affect_v2_computed"
+          },
+          "transition_params": {
+            "version": "time-dynamics/1",
+            "persona_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "source_type": "uncalibrated",
+            "baseline_ref": "engineering-prior/1",
+            "baseline": {
+              "valence": 0.0,
+              "arousal": 0.25,
+              "dominance": null,
+              "stress": 0.15,
+              "engagement": 0.65
+            },
+            "emotion_tau_seconds": 7200.0,
+            "mood_tau_seconds": 172800.0,
+            "label_tau_seconds": {
+              "joy": 3600,
+              "sadness": 7200,
+              "anger": 1800,
+              "fear": 2400,
+              "disgust": 1800,
+              "surprise": 300,
+              "interest": 3600,
+              "shame": 3600,
+              "guilt": 7200,
+              "gratitude": 7200,
+              "pride": 7200,
+              "frustration": 2400,
+              "anxiety": 5400,
+              "relief": 1800,
+              "calmness": 7200,
+              "amusement": 1200,
+              "disappointment": 5400,
+              "boredom": 3600,
+              "loneliness": 14400,
+              "affection": 10800,
+              "awkwardness": 1800,
+              "awe": 3600,
+              "envy": 5400,
+              "nostalgia": 7200
+            },
+            "reactivity": 0.35,
+            "sensitivity_interval": [
+              0.15,
+              0.6
+            ],
+            "note": "个体可编辑的工程参数；未将 HEXACO 或 PA/NA 换算为 VA 基线，不是人类心理定律"
+          },
+          "replayed": false,
+          "trait_version": 0,
+          "emotion_revision": 1,
+          "appraisal_id": "fd336151ced6e0fb98c3e82cfcbe157b",
+          "provider_contract": "affect-state/2.8.1",
+          "dynamics_v2": {
+            "schema": "affect-state/2.8.1",
+            "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+            "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+            "scope": "private:qq:123",
+            "person_id": "qq:123",
+            "session_id": "d9fffe4a696344e69f32912783f3505c",
+            "at": "2027-03-04T22:41:00+00:00",
+            "received_at": "2027-03-04T22:41:00+00:00",
+            "affect_model_version": "4d60b1ed5437b1a6630f0bbe713190216226eb3cc391fed40219acf72beb8fdf",
+            "calibration_status": "unvalidated",
+            "fast_state_latent": [
+              0.562947053919574,
+              0.1570305318209031,
+              -0.030344219141997253,
+              0.47007925852945315,
+              0.4068939068085301
+            ],
+            "slow_mood_latent": [
+              0.19975346839175762,
+              0.10143013045379679,
+              0.09798351050231423
+            ],
+            "affect_observed": {
+              "valence": 0.5101607510352613,
+              "arousal": 0.5391771615643297,
+              "dominance": 0.4924145272462482,
+              "stress": 0.6154025156505826,
+              "engagement": 0.6003428626415896
+            },
+            "mood_observed": {
+              "valence": 0.19713838122824842,
+              "arousal": 0.5253358149477035,
+              "dominance": 0.5244762981526511
+            },
+            "emotion_labels": {
+              "joy": null,
+              "sadness": null,
+              "anger": null,
+              "fear": null,
+              "disgust": null,
+              "surprise": null,
+              "interest": null,
+              "shame": null,
+              "guilt": null,
+              "gratitude": null,
+              "pride": null,
+              "frustration": null,
+              "anxiety": null,
+              "relief": null,
+              "calmness": null,
+              "amusement": null,
+              "disappointment": null,
+              "boredom": null,
+              "loneliness": null,
+              "affection": null,
+              "awkwardness": null,
+              "awe": null,
+              "envy": null,
+              "nostalgia": null
+            },
+            "label_activations": {
+              "joy": 0.5,
+              "sadness": 0.5,
+              "anger": 0.5,
+              "fear": 0.5,
+              "disgust": 0.5,
+              "surprise": 0.5,
+              "interest": 0.5,
+              "shame": 0.5,
+              "guilt": 0.5,
+              "gratitude": 0.5,
+              "pride": 0.5,
+              "frustration": 0.5,
+              "anxiety": 0.5,
+              "relief": 0.5,
+              "calmness": 0.5,
+              "amusement": 0.5,
+              "disappointment": 0.5,
+              "boredom": 0.5,
+              "loneliness": 0.5,
+              "affection": 0.5,
+              "awkwardness": 0.5,
+              "awe": 0.5,
+              "envy": 0.5,
+              "nostalgia": 0.5
+            },
+            "label_status": "uncalibrated",
+            "appraisal_evidence_ids": [
+              "2ddc993b5ef8404ca5deb1eccdcba6da"
+            ],
+            "appraisal": {
+              "checks": {
+                "affect.appraisal.novelty": null,
+                "affect.appraisal.intrinsic_pleasantness": null,
+                "affect.appraisal.goal_relevance": 0.8,
+                "affect.appraisal.agency_attribution": null,
+                "affect.appraisal.outcome_likelihood": null,
+                "affect.appraisal.goal_conduciveness": 0.25,
+                "affect.appraisal.urgency": null,
+                "affect.appraisal.control": 0.7,
+                "affect.appraisal.power": null,
+                "affect.appraisal.adjustment_capacity": null,
+                "affect.appraisal.internal_norm_compatibility": null,
+                "affect.appraisal.external_norm_compatibility": null
+              },
+              "mask": {
+                "affect.appraisal.novelty": false,
+                "affect.appraisal.intrinsic_pleasantness": false,
+                "affect.appraisal.goal_relevance": true,
+                "affect.appraisal.agency_attribution": false,
+                "affect.appraisal.outcome_likelihood": false,
+                "affect.appraisal.goal_conduciveness": true,
+                "affect.appraisal.urgency": false,
+                "affect.appraisal.control": true,
+                "affect.appraisal.power": false,
+                "affect.appraisal.adjustment_capacity": false,
+                "affect.appraisal.internal_norm_compatibility": false,
+                "affect.appraisal.external_norm_compatibility": false
+              },
+              "event_facts": {
+                "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+                "text": "这件事情对我很重要，我想和你讨论。",
+                "scope": "private:qq:123",
+                "person": "qq:123"
+              },
+              "evidence_ids": [
+                "2ddc993b5ef8404ca5deb1eccdcba6da"
+              ],
+              "quote": "这件事情对我很重要，我想和你讨论。",
+              "kind": "model_appraisal_not_fact",
+              "reappraisal_candidate": null
+            },
+            "regulation": {
+              "strategy": "none",
+              "probabilities": {
+                "none": 0.5761168847658291,
+                "reappraisal": 0.21194155761708544,
+                "suppression": 0.21194155761708544
+              },
+              "policy_calibration": "unvalidated",
+              "requested_by": "explicit_test_or_owner",
+              "reappraisal_applied": false,
+              "candidate": null,
+              "reason": "not_requested",
+              "before_checks": {
+                "affect.appraisal.novelty": null,
+                "affect.appraisal.intrinsic_pleasantness": null,
+                "affect.appraisal.goal_relevance": 0.8,
+                "affect.appraisal.agency_attribution": null,
+                "affect.appraisal.outcome_likelihood": null,
+                "affect.appraisal.goal_conduciveness": 0.25,
+                "affect.appraisal.urgency": null,
+                "affect.appraisal.control": 0.7,
+                "affect.appraisal.power": null,
+                "affect.appraisal.adjustment_capacity": null,
+                "affect.appraisal.internal_norm_compatibility": null,
+                "affect.appraisal.external_norm_compatibility": null
+              },
+              "after_checks": {
+                "affect.appraisal.novelty": null,
+                "affect.appraisal.intrinsic_pleasantness": null,
+                "affect.appraisal.goal_relevance": 0.8,
+                "affect.appraisal.agency_attribution": null,
+                "affect.appraisal.outcome_likelihood": null,
+                "affect.appraisal.goal_conduciveness": 0.25,
+                "affect.appraisal.urgency": null,
+                "affect.appraisal.control": 0.7,
+                "affect.appraisal.power": null,
+                "affect.appraisal.adjustment_capacity": null,
+                "affect.appraisal.internal_norm_compatibility": null,
+                "affect.appraisal.external_norm_compatibility": null
+              },
+              "event_facts_sha256": "12d3972ee44de302a04e718892658eac8b067fe0f6d1f52a55e8e4b64e861ef6",
+              "executed": false,
+              "effect_evidence": null,
+              "outcome": "not_observed",
+              "policy_input": [
+                0.687947053919574,
+                0.1570305318209031,
+                -0.11034421914199724,
+                0.39507925852945314,
+                0.28689390680853005,
+                0.0,
+                0.0,
+                0.6000000000000001,
+                0.0,
+                0.0,
+                -0.5,
+                0.0,
+                0.3999999999999999,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.8,
+                0.0
+              ]
+            },
+            "expression_plan": {
+              "strategy": "none",
+              "expression_multiplier": 1.0,
+              "intensity": 0.35023257750840714,
+              "internal_state_changed_by_suppression": false,
+              "habit_source": "beq.positive_expressivity",
+              "habit_known": false,
+              "effect_calibration": "unvalidated_expression_control",
+              "status": "planned"
+            },
+            "delta_seconds": 60.0,
+            "delta_turns": 1,
+            "turn_index": 1,
+            "rng_state_ref": "480c0448526bb0e43c7c9f89ceb6f9a8a6034887dde4a5f82383978c9624b1ff",
+            "rng_before": {
+              "bit_generator": "PCG64",
+              "state": {
+                "state": 314353818302884393434799029847374239379,
+                "inc": 131765234424810766734285870657681105419
+              },
+              "has_uint32": 0,
+              "uinteger": 0
+            },
+            "rng_after": {
+              "bit_generator": "PCG64",
+              "state": {
+                "state": 1190017285850492791854047059375064411,
+                "inc": 131765234424810766734285870657681105419
+              },
+              "has_uint32": 0,
+              "uinteger": 0
+            },
+            "state_revision": 1,
+            "catalog_revision": 1,
+            "updated": true,
+            "replayed": false,
+            "parameters": {
+              "mu": [
+                0.0,
+                -1.0986122886681096,
+                0.0,
+                -1.7346010553881064,
+                0.6190392084062236,
+                0.0,
+                -1.0986122886681096,
+                0.0
+              ],
+              "kappa": [
+                0.00013888888888888892,
+                0.00013888888888888892,
+                0.00013888888888888892,
+                0.00013888888888888892,
+                0.00013888888888888892,
+                5.787037037037032e-06,
+                5.787037037037032e-06,
+                5.787037037037032e-06
+              ],
+              "sigma": [
+                0.002000000000000001,
+                0.002000000000000001,
+                0.002000000000000001,
+                0.002000000000000001,
+                0.002000000000000001,
+                0.00020000000000000017,
+                0.00020000000000000017,
+                0.00020000000000000017
+              ],
+              "coupling": [
+                5.787037037037037e-06,
+                5.787037037037037e-06,
+                5.787037037037037e-06
+              ],
+              "kappa_n": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "turn_term_validated": false,
+              "source_version": "4d60b1ed5437b1a6630f0bbe713190216226eb3cc391fed40219acf72beb8fdf",
+              "calibration_status": "unvalidated"
+            },
+            "propagation": {
+              "mean": [
+                0.6941909048472131,
+                0.1892231966407838,
+                -0.0991701292638876,
+                0.3822855705085877,
+                0.3026476130272879,
+                0.20017257116655235,
+                0.10003284284036086,
+                0.09993071186866302
+              ],
+              "natural_noise": [
+                -0.00624385092763917,
+                -0.03219266481988078,
+                -0.011174089878109646,
+                0.012793688020865326,
+                -0.015753706218757837,
+                -0.0004191027747947401,
+                0.0013972876134358697,
+                -0.001947201366348798
+              ],
+              "covariance_blocks": [
+                [
+                  [
+                    0.0002380110649687084,
+                    4.1316344207766205e-08
+                  ],
+                  [
+                    4.1316344207766205e-08,
+                    2.399176442050821e-06
+                  ]
+                ],
+                [
+                  [
+                    0.0002380110649687084,
+                    4.1316344207766205e-08
+                  ],
+                  [
+                    4.1316344207766205e-08,
+                    2.399176442050821e-06
+                  ]
+                ],
+                [
+                  [
+                    0.0002380110649687084,
+                    4.1316344207766205e-08
+                  ],
+                  [
+                    4.1316344207766205e-08,
+                    2.399176442050821e-06
+                  ]
+                ]
+              ],
+              "uncoupled_variance": [
+                0.00023801106496870841,
+                0.00023801106496870841
+              ],
+              "kappa_n": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "turn_term_order": "OU_then_independent_validated_turn_map"
+            },
+            "jump": [
+              -0.125,
+              0.0,
+              0.07999999999999999,
+              0.075,
+              0.12000000000000002
+            ],
+            "original_appraisal_jump": [
+              -0.125,
+              0.0,
+              0.07999999999999999,
+              0.075,
+              0.12000000000000002
+            ],
+            "reappraisal_jump_difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "jump_applied": true,
+            "before_fast": [
+              0.7,
+              0.2,
+              -0.1,
+              0.4,
+              0.3
+            ],
+            "before_mood": [
+              0.2,
+              0.1,
+              0.1
+            ],
+            "pre_jump_fast": [
+              0.687947053919574,
+              0.1570305318209031,
+              -0.11034421914199724,
+              0.39507925852945314,
+              0.28689390680853005
+            ],
+            "clock_status": "advanced",
+            "model_switch": null,
+            "trait_version_read": 0,
+            "trait_written": false,
+            "state_kind": "computed_simulated_state",
+            "input_digest": "b3b90bb2dfa50c19bea12deae4a394bbe2e42007bd332ee07807d882a70f88d2",
+            "link_precision": {
+              "fast": {
+                "link": "tanh_valence_sigmoid_other",
+                "epsilon": 1e-09,
+                "boundary_approximations": [],
+                "original": {}
+              },
+              "mood": {
+                "link": "tanh_valence_sigmoid_other",
+                "epsilon": 1e-09,
+                "boundary_approximations": [],
+                "original": {}
+              }
+            },
+            "label_calibration_mask": {
+              "joy": false,
+              "sadness": false,
+              "anger": false,
+              "fear": false,
+              "disgust": false,
+              "surprise": false,
+              "interest": false,
+              "shame": false,
+              "guilt": false,
+              "gratitude": false,
+              "pride": false,
+              "frustration": false,
+              "anxiety": false,
+              "relief": false,
+              "calmness": false,
+              "amusement": false,
+              "disappointment": false,
+              "boredom": false,
+              "loneliness": false,
+              "affection": false,
+              "awkwardness": false,
+              "awe": false,
+              "envy": false,
+              "nostalgia": false
+            },
+            "h_used": [
+              0.4587950509743889,
+              -0.38974120720268496,
+              -0.26398850820498193,
+              -0.3331277276118923,
+              0.4224432762301652,
+              -0.003587233195023651,
+              0.1300587517008993,
+              -0.35118137883553485,
+              -0.14223011472807467,
+              -0.1557450539511816,
+              -0.13488790360225125,
+              0.6431877734542406,
+              -0.13275827785415972,
+              -0.10797849778313875,
+              0.46370162913735274,
+              0.3380611417753529
+            ],
+            "label_h_t": [
+              0.4587950509743889,
+              -0.38974120720268496,
+              -0.26398850820498193,
+              -0.3331277276118923,
+              0.4224432762301652,
+              -0.003587233195023651,
+              0.1300587517008993,
+              -0.35118137883553485,
+              -0.14223011472807467,
+              -0.1557450539511816,
+              -0.13488790360225125,
+              0.6431877734542406,
+              -0.13275827785415972,
+              -0.10797849778313875,
+              0.46370162913735274,
+              0.3380611417753529
+            ]
+          }
+        },
+        "dynamics_v2": {
+          "schema": "affect-state/2.8.1",
+          "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+          "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+          "scope": "private:qq:123",
+          "person_id": "qq:123",
+          "session_id": "d9fffe4a696344e69f32912783f3505c",
+          "at": "2027-03-04T22:41:00+00:00",
+          "received_at": "2027-03-04T22:41:00+00:00",
+          "affect_model_version": "4d60b1ed5437b1a6630f0bbe713190216226eb3cc391fed40219acf72beb8fdf",
+          "calibration_status": "unvalidated",
+          "fast_state_latent": [
+            0.562947053919574,
+            0.1570305318209031,
+            -0.030344219141997253,
+            0.47007925852945315,
+            0.4068939068085301
+          ],
+          "slow_mood_latent": [
+            0.19975346839175762,
+            0.10143013045379679,
+            0.09798351050231423
+          ],
+          "affect_observed": {
+            "valence": 0.5101607510352613,
+            "arousal": 0.5391771615643297,
+            "dominance": 0.4924145272462482,
+            "stress": 0.6154025156505826,
+            "engagement": 0.6003428626415896
+          },
+          "mood_observed": {
+            "valence": 0.19713838122824842,
+            "arousal": 0.5253358149477035,
+            "dominance": 0.5244762981526511
+          },
+          "emotion_labels": {
+            "joy": null,
+            "sadness": null,
+            "anger": null,
+            "fear": null,
+            "disgust": null,
+            "surprise": null,
+            "interest": null,
+            "shame": null,
+            "guilt": null,
+            "gratitude": null,
+            "pride": null,
+            "frustration": null,
+            "anxiety": null,
+            "relief": null,
+            "calmness": null,
+            "amusement": null,
+            "disappointment": null,
+            "boredom": null,
+            "loneliness": null,
+            "affection": null,
+            "awkwardness": null,
+            "awe": null,
+            "envy": null,
+            "nostalgia": null
+          },
+          "label_activations": {
+            "joy": 0.5,
+            "sadness": 0.5,
+            "anger": 0.5,
+            "fear": 0.5,
+            "disgust": 0.5,
+            "surprise": 0.5,
+            "interest": 0.5,
+            "shame": 0.5,
+            "guilt": 0.5,
+            "gratitude": 0.5,
+            "pride": 0.5,
+            "frustration": 0.5,
+            "anxiety": 0.5,
+            "relief": 0.5,
+            "calmness": 0.5,
+            "amusement": 0.5,
+            "disappointment": 0.5,
+            "boredom": 0.5,
+            "loneliness": 0.5,
+            "affection": 0.5,
+            "awkwardness": 0.5,
+            "awe": 0.5,
+            "envy": 0.5,
+            "nostalgia": 0.5
+          },
+          "label_status": "uncalibrated",
+          "appraisal_evidence_ids": [
+            "2ddc993b5ef8404ca5deb1eccdcba6da"
+          ],
+          "appraisal": {
+            "checks": {
+              "affect.appraisal.novelty": null,
+              "affect.appraisal.intrinsic_pleasantness": null,
+              "affect.appraisal.goal_relevance": 0.8,
+              "affect.appraisal.agency_attribution": null,
+              "affect.appraisal.outcome_likelihood": null,
+              "affect.appraisal.goal_conduciveness": 0.25,
+              "affect.appraisal.urgency": null,
+              "affect.appraisal.control": 0.7,
+              "affect.appraisal.power": null,
+              "affect.appraisal.adjustment_capacity": null,
+              "affect.appraisal.internal_norm_compatibility": null,
+              "affect.appraisal.external_norm_compatibility": null
+            },
+            "mask": {
+              "affect.appraisal.novelty": false,
+              "affect.appraisal.intrinsic_pleasantness": false,
+              "affect.appraisal.goal_relevance": true,
+              "affect.appraisal.agency_attribution": false,
+              "affect.appraisal.outcome_likelihood": false,
+              "affect.appraisal.goal_conduciveness": true,
+              "affect.appraisal.urgency": false,
+              "affect.appraisal.control": true,
+              "affect.appraisal.power": false,
+              "affect.appraisal.adjustment_capacity": false,
+              "affect.appraisal.internal_norm_compatibility": false,
+              "affect.appraisal.external_norm_compatibility": false
+            },
+            "event_facts": {
+              "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+              "text": "这件事情对我很重要，我想和你讨论。",
+              "scope": "private:qq:123",
+              "person": "qq:123"
+            },
+            "evidence_ids": [
+              "2ddc993b5ef8404ca5deb1eccdcba6da"
+            ],
+            "quote": "这件事情对我很重要，我想和你讨论。",
+            "kind": "model_appraisal_not_fact",
+            "reappraisal_candidate": null
+          },
+          "regulation": {
+            "strategy": "none",
+            "probabilities": {
+              "none": 0.5761168847658291,
+              "reappraisal": 0.21194155761708544,
+              "suppression": 0.21194155761708544
+            },
+            "policy_calibration": "unvalidated",
+            "requested_by": "explicit_test_or_owner",
+            "reappraisal_applied": false,
+            "candidate": null,
+            "reason": "not_requested",
+            "before_checks": {
+              "affect.appraisal.novelty": null,
+              "affect.appraisal.intrinsic_pleasantness": null,
+              "affect.appraisal.goal_relevance": 0.8,
+              "affect.appraisal.agency_attribution": null,
+              "affect.appraisal.outcome_likelihood": null,
+              "affect.appraisal.goal_conduciveness": 0.25,
+              "affect.appraisal.urgency": null,
+              "affect.appraisal.control": 0.7,
+              "affect.appraisal.power": null,
+              "affect.appraisal.adjustment_capacity": null,
+              "affect.appraisal.internal_norm_compatibility": null,
+              "affect.appraisal.external_norm_compatibility": null
+            },
+            "after_checks": {
+              "affect.appraisal.novelty": null,
+              "affect.appraisal.intrinsic_pleasantness": null,
+              "affect.appraisal.goal_relevance": 0.8,
+              "affect.appraisal.agency_attribution": null,
+              "affect.appraisal.outcome_likelihood": null,
+              "affect.appraisal.goal_conduciveness": 0.25,
+              "affect.appraisal.urgency": null,
+              "affect.appraisal.control": 0.7,
+              "affect.appraisal.power": null,
+              "affect.appraisal.adjustment_capacity": null,
+              "affect.appraisal.internal_norm_compatibility": null,
+              "affect.appraisal.external_norm_compatibility": null
+            },
+            "event_facts_sha256": "12d3972ee44de302a04e718892658eac8b067fe0f6d1f52a55e8e4b64e861ef6",
+            "executed": false,
+            "effect_evidence": null,
+            "outcome": "not_observed",
+            "policy_input": [
+              0.687947053919574,
+              0.1570305318209031,
+              -0.11034421914199724,
+              0.39507925852945314,
+              0.28689390680853005,
+              0.0,
+              0.0,
+              0.6000000000000001,
+              0.0,
+              0.0,
+              -0.5,
+              0.0,
+              0.3999999999999999,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.8,
+              0.0
+            ]
+          },
+          "expression_plan": {
+            "strategy": "none",
+            "expression_multiplier": 1.0,
+            "intensity": 0.35023257750840714,
+            "internal_state_changed_by_suppression": false,
+            "habit_source": "beq.positive_expressivity",
+            "habit_known": false,
+            "effect_calibration": "unvalidated_expression_control",
+            "status": "planned"
+          },
+          "delta_seconds": 60.0,
+          "delta_turns": 1,
+          "turn_index": 1,
+          "rng_state_ref": "480c0448526bb0e43c7c9f89ceb6f9a8a6034887dde4a5f82383978c9624b1ff",
+          "rng_before": {
+            "bit_generator": "PCG64",
+            "state": {
+              "state": 314353818302884393434799029847374239379,
+              "inc": 131765234424810766734285870657681105419
+            },
+            "has_uint32": 0,
+            "uinteger": 0
+          },
+          "rng_after": {
+            "bit_generator": "PCG64",
+            "state": {
+              "state": 1190017285850492791854047059375064411,
+              "inc": 131765234424810766734285870657681105419
+            },
+            "has_uint32": 0,
+            "uinteger": 0
+          },
+          "state_revision": 1,
+          "catalog_revision": 1,
+          "updated": true,
+          "replayed": false,
+          "parameters": {
+            "mu": [
+              0.0,
+              -1.0986122886681096,
+              0.0,
+              -1.7346010553881064,
+              0.6190392084062236,
+              0.0,
+              -1.0986122886681096,
+              0.0
+            ],
+            "kappa": [
+              0.00013888888888888892,
+              0.00013888888888888892,
+              0.00013888888888888892,
+              0.00013888888888888892,
+              0.00013888888888888892,
+              5.787037037037032e-06,
+              5.787037037037032e-06,
+              5.787037037037032e-06
+            ],
+            "sigma": [
+              0.002000000000000001,
+              0.002000000000000001,
+              0.002000000000000001,
+              0.002000000000000001,
+              0.002000000000000001,
+              0.00020000000000000017,
+              0.00020000000000000017,
+              0.00020000000000000017
+            ],
+            "coupling": [
+              5.787037037037037e-06,
+              5.787037037037037e-06,
+              5.787037037037037e-06
+            ],
+            "kappa_n": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "turn_term_validated": false,
+            "source_version": "4d60b1ed5437b1a6630f0bbe713190216226eb3cc391fed40219acf72beb8fdf",
+            "calibration_status": "unvalidated"
+          },
+          "propagation": {
+            "mean": [
+              0.6941909048472131,
+              0.1892231966407838,
+              -0.0991701292638876,
+              0.3822855705085877,
+              0.3026476130272879,
+              0.20017257116655235,
+              0.10003284284036086,
+              0.09993071186866302
+            ],
+            "natural_noise": [
+              -0.00624385092763917,
+              -0.03219266481988078,
+              -0.011174089878109646,
+              0.012793688020865326,
+              -0.015753706218757837,
+              -0.0004191027747947401,
+              0.0013972876134358697,
+              -0.001947201366348798
+            ],
+            "covariance_blocks": [
+              [
+                [
+                  0.0002380110649687084,
+                  4.1316344207766205e-08
+                ],
+                [
+                  4.1316344207766205e-08,
+                  2.399176442050821e-06
+                ]
+              ],
+              [
+                [
+                  0.0002380110649687084,
+                  4.1316344207766205e-08
+                ],
+                [
+                  4.1316344207766205e-08,
+                  2.399176442050821e-06
+                ]
+              ],
+              [
+                [
+                  0.0002380110649687084,
+                  4.1316344207766205e-08
+                ],
+                [
+                  4.1316344207766205e-08,
+                  2.399176442050821e-06
+                ]
+              ]
+            ],
+            "uncoupled_variance": [
+              0.00023801106496870841,
+              0.00023801106496870841
+            ],
+            "kappa_n": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "turn_term_order": "OU_then_independent_validated_turn_map"
+          },
+          "jump": [
+            -0.125,
+            0.0,
+            0.07999999999999999,
+            0.075,
+            0.12000000000000002
+          ],
+          "original_appraisal_jump": [
+            -0.125,
+            0.0,
+            0.07999999999999999,
+            0.075,
+            0.12000000000000002
+          ],
+          "reappraisal_jump_difference": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "jump_applied": true,
+          "before_fast": [
+            0.7,
+            0.2,
+            -0.1,
+            0.4,
+            0.3
+          ],
+          "before_mood": [
+            0.2,
+            0.1,
+            0.1
+          ],
+          "pre_jump_fast": [
+            0.687947053919574,
+            0.1570305318209031,
+            -0.11034421914199724,
+            0.39507925852945314,
+            0.28689390680853005
+          ],
+          "clock_status": "advanced",
+          "model_switch": null,
+          "trait_version_read": 0,
+          "trait_written": false,
+          "state_kind": "computed_simulated_state",
+          "input_digest": "b3b90bb2dfa50c19bea12deae4a394bbe2e42007bd332ee07807d882a70f88d2",
+          "link_precision": {
+            "fast": {
+              "link": "tanh_valence_sigmoid_other",
+              "epsilon": 1e-09,
+              "boundary_approximations": [],
+              "original": {}
+            },
+            "mood": {
+              "link": "tanh_valence_sigmoid_other",
+              "epsilon": 1e-09,
+              "boundary_approximations": [],
+              "original": {}
+            }
+          },
+          "label_calibration_mask": {
+            "joy": false,
+            "sadness": false,
+            "anger": false,
+            "fear": false,
+            "disgust": false,
+            "surprise": false,
+            "interest": false,
+            "shame": false,
+            "guilt": false,
+            "gratitude": false,
+            "pride": false,
+            "frustration": false,
+            "anxiety": false,
+            "relief": false,
+            "calmness": false,
+            "amusement": false,
+            "disappointment": false,
+            "boredom": false,
+            "loneliness": false,
+            "affection": false,
+            "awkwardness": false,
+            "awe": false,
+            "envy": false,
+            "nostalgia": false
+          },
+          "h_used": [
+            0.4587950509743889,
+            -0.38974120720268496,
+            -0.26398850820498193,
+            -0.3331277276118923,
+            0.4224432762301652,
+            -0.003587233195023651,
+            0.1300587517008993,
+            -0.35118137883553485,
+            -0.14223011472807467,
+            -0.1557450539511816,
+            -0.13488790360225125,
+            0.6431877734542406,
+            -0.13275827785415972,
+            -0.10797849778313875,
+            0.46370162913735274,
+            0.3380611417753529
+          ],
+          "label_h_t": [
+            0.4587950509743889,
+            -0.38974120720268496,
+            -0.26398850820498193,
+            -0.3331277276118923,
+            0.4224432762301652,
+            -0.003587233195023651,
+            0.1300587517008993,
+            -0.35118137883553485,
+            -0.14223011472807467,
+            -0.1557450539511816,
+            -0.13488790360225125,
+            0.6431877734542406,
+            -0.13275827785415972,
+            -0.10797849778313875,
+            0.46370162913735274,
+            0.3380611417753529
+          ]
+        }
+      },
+      "executed": true,
+      "elapsed_ms": 6.67,
+      "applied_to": [
+        "neural",
+        "B",
+        "expression"
+      ]
+    },
+    "relationship": {
+      "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+      "scope": "private:qq:123",
+      "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+      "timestamp": 1804200060.0,
+      "prior_revision": 0,
+      "evidence_refs": [],
+      "model_versions": {
+        "RelationshipSnapshot": "existing-dyad-adapter/2.8"
+      },
+      "uncertainty": {},
+      "provenance": {
+        "execution": "existing_relationship_cognition",
+        "kind": "inference_not_fact"
+      },
+      "schema_version": "pmm-cooperation/2.8",
+      "status": "ok",
+      "payload": {
+        "self_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+        "other_id": "qq:123",
+        "scope": "private:qq:123",
+        "dyad": {
+          "schema_version": "2.1.0",
+          "other_id": "qq:123",
+          "context_id": "private:qq:123",
+          "trust": null,
+          "familiarity": 0.0,
+          "affiliation": null,
+          "interactions": 0,
+          "preferences": {
+            "humor_tolerance": null,
+            "action_preference": null,
+            "empathy_need": null,
+            "directness": null,
+            "boundary_sensitivity": null,
+            "information_density": null
+          },
+          "conflict_history": [],
+          "shared_jokes": [],
+          "preferred_addressing": null,
+          "belief_provenance": [],
+          "trajectory": [],
+          "updated_at": null,
+          "schema_revision": 0,
+          "schemata": [],
+          "schema_history": [],
+          "uncertainties": {},
+          "entities": {
+            "self": "agent_self",
+            "other": "qq:123",
+            "scope": "private:qq:123",
+            "kind": "specific_dyad"
+          }
+        },
+        "appraisal": {
+          "schema": "relational-appraisal/1",
+          "trait_version": 0,
+          "trait_digest": "70f0387b4c750adf58519e137d5661d8fb154bf5735598ab5ff8931823705631",
+          "relation_version": 0,
+          "scope": "private:qq:123",
+          "person": "qq:123",
+          "self_entity": "agent_self",
+          "source_features": [
+            {
+              "feature_id": "hexaco.a.patience",
+              "estimate": 0.2,
+              "uncertainty": 0.4,
+              "source_type": "manual_prior"
+            },
+            {
+              "feature_id": "hexaco.c.prudence",
+              "estimate": 0.2,
+              "uncertainty": 0.4,
+              "source_type": "manual_prior"
+            },
+            {
+              "feature_id": "hexaco.e.anxiety",
+              "estimate": 0.2,
+              "uncertainty": 0.4,
+              "source_type": "manual_prior"
+            }
+          ],
+          "relationship_sources": [],
+          "estimates": {
+            "threat": 0.0,
+            "clarification_need": 0.0,
+            "support_orientation": 0.3
+          },
+          "baseline": {
+            "threat": 0.0,
+            "clarification_need": 0.0,
+            "support_orientation": 0.3
+          },
+          "interpretation": "可复现工程假设；不更改输入事实、人物身份或长期人格，不代表心理学效度"
+        },
+        "model_of_other": "separate_existing_interlocutor_profile"
+      },
+      "executed": true,
+      "elapsed_ms": 1.291,
+      "applied_to": [
+        "neural",
+        "B",
+        "decision"
+      ]
+    },
+    "neural": {
+      "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+      "scope": "private:qq:123",
+      "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+      "timestamp": 1804200060.0,
+      "prior_revision": 0,
+      "evidence_refs": [],
+      "model_versions": {
+        "TraitInference": "trait-dynamics/2.8.1"
+      },
+      "uncertainty": {},
+      "provenance": {
+        "execution": "actual_numpy_equations_A_B",
+        "kind": "prediction_not_observation"
+      },
+      "schema_version": "pmm-cooperation/2.8",
+      "status": "uncalibrated",
+      "payload": {
+        "latent": [
+          0.4587950509743889,
+          -0.38974120720268496,
+          -0.26398850820498193,
+          -0.3331277276118923,
+          0.4224432762301652,
+          -0.003587233195023651,
+          0.1300587517008993,
+          -0.35118137883553485,
+          -0.14223011472807467,
+          -0.1557450539511816,
+          -0.13488790360225125,
+          0.6431877734542406,
+          -0.13275827785415972,
+          -0.10797849778313875,
+          0.46370162913735274,
+          0.3380611417753529
+        ],
+        "state_prediction": [
+          0.0271548601640456,
+          -0.004436696627609947,
+          -0.12248186064318689,
+          0.10174102955987557,
+          0.027164103545437655,
+          -0.06481291044064902,
+          0.08288985620418368,
+          -0.2573863769617155,
+          -0.031169378830313857,
+          0.029191129575944108,
+          0.060230191123824335,
+          0.028222555377810578,
+          0.03917939905756781,
+          0.10596829907968325,
+          -0.12104499669085987,
+          -0.019690714678353455,
+          -0.007663881509801603,
+          0.16050194696984693,
+          0.008008151444195855,
+          0.031205305126037003,
+          0.12437715997721376,
+          -0.022488797837979253,
+          -0.11498791826693172,
+          0.06224440493885207,
+          -0.001782689421324167
+        ],
+        "action_probabilities": {
+          "reply": 0.12358671532300551,
+          "unknown": 0.15160092125948543,
+          "clarify": 0.14226055116809394,
+          "disagree": 0.09992905952103247,
+          "decline": 0.20447898110155108,
+          "silence": 0.2781437716268315
+        },
+        "construct_paths": {
+          "H": [
+            -0.009952191042623708,
+            -0.001896899318837578,
+            -0.00519550259039577,
+            -0.028729172776499782,
+            0.002121886966484655,
+            0.012045855290450477,
+            0.014721792359635433,
+            -0.016254875396747807,
+            0.007637464704806244,
+            0.020441885230174397,
+            0.00031617155382553916,
+            -0.008144467893973415,
+            -0.01821651523143046,
+            -0.01283892820779062,
+            -0.0018317090158149855,
+            -0.012109755736739801
+          ],
+          "V": [
+            -0.0006569569064561868,
+            0.0012473889974509529,
+            -0.004598556366615246,
+            -0.0033143763018569482,
+            0.003250100921512204,
+            0.0035789541857661387,
+            0.006704085847561003,
+            0.009218215886614313,
+            -0.001606763418131749,
+            0.004155250080805254,
+            -0.004235218211266532,
+            -0.005933570346393075,
+            -0.0037020677548851516,
+            0.0051237753687546446,
+            0.0005929866652775203,
+            0.0022633066741534432
+          ],
+          "I": [
+            -0.0006097147114917958,
+            -0.001182663381341964,
+            -0.00023548298323823933,
+            0.0008412579328263189,
+            0.0004013916721724523,
+            0.00047243602147565276,
+            0.0002341308715838913,
+            -0.0015940583291334705,
+            -0.0009740662048019268,
+            0.0008832410093472187,
+            -0.0004484199240405419,
+            -2.185074364689915e-05,
+            0.00011473198665145911,
+            0.0016223311595137304,
+            -0.00047911395663915654,
+            -0.0006396623465881484
+          ],
+          "L": [
+            0.0018362302884513497,
+            -0.0010882748329427282,
+            -0.0007803711025462599,
+            -0.00024244026919768093,
+            -0.004139418691552207,
+            2.6142283998713687e-06,
+            0.0008032381486397795,
+            -0.0005976186644769214,
+            0.004408692034856061,
+            -0.0007372172376805498,
+            -0.002174850689633824,
+            -0.0015301446305770363,
+            0.003968143301622203,
+            -0.0025158847819963725,
+            -0.000937940422871614,
+            0.0010658674861022607
+          ],
+          "D": [
+            0.0010410337521842617,
+            0.0001738291756363854,
+            -0.0030044475342009976,
+            -0.0019838821482367126,
+            0.003998209543249235,
+            0.0016057964027408054,
+            -0.0004033247768540648,
+            -0.0008024854740724929,
+            0.002206349319545552,
+            -0.00042650800068681126,
+            -0.00529592369415267,
+            -0.0010231783320001182,
+            -0.0005624972700159307,
+            0.00641153963006443,
+            0.0032343523883772082,
+            0.0010335453881833152
+          ]
+        },
+        "encoded_blocks": {
+          "H": [
+            0.24540544496649092,
+            0.21482380807717677,
+            0.14983387426391634,
+            0.1307093743002464,
+            0.060499355783920995,
+            0.10840612120063817,
+            0.08769852706438375,
+            0.12222547522882654,
+            0.216112668049205,
+            0.14643442650660823,
+            0.09733495003237178,
+            -0.002269847748991999,
+            0.3213508041877686,
+            0.22908663719298725,
+            0.12662440169023229,
+            0.22233488168979126,
+            0.13846093174815055,
+            0.05993478990872432,
+            0.257579673521421,
+            0.23205477636342714,
+            0.2924670919555529,
+            0.09903039624948096,
+            0.3771897499857261,
+            0.20322004121929366,
+            0.1875845532010642
+          ],
+          "V": [
+            0.005099934967313082,
+            0.030582601720059603,
+            0.11183693474753628,
+            -0.05662248289395861,
+            -0.026634612033685858,
+            0.2165835704480023,
+            0.02421981447236254,
+            0.03509525648214301,
+            0.011560752532972765,
+            0.03804103760668268,
+            -0.024853092332925507,
+            -0.01594301475158946,
+            -0.04072483555447929,
+            0.06190072849927085,
+            -0.06065309744042851,
+            0.04818613413068762,
+            0.11478314952175994,
+            -0.025525411056241287,
+            0.04536754966965391
+          ],
+          "I": [
+            -0.07468990287802625,
+            -0.1137567331260489
+          ],
+          "L": [
+            0.014785246993195736,
+            0.0158887577216738,
+            0.04802507984975007,
+            0.030317129954760106,
+            0.033129673890576014,
+            -0.00458884979922397,
+            0.053493692263371875,
+            -0.07130284668846294,
+            -0.08031429595518395,
+            -0.0724320883768492,
+            0.07485194759499232,
+            0.06744135920789258,
+            0.015402053408636786,
+            0.03462562562784735,
+            0.11756062157899416
+          ],
+          "D": [
+            0.027323356649418748,
+            0.05762493860423035,
+            0.08240564534378861,
+            0.007982991435116486,
+            0.05390966120965174,
+            -0.12310069176121598,
+            -0.057587089369350856
+          ]
+        },
+        "prior_mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "process_covariance": [
+          [
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.01
+          ]
+        ],
+        "measurement_uncertainty": null,
+        "calibrated_state_mask": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "scale": {
+          "kind": "engineering_latent",
+          "measurement_protocol": null,
+          "calibrated": false
+        },
+        "prediction_is_observation": false,
+        "checkpoint_sha256": "52d97388f1e1dbd7c977bafd17965835e436c4542222807cdd41022e9e0a2362",
+        "blocks": {
+          "H": {
+            "ids": [
+              "hexaco.h.sincerity",
+              "hexaco.h.fairness",
+              "hexaco.h.greed_avoidance",
+              "hexaco.h.modesty",
+              "hexaco.e.fearfulness",
+              "hexaco.e.anxiety",
+              "hexaco.e.dependence",
+              "hexaco.e.sentimentality",
+              "hexaco.x.social_self_esteem",
+              "hexaco.x.social_boldness",
+              "hexaco.x.sociability",
+              "hexaco.x.liveliness",
+              "hexaco.a.forgivingness",
+              "hexaco.a.gentleness",
+              "hexaco.a.flexibility",
+              "hexaco.a.patience",
+              "hexaco.c.organization",
+              "hexaco.c.diligence",
+              "hexaco.c.perfectionism",
+              "hexaco.c.prudence",
+              "hexaco.o.aesthetic_appreciation",
+              "hexaco.o.inquisitiveness",
+              "hexaco.o.creativity",
+              "hexaco.o.unconventionality",
+              "hexaco.interstitial.altruism"
+            ],
+            "values": [
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2,
+              0.2
+            ],
+            "mask": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "uncertainty": [
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4,
+              0.4
+            ],
+            "sources": [
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "manual_prior",
+                "evidence_refs": []
+              }
+            ]
+          },
+          "V": {
+            "ids": [
+              "value.self_direction_thought",
+              "value.self_direction_action",
+              "value.stimulation",
+              "value.hedonism",
+              "value.achievement",
+              "value.power_dominance",
+              "value.power_resources",
+              "value.face",
+              "value.security_personal",
+              "value.security_societal",
+              "value.tradition",
+              "value.conformity_rules",
+              "value.conformity_interpersonal",
+              "value.humility",
+              "value.benevolence_dependability",
+              "value.benevolence_caring",
+              "value.universalism_tolerance",
+              "value.universalism_concern",
+              "value.universalism_nature"
+            ],
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "mask": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "uncertainty": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "sources": [
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              }
+            ]
+          },
+          "I": {
+            "ids": [
+              "social.agency",
+              "social.communion"
+            ],
+            "values": [
+              null,
+              null
+            ],
+            "mask": [
+              0,
+              0
+            ],
+            "uncertainty": [
+              null,
+              null
+            ],
+            "sources": [
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              }
+            ]
+          },
+          "L": {
+            "ids": [
+              "style.brevity",
+              "style.fragmentation",
+              "style.formality",
+              "style.directness",
+              "style.humor",
+              "style.irony",
+              "style.teasing",
+              "style.empathy_expression",
+              "style.proactive_reply",
+              "style.emoji_frequency",
+              "style.punctuation_density",
+              "style.slang_frequency",
+              "style.topic_extension",
+              "style.question_back",
+              "style.length_variability"
+            ],
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "mask": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "uncertainty": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "sources": [
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              }
+            ]
+          },
+          "D": {
+            "ids": [
+              "beq.positive_expressivity",
+              "beq.negative_expressivity",
+              "beq.impulse_strength",
+              "erq.cognitive_reappraisal",
+              "erq.expressive_suppression",
+              "panas.positive_affect",
+              "panas.negative_affect"
+            ],
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "mask": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "uncertainty": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "sources": [
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              },
+              {
+                "source_type": "unknown",
+                "evidence_refs": []
+              }
+            ]
+          }
+        },
+        "inputs": {
+          "blocks": {
+            "H": {
+              "ids": [
+                "hexaco.h.sincerity",
+                "hexaco.h.fairness",
+                "hexaco.h.greed_avoidance",
+                "hexaco.h.modesty",
+                "hexaco.e.fearfulness",
+                "hexaco.e.anxiety",
+                "hexaco.e.dependence",
+                "hexaco.e.sentimentality",
+                "hexaco.x.social_self_esteem",
+                "hexaco.x.social_boldness",
+                "hexaco.x.sociability",
+                "hexaco.x.liveliness",
+                "hexaco.a.forgivingness",
+                "hexaco.a.gentleness",
+                "hexaco.a.flexibility",
+                "hexaco.a.patience",
+                "hexaco.c.organization",
+                "hexaco.c.diligence",
+                "hexaco.c.perfectionism",
+                "hexaco.c.prudence",
+                "hexaco.o.aesthetic_appreciation",
+                "hexaco.o.inquisitiveness",
+                "hexaco.o.creativity",
+                "hexaco.o.unconventionality",
+                "hexaco.interstitial.altruism"
+              ],
+              "values": [
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2
+              ],
+              "mask": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "uncertainty": [
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4
+              ],
+              "sources": [
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "manual_prior",
+                  "evidence_refs": []
+                }
+              ]
+            },
+            "V": {
+              "ids": [
+                "value.self_direction_thought",
+                "value.self_direction_action",
+                "value.stimulation",
+                "value.hedonism",
+                "value.achievement",
+                "value.power_dominance",
+                "value.power_resources",
+                "value.face",
+                "value.security_personal",
+                "value.security_societal",
+                "value.tradition",
+                "value.conformity_rules",
+                "value.conformity_interpersonal",
+                "value.humility",
+                "value.benevolence_dependability",
+                "value.benevolence_caring",
+                "value.universalism_tolerance",
+                "value.universalism_concern",
+                "value.universalism_nature"
+              ],
+              "values": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "mask": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "uncertainty": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "sources": [
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                }
+              ]
+            },
+            "I": {
+              "ids": [
+                "social.agency",
+                "social.communion"
+              ],
+              "values": [
+                null,
+                null
+              ],
+              "mask": [
+                0,
+                0
+              ],
+              "uncertainty": [
+                null,
+                null
+              ],
+              "sources": [
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                }
+              ]
+            },
+            "L": {
+              "ids": [
+                "style.brevity",
+                "style.fragmentation",
+                "style.formality",
+                "style.directness",
+                "style.humor",
+                "style.irony",
+                "style.teasing",
+                "style.empathy_expression",
+                "style.proactive_reply",
+                "style.emoji_frequency",
+                "style.punctuation_density",
+                "style.slang_frequency",
+                "style.topic_extension",
+                "style.question_back",
+                "style.length_variability"
+              ],
+              "values": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "mask": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "uncertainty": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "sources": [
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                }
+              ]
+            },
+            "D": {
+              "ids": [
+                "beq.positive_expressivity",
+                "beq.negative_expressivity",
+                "beq.impulse_strength",
+                "erq.cognitive_reappraisal",
+                "erq.expressive_suppression",
+                "panas.positive_affect",
+                "panas.negative_affect"
+              ],
+              "values": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "mask": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "uncertainty": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ],
+              "sources": [
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                },
+                {
+                  "source_type": "unknown",
+                  "evidence_refs": []
+                }
+              ]
+            }
+          },
+          "q": [
+            0.6043677771171634,
+            0.549833997312478,
+            0.598687660112452,
+            0.574442516811659,
+            0.6,
+            0.05,
+            0.15,
+            0.1,
+            0.05,
+            0.05,
+            1.0
+          ],
+          "r": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "m": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "affect": [
+            0.5101607510352613,
+            0.5391771615643297,
+            0.6154025156505826,
+            0.6003428626415896,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "affect_context": [
+            0.5101607510352613,
+            0.5391771615643297,
+            0.4924145272462482,
+            0.6154025156505826,
+            0.6003428626415896,
+            0.19713838122824842,
+            0.5253358149477035,
+            0.5244762981526511,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "h_prev": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "calibration": "uncalibrated",
+        "formal_eligible": false,
+        "release_gate": "no_published_validated_network",
+        "q_provenance": "independent_api_grounded_appraisal",
+        "previous_state_scope": {
+          "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+          "scope": "private:qq:123",
+          "person_id": "qq:123"
+        },
+        "value_normalization": "observed_relative_mean; mask retained; no normed questionnaire score"
+      },
+      "executed": true,
+      "elapsed_ms": 12.085,
+      "applied_to": [
+        "candidate_diagnostics",
+        "labels"
+      ]
+    },
+    "decision": {
+      "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+      "scope": "private:qq:123",
+      "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+      "timestamp": 1804200060.0,
+      "prior_revision": 0,
+      "evidence_refs": [],
+      "model_versions": {
+        "PMMDecision": "calibration-first-arbitration/2.8"
+      },
+      "uncertainty": {},
+      "provenance": {},
+      "schema_version": "pmm-cooperation/2.8",
+      "status": "ok",
+      "payload": {
+        "api_preference": "reply",
+        "neural_preference": "silence",
+        "disagreement": true,
+        "arbitration": "no_neural_probability_bonus:uncalibrated",
+        "known_constructs": 25,
+        "score_terms": {
+          "reply": 0.0,
+          "unknown": 0.0,
+          "clarify": 0.0,
+          "disagree": 0.0,
+          "decline": 0.0,
+          "silence": 0.0
+        },
+        "formal_contribution": false,
+        "api_evidence": "这件事情对我很重要，我想和你讨论。",
+        "neural_release_gate": "no_published_validated_network",
+        "uncertainty": {
+          "api": "uncalibrated_hypothesis",
+          "neural": "uncalibrated"
+        },
+        "rule": "check_source_then_calibration_then_conflict; never_average_predictions"
+      },
+      "executed": true,
+      "elapsed_ms": 0.092,
+      "applied_to": [
+        "policy"
+      ]
+    },
+    "negotiation": {
+      "status": "ok",
+      "executed": true,
+      "role": "B",
+      "provider": "ollama",
+      "model": "fixture-A",
+      "elapsed_ms": 1.743,
+      "input_summary": {
+        "perspectives": 4,
+        "memory_count": 0,
+        "emotion_revision": 1,
+        "neural_received": true
+      },
+      "output_summary": {
+        "view_ids": [
+          "v0",
+          "v1",
+          "v2",
+          "v3"
+        ],
+        "review_present": false
+      },
+      "applied_to": [
+        "policy",
+        "expression"
+      ]
+    }
+  },
+  "long_term": {
+    "subject_id": "001f2d4d1fc94a3d89f8f63d043e8a49",
+    "scope": "private:qq:123",
+    "event_id": "2ddc993b5ef8404ca5deb1eccdcba6da",
+    "timestamp": 1804200060.0,
+    "prior_revision": 0,
+    "evidence_refs": [],
+    "model_versions": {
+      "TraitUpdateProposal": "longitudinal-estimator/2.8.1"
+    },
+    "uncertainty": {},
+    "provenance": {},
+    "schema_version": "pmm-cooperation/2.8",
+    "status": "not_ready",
+    "payload": {
+      "reason": "no_identifiable_prior_or_measurement_scale",
+      "stable_trait_version_read": 0
+    },
+    "executed": false
+  },
+  "elapsed_ms": 24.079,
+  "external_sends": 0,
+  "formal_state_writes": 1,
+  "execution_order": [
+    "memory",
+    "reasoner",
+    "affect",
+    "relationship",
+    "neural",
+    "labels",
+    "decision",
+    "negotiation",
+    "policy",
+    "expression"
+  ],
+  "dependencies": [
+    [
+      "memory",
+      "reasoner"
+    ],
+    [
+      "reasoner",
+      "affect"
+    ],
+    [
+      "affect",
+      "neural"
+    ],
+    [
+      "relationship",
+      "neural"
+    ],
+    [
+      "memory",
+      "neural"
+    ],
+    [
+      "neural",
+      "decision"
+    ],
+    [
+      "affect",
+      "negotiation"
+    ],
+    [
+      "neural",
+      "negotiation"
+    ],
+    [
+      "relationship",
+      "negotiation"
+    ],
+    [
+      "memory",
+      "negotiation"
+    ],
+    [
+      "negotiation",
+      "policy"
+    ],
+    [
+      "decision",
+      "policy"
+    ],
+    [
+      "affect",
+      "expression"
+    ],
+    [
+      "policy",
+      "expression"
+    ]
+  ],
+  "official_decision": {
+    "action": "reply",
+    "gate": "weighted_policy"
+  },
+  "commit_receipt": {
+    "kind": "local_transaction",
+    "acknowledged_messages": [],
+    "profile_revision": 0,
+    "trait_version": 0,
+    "affect_revision": 1,
+    "stable_trait_updates": 0,
+    "partial": false
+  },
+  "formal_state_write_meaning": "emotion_and_mood_draft_committed_via_original_transaction; not_a_stable_trait_write"
+}

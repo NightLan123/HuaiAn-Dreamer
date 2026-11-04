@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="app-build" content="__APP_BUILD__">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>槐安梦客 · 人格对话</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/style.css?v=2.8.1">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar"><a class="brand" href="/">◒ <span>槐安梦客<small>HUAIAN DREAMER · 2.8.1</small></span></a><div class="persona-picker">
+<label for="personaSelect">当前主体</label><select id="personaSelect" aria-label="切换人格"></select><div class="row">
+<button id="newPersona" class="quiet" type="button">＋ 创建人格</button><button id="importPack" class="quiet" type="button">载入人格包</button>
+</div>
+</div>
+<nav aria-label="主要功能"><button type="button" data-view="chat" class="active" aria-current="page">对话</button><button type="button" data-view="profiles">人物</button><button type="button" data-view="affectPage">情绪</button><button type="button" data-view="expressionPage">语言习惯</button><button type="button" data-view="memory">记忆</button><button type="button" data-view="distill">蒸馏</button><button type="button" data-view="connections">模型设置</button><button type="button" data-view="modelTraining">模型训练</button><button type="button" data-view="qqPage">QQ 设置</button><button type="button" data-view="diagnostics">后台诊断记录</button><button type="button" data-view="research">数据与版本</button></nav><div class="session-head">
+<span>最近对话</span><button id="newSession" title="新建对话" type="button">＋</button>
+</div>
+<div id="sessions" class="sessions"></div>
+<div class="sidebar-bottom">
+<div id="connectionDot">
+<i></i><span>连接状态</span>
+</div>
+<button id="settingsBtn" type="button">模型连接与测试 →</button>
+</div></aside>
+<main><header class="topbar"><div>
+<span class="eyebrow" id="pageKicker">CONTINUOUS DIALOGUE</span><h1 id="pageTitle" tabindex="-1">对话</h1>
+</div>
+<div class="top-actions">
+<span id="modelName" class="badge">尚未连接模型</span><button id="settingsTop" type="button">模型设置</button>
+</div></header>
+<div class="local-connection" role="status">
+<span id="localStatus">正在连接本地程序…</span><button id="retryLocal" type="button">重新连接</button><button id="copyLocalError" type="button">复制诊断</button>
+</div>
+<p id="draftStatus" class="draft-status" role="status" hidden></p>
+<div id="notice" role="status" aria-live="polite" hidden></div>
+<div id="operationReceipt" class="operation-receipt" role="status" aria-live="polite" hidden></div>
+<section id="chat" class="page active chat-page"><div class="conversation">
+<button id="loadEarlierMessages" class="quiet" hidden type="button">加载更早消息</button><div id="chatLog" class="chat-log" role="log" aria-live="polite"></div>
+<div class="compose-wrap">
+<div id="progress" class="progress" hidden></div>
+<form id="chatForm">
+<label class="sr-only" for="message">输入消息</label><textarea id="message" rows="2" placeholder="输入消息。Enter 发送，Shift + Enter 换行"></textarea><button id="sendBtn" class="primary" type="submit">发送 ↗</button>
+</form>
+<p id="composeHint">回复的意图、状态与记忆变化可在每轮记录中查看。</p>
+</div>
+</div>
+<aside class="inspector"><div class="mini-label">当前主体</div>
+<h2 id="subjectName"></h2>
+<p id="identitySummary" class="muted"></p>
+<div class="rule"></div>
+<div class="mini-label">当前情绪估计</div>
+<div id="emotionMeters"></div>
+<button data-goto="affectPage" class="wide" type="button">查看情绪状态 →</button><div class="rule"></div>
+<div class="mini-label">PMM 学习状态</div>
+<div id="modelStats"></div>
+<p class="fine">数值用于研究控制，不代表真实主观体验或心理量表分数。</p>
+<button id="latestTrace" class="wide" type="button">查看最近一轮机制 →</button></aside></section>
+<section id="distill" class="page scroll-page"><div class="page-intro">
+<h2>蒸馏</h2>
+<p>导入已有聊天，管理学习策略、候选审核与实际写入。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>先指定人物与授权范围，预览原文后运行；在任务页审核、暂停、继续或回滚。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>原文、候选、字段差异和训练状态保存在同一任务记录中；仅分析不等于训练完成。</dd>
+</div>
+</dl>
+</div>
+<div id="learningOverview" class="card"></div>
+<p id="learningProgress" role="status" aria-live="polite"></p>
+ <div class="tabs" role="tablist" aria-label="distill 分区">
+<button id="distill-import-tab" type="button" role="tab" data-tab="distill-import" aria-controls="distill-import" aria-selected="true" tabindex="0">聊天资料导入</button><button id="distill-manual-tab" type="button" role="tab" data-tab="distill-manual" aria-controls="distill-manual" aria-selected="false" tabindex="-1">手动学习</button><button id="distill-policy-tab" type="button" role="tab" data-tab="distill-policy" aria-controls="distill-policy" aria-selected="false" tabindex="-1">自动学习策略</button><button id="learningPage-tab" type="button" role="tab" data-tab="learningPage" aria-controls="learningPage" aria-selected="false" tabindex="-1">学习任务</button><button id="distill-results-tab" type="button" role="tab" data-tab="distill-results" aria-controls="distill-results" aria-selected="false" tabindex="-1">结果与证据</button>
+</div>
+<section id="distill-import" class="tab-panel" role="tabpanel" aria-labelledby="distill-import-tab" tabindex="0"><div class="two-col">
+<article class="card"><div class="step">01 / 选择记录</div>
+<label class="file-drop" for="chatFile"><b>选择 JSON、JSONL 或 TXT</b><span>也可以在下方粘贴；每批最多 2 MB / 3000 条</span><input id="chatFile" type="file" accept=".json,.jsonl,.txt"></label><label for="sourceText">聊天内容</label><textarea id="sourceText" class="source" placeholder="甲：在吗？
+乙：说
+甲：想让你帮个忙。
+乙：什么事"></textarea><button id="previewImport" class="primary" type="button">解析并预览说话人 →</button><p class="fine">JSON 支持 speaker/text 或 role/content。TXT 每条以“说话人：”开始，后续换行并入同一条。</p></article><article class="card"><div class="step">02 / 确定学习对象</div>
+<label for="speakerSelect">只学习此人的消息</label><select id="speakerSelect"><option value="">请先解析记录</option></select><label for="distillTarget">蒸馏到哪里</label><select id="distillTarget"><option value="self">当前 AI 人格与语言风格</option>
+<option value="interlocutor">交谈对象模型（不改变 AI 人格）</option></select><div id="otherFields" hidden>
+<label for="personId">对象标识</label><input id="personId" value="web:owner"><label for="personScope">使用范围</label><input id="personScope" value="private:web:owner"><p class="fine">本机对象使用默认值；QQ 私聊示例：标识 qq:123，范围 private:qq:123。</p>
+</div>
+<div id="importPreview" class="preview muted">解析后会显示消息数量与原文预览。</div>
+<button id="distillBtn" class="primary wide" disabled type="button">运行导入学习任务</button><p class="fine">完整 PMM 使用事件理解模型整理有依据的学习来源。相同事件不会重复增加独立证据；参数训练见“模型训练”。</p></article>
+</div>
+<div id="distillResult"></div></section><section id="distill-manual" class="tab-panel" role="tabpanel" aria-labelledby="distill-manual-tab" tabindex="0" hidden=""><article class="card"><div class="row spread">
+<h3>从已有记录新建任务</h3>
+<button data-goto="distill" type="button">导入新的聊天资料 →</button>
+</div>
+ <form id="learningPreviewForm">
+<div class="two-col">
+<div>
+<label for="learningTarget">学习目标</label><select id="learningTarget"><option value="self">自身长期人格</option>
+<option value="other">指定交谈对象</option>
+<option value="relationship">与对象的双边关系</option>
+<option value="language">语言与语用示范</option>
+<option value="memory">记忆要点</option>
+<option value="social_graph">人际网络关系陈述</option></select><label for="learningPerson">对象标识（对象/关系任务必填）</label><input id="learningPerson" placeholder="web:owner 或 qq:123"><label for="learningScopes">本次授权范围（可多选）</label><select id="learningScopes" multiple size="4" required></select><p class="fine">Self/语言只使用授权真人示范和人工校正。旁观群聊还需在策略中明确允许群与人物。</p>
+</div>
+ <div>
+<label for="learningRange">原文范围</label><select id="learningRange"><option value="recent">最近 N 条</option>
+<option value="days">最近 N 天</option>
+<option value="session">选定会话</option>
+<option value="all">全部已选授权范围</option></select><label for="learningAmount">N</label><input id="learningAmount" type="number" value="20" min="1" max="100000"><label for="learningSession">会话</label><select id="learningSession"><option value="">选择会话</option></select><label for="learningIntent">处理方式</label><select id="learningIntent"><option value="review">生成候选，审阅后应用</option>
+<option value="analysis">仅分析，不应用</option>
+<option value="apply">按证据门槛晋升并应用</option></select><label><input id="learningIncludeObservations" type="checkbox"> 包含已获单独授权的群聊旁观原文</label><label><input id="learningTrainWeights" type="checkbox"> Self/语言任务同时更新数值权重（API 模式只排队）</label><label><input id="learningReanalyse" type="checkbox"> 重新分析已处理原文（来源仍不重复计数）</label>
+</div>
+</div>
+<button type="submit">预览来源与工作量</button>
+</form>
+ <div id="learningPreviewResult"></div>
+<button id="learningCreate" class="primary" disabled type="button">确认此范围并运行</button></article>
+ </section><section id="distill-policy" class="tab-panel" role="tabpanel" aria-labelledby="distill-policy-tab" tabindex="0" hidden=""><article class="card"><div class="row spread">
+<h3>学习策略</h3>
+<label>预设 <select id="learningPreset"><option value="custom">当前设置</option>
+<option value="observe">观察但不晋升</option>
+<option value="cautious">谨慎学习</option>
+<option value="standard">标准学习</option>
+<option value="broad">广泛学习</option></select></label>
+</div>
+ <p class="fine">强度只调整通过证据门槛后的长期更新幅度。0%停止该领域的长期学习；100%仍需来源和授权。调用频率与预算独立设置。</p>
+ <form id="learningPolicyForm">
+<div id="learningPolicyFields" class="learning-policy-grid"></div>
+<details><summary>资源预算与自动处理</summary><label><input id="learningPaused" type="checkbox"> 暂停自动学习</label><div class="two-col">
+<label>每批消息数 <input id="learningBatchRecords" type="number" min="1" max="50"></label><label>每批字符上限 <input id="learningBatchChars" type="number" min="2000" max="32000"></label><label>每任务调用上限 <input id="learningMaxCalls" type="number" min="1" max="100"></label><label>每任务 Token 预算 <input id="learningMaxTokens" type="number" min="2000" max="2000000"></label>
+</div></details><button class="primary" type="submit">保存策略（只影响后续工作）</button>
+</form></article>
+ </section><section id="learningPage" class="tab-panel" role="tabpanel" aria-labelledby="learningPage-tab" tabindex="0" hidden=""><article class="card"><div class="row spread">
+<h3>学习任务</h3>
+<button id="learningRefresh" type="button">刷新</button>
+</div>
+<div id="learningJobs"></div>
+<div class="row">
+<span id="learningJobPage"></span><button id="learningJobsPrevious" type="button">上一页任务</button><button id="learningJobsNext" type="button">下一页任务</button>
+</div></article>
+ </section><section id="distill-results" class="tab-panel" role="tabpanel" aria-labelledby="distill-results-tab" tabindex="0" hidden=""><article class="card"><h3>实时学习与后台整理记录</h3>
+<div id="learningActivities"></div>
+<button id="learningMoreActivities" type="button">加载更早记录</button></article><article class="card"><h3>语言审核实际写入</h3><div id="deReviewHistory"></div><button type="button" data-goto="expressionPage" data-target-tab="language-evidence">查看候选与原始依据</button></article>
+<article class="card"><h3>查看任务的实际变化</h3>
+<p>每项任务的原文、候选、应用差异、参数更新与回滚状态均可从任务详情核对。证据整理报告位于人物页，报告本身不改变人格。</p>
+<button data-goto="distill" data-target-tab="learningPage" type="button">打开学习任务 →</button><button data-goto="profiles" data-target-tab="profiles-evidence" type="button">查看人格证据与修订 →</button></article></section></section>
+<section id="profiles" class="page scroll-page"><div class="page-intro">
+<h2>人物</h2>
+<p>分别管理当前主体与交谈对象，查看人格估计、人际边界和证据。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>选择子页查看或编辑；需要学习新资料时进入蒸馏。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>设定保存到当前主体；对象资料按人物与情境隔离，修订可追溯。</dd>
+</div>
+</dl>
+</div>
+<div class="tabs" role="tablist" aria-label="profiles 分区">
+<button id="profiles-settings-tab" type="button" role="tab" data-tab="profiles-settings" aria-controls="profiles-settings" aria-selected="true" tabindex="0">人物设定</button><button id="profiles-self-tab" type="button" role="tab" data-tab="profiles-self" aria-controls="profiles-self" aria-selected="false" tabindex="-1">自身人格</button><button id="otherPage-tab" type="button" role="tab" data-tab="otherPage" aria-controls="otherPage" aria-selected="false" tabindex="-1">交谈对象</button><button id="profiles-boundaries-tab" type="button" role="tab" data-tab="profiles-boundaries" aria-controls="profiles-boundaries" aria-selected="false" tabindex="-1">人际边界</button><button id="profiles-evidence-tab" type="button" role="tab" data-tab="profiles-evidence" aria-controls="profiles-evidence" aria-selected="false" tabindex="-1">人格证据与修订</button><button id="graphPage-tab" type="button" role="tab" data-tab="graphPage" aria-controls="graphPage" aria-selected="false" tabindex="-1">人际网络</button>
+</div>
+<section id="profiles-settings" class="tab-panel" role="tabpanel" aria-labelledby="profiles-settings-tab" tabindex="0"><article class="card"><h3>当前主体设定</h3>
+<div class="row spread">
+<h2 id="selfProfileName"></h2>
+<button id="editCharacter" type="button">编辑角色设定</button>
+</div>
+<p id="characterSummary" class="fine"></p>
+<p class="fine">使用“编辑角色设定”修改名称、自称和初始描述；创建独立身份或载入人格包请使用侧栏。已有记忆与训练权重不会因改名而重置。</p></article></section><section id="profiles-self" class="tab-panel" role="tabpanel" aria-labelledby="profiles-self-tab" tabindex="0" hidden=""><aside class="metric-legend"><strong>数值图例</strong><p><span class="legend-estimate">粗条 · 特征估计值</span>：范围 0–1。<span class="legend-uncertainty">细条 · 工程不确定性</span>：越大表示估计越不确定；未经心理统计校准，不是置信概率。未知不绘制有效分数条。</p></aside><article class="card"><div class="step">AI 自身</div>
+<p id="registrySummary" class="callout"></p>
+<div id="psychologyPanel"></div>
+<h3>习惯性情绪表达 · BEQ</h3>
+<p class="fine">长期的表达习惯，与此刻喜怒分开。未知保持未知。</p>
+<div id="beqPanel" class="trait-grid"></div>
+<h3>习惯性调节 · ERQ</h3>
+<div id="erqPanel" class="trait-grid"></div>
+<details><summary>可选：通常的情感倾向 · PANAS</summary><p class="fine">仅接受“总体上/通常”的时间框架；PA/NA 不能替代当前 VA。</p>
+<div id="panasPanel" class="trait-grid"></div></details><div class="trait-actions"><button id="editTraitSeed" type="button">编辑长期倾向设定</button></div></article></section><section id="otherPage" class="tab-panel" role="tabpanel" aria-labelledby="otherPage-tab" tabindex="0" hidden=""><label for="otherSearch">查找人物或情境</label><input id="otherSearch" type="search" placeholder="名称、对象标识或情境"><article class="card"><div class="step">对交谈对象的暂时判断</div>
+<label for="otherSelect">选择对象与情境</label><select id="otherSelect"></select><div id="otherPanel"></div>
+<p class="fine">这些判断只描述当前可见互动；证据不足的维度保留未知，不据此作心理诊断。</p></article><div id="otherLearningStatus" class="card"></div>
+<article class="card"><h3>人物身份与权限范围</h3><label for="peopleScope">会话范围</label><select id="peopleScope"></select><button id="loadPeople" type="button">查看本范围人物</button><div id="peopleV27"></div>
+<details><summary>添加或核对本范围身份</summary><form id="identityEvidenceForm"><label for="identityPerson">稳定人物标识</label><input id="identityPerson" required placeholder="qq:123 或 local:第三方编号"><label for="identityAlias">此范围内的称呼</label><input id="identityAlias" maxlength="100" required>
+<label for="identitySource">原始证据</label><select id="identitySource" required></select><label for="identityQuote">逐字依据</label><textarea id="identityQuote" required rows="2"></textarea><label for="identityOp">核验记录</label><select id="identityOp"><option value="annotate">主人标注（保留不确定性）</option><option value="dispute">标记有争议</option></select><button type="submit">保存本范围身份记录</button></form></details></article></section><section id="profiles-boundaries" class="tab-panel" role="tabpanel" aria-labelledby="profiles-boundaries-tab" tabindex="0" hidden=""><article class="card"><div class="row spread">
+<div>
+<div class="step">情境、情绪与关系</div>
+<h2>人际边界</h2>
+</div>
+<button id="newDynamicBoundary" type="button">＋ 设置边界倾向</button>
+</div>
+<p class="fine">描述原则即可，无需编写关键词。边界决定在意什么，行动策略决定如何表达。隐私、真实性和联系许可始终独立生效。</p>
+<div id="boundaryModelSummary" class="callout"></div>
+<div class="row boundary-filters">
+<label>状态 <select id="boundaryFilter"><option value="active">当前有效</option>
+<option value="revoked">已撤销</option>
+<option value="archived">已归档</option>
+<option value="all">全部</option></select></label><label>查找边界 <input id="boundarySearch" type="search" placeholder="主题、对象或范围"></label>
+</div>
+<div id="dynamicBoundaryList" class="boundary-grid"></div>
+<h3>情境判断历史</h3>
+<form id="boundaryHistoryForm" class="row">
+<label class="sr-only" for="boundaryHistorySearch">搜索历史</label><input id="boundaryHistorySearch" type="search" placeholder="原话、对象或回合ID"><button type="submit">搜索全部已保留历史</button>
+</form>
+<div id="boundaryActivations"></div>
+<h3>校准结果与使用去向</h3>
+<div id="boundaryCalibrationResults"></div>
+<div class="row">
+<span id="boundaryHistoryCount" class="fine"></span><button id="boundaryHistoryPrevious" type="button">上一页</button><button id="boundaryHistoryNext" type="button">下一页</button><button id="boundaryEvidence" type="button">查看证据、反例与变化记录</button><button id="boundaryMetrics" type="button">查看校准与对照指标</button>
+</div></article></section><section id="profiles-evidence" class="tab-panel" role="tabpanel" aria-labelledby="profiles-evidence-tab" tabindex="0" hidden=""><button id="reviewTraitEvidence" type="button">审查并应用满足门槛的证据</button><div id="traitReviewPanel"></div>
+<article class="card"><h3>从实际经历学习自身人格</h3><p>评价确实发生的行为；相同经历的多次评价只计一次。新一轮更新仍需至少三个独立事件、两个情境与一天跨度，且没有显著反例。</p>
+<form id="formationForm"><label for="formationSession">经历所在会话</label><select id="formationSession" required></select><button id="loadFormationTurns" type="button">读取已发送经历</button>
+<label for="formationTurn">被评价的实际回复</label><select id="formationTurn" required><option value="">先读取经历</option></select>
+<p id="formationOriginalInput" class="fine"></p><label for="formationContext">情境类别（可选，例如学习讨论、意见分歧）</label><input id="formationContext" maxlength="100"><label for="formationContextQuote">该情境的用户输入原句（填写类别时必填）</label><textarea id="formationContextQuote" rows="2"></textarea><p class="fine">同一会话中的不同情境也可积累；类别是有原文锚定的标注，尚未校准为心理测量。留空时仅按会话范围区分情境。</p><label for="formationFeature">稳定特征或长期倾向</label><select id="formationFeature" required></select>
+<label for="formationValue">候选估计 <output id="formationValueOut">0.70</output></label><input id="formationValue" type="range" min="0" max="1" step="0.01" value="0.7">
+<label for="formationConfidence">评价置信度 <output id="formationConfidenceOut">0.70</output></label><input id="formationConfidence" type="range" min="0.4" max="0.75" step="0.01" value="0.7">
+<label for="formationNote">具体行为、依据与可能的反例</label><textarea id="formationNote" rows="3" maxlength="6000" required placeholder="描述你观察到的行为；避免仅用此刻的情绪作长期判断"></textarea>
+<button type="submit" class="primary">提交外部评价并检查证据门槛</button></form><div id="formationResult" aria-live="polite"></div><button id="compareFormationDecision" type="button">对选中回合做固定条件消融</button><p class="fine">保持当时的事件、对象、时间与模型评估，分别移除人格、关系和长期调节条件，并将所选字段设为 0.2 / 0.8 作对照。只比较，不写回。</p><div id="decisionComparison" aria-live="polite"></div>
+<details><summary>最近长期修订与原始依据</summary><div id="formationHistory"></div></details><details><summary>外部评价及撤回</summary><div id="formationEvidence"></div></details></article>
+<article class="card"><h3>统一来源与状态修订</h3><label for="evidenceScope">查看范围</label><select id="evidenceScope"></select><div class="row"><button id="loadEvidenceTrace" type="button">读取证据链</button><button id="previousEvidenceTrace" type="button">上一页</button><button id="nextEvidenceTrace" type="button">下一页</button></div><div id="unifiedEvidenceTrace"></div></article>
+<article class="card"><div class="row spread">
+<h3>人格证据整理报告 <span class="badge">仅分析 · 未应用</span>
+</h3>
+<button id="synthesizePersona" type="button">生成证据整理报告</button>
+</div>
+<div id="synthesisPanel"></div>
+<button id="synthesisCandidates" type="button">从报告原文生成候选预览</button><button data-goto="learningPage" type="button">查看候选、晋升与实际写入 →</button><p class="fine">整理结果保留原文引用与不确定项，不自动覆盖人格维度。表达观测用于检查当前行为，不自动当作目标人物的正确示范。</p></article><article class="card"><h3>可追溯证据</h3>
+<div id="evidencePanel"></div></article><article class="card"><h3>最近人格修订与学习结果</h3>
+<div id="personaRevisionSummary"></div>
+<div id="recentAppliedLearning"></div>
+<button data-goto="research" data-target-tab="research-checkpoints">查看全部人格检查点 →</button></article></section><section id="graphPage" class="tab-panel" role="tabpanel" aria-labelledby="graphPage-tab" tabindex="0" hidden=""><article class="card"><form id="graphQueryForm">
+<label for="graphScopes">明确选择可查询的情境</label><select id="graphScopes" multiple size="4"></select><label for="graphPerson">仅查看某人的邻居（可选）</label><input id="graphPerson" placeholder="稳定对象标识"><button class="primary" type="submit">查看这些范围</button>
+</form>
+<p class="fine">跨群信息仅在本机管理查询中显示；对话检索只允许当前会话范围。</p></article>
+ <article class="card"><div id="graphSummary"></div>
+<div id="graphCanvas" class="graph-canvas"></div>
+<div id="graphIntersections"></div></article><article class="card"><h3>带来源的关系陈述</h3>
+<div id="graphClaims"></div></article>
+</section></section>
+<section id="affectPage" class="page scroll-page">
+<div class="page-intro">
+<h2>情绪状态</h2>
+<p>查看当前情绪估计、心境、事件评价和状态变化历史。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>选择状态或历史子页；工程参数可单独编辑。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>情绪按原有事件与时间机制更新。长期 BEQ/ERQ 在人物页，表达执行记录在语言习惯页。</dd>
+</div>
+</dl>
+</div>
+<div id="affectDynamicsPage281"></div><div id="affectStatus" class="callout"></div>
+<div class="tabs" role="tablist" aria-label="affectPage 分区">
+<button id="affect-current-tab" type="button" role="tab" data-tab="affect-current" aria-controls="affect-current" aria-selected="true" tabindex="0">情绪与心境</button><button id="affect-events-tab" type="button" role="tab" data-tab="affect-events" aria-controls="affect-events" aria-selected="false" tabindex="-1">事件评价</button><button id="affect-regulation-tab" type="button" role="tab" data-tab="affect-regulation" aria-controls="affect-regulation" aria-selected="false" tabindex="-1">情绪调节</button><button id="affect-history-tab" type="button" role="tab" data-tab="affect-history" aria-controls="affect-history" aria-selected="false" tabindex="-1">情绪轨迹</button><button id="affect-parameters-tab" type="button" role="tab" data-tab="affect-parameters" aria-controls="affect-parameters" aria-selected="false" tabindex="-1">状态参数</button>
+</div>
+<section id="affect-current" class="tab-panel" role="tabpanel" aria-labelledby="affect-current-tab" tabindex="0"><div class="two-col">
+<article class="card"><h3>此刻 · 内部情绪估计</h3>
+<h4>核心情感 · VA / D</h4>
+<div id="currentAffect"></div>
+<h4>辅助状态</h4>
+<div id="affectAuxiliary"></div>
+<h4>当前主要激活（最多三类，可并存）</h4>
+<div id="emotionTop"></div>
+<div id="affectProvenance" class="fine"></div></article>
+<article class="card"><h3>中期 · 心境背景</h3>
+<div id="moodPanel"></div>
+<p class="fine">按实际经过的时间变化；重启沿用保存的时间，不按聊天次数平滑。</p></article>
+</div>
+<article class="card"><h3>具体情绪 · 可同时存在</h3>
+<div id="emotionLabels" class="trait-grid"></div></article>
+</section><section id="affect-events" class="tab-panel" role="tabpanel" aria-labelledby="affect-events-tab" tabindex="0" hidden=""><article class="card"><h3>已记录的事件评价</h3>
+<div id="deAffectEvent"></div><h4>事件评价原始记录</h4><div id="affectAppraisals"></div></article></section><section id="affect-regulation" class="tab-panel" role="tabpanel" aria-labelledby="affect-regulation-tab" tabindex="0" hidden=""><article class="card"><h3>已记录的调节行为</h3>
+<div id="affectRegulations"></div>
+<button data-goto="expressionPage" data-target-tab="language-actual" type="button">查看实际表达与回执 →</button></article></section><section id="affect-history" class="tab-panel" role="tabpanel" aria-labelledby="affect-history-tab" tabindex="0" hidden=""><article class="card"><h3>最近的情绪轨迹</h3>
+<div id="affectTrajectory" class="table-scroll"></div></article>
+</section><section id="affect-parameters" class="tab-panel" role="tabpanel" aria-labelledby="affect-parameters-tab" tabindex="0" hidden=""><article class="card"><h3>本主体的情绪转移参数</h3>
+<p class="fine">未校准的工程先验，可按角色设定调整；不会由某个 HEXACO 面向自动换算，也不会覆盖已有训练权重。</p>
+<form id="affectParametersForm" class="settings-form" data-compat="">
+<div class="two-col">
+<div>
+<label for="affectBaseValence">效价基线（−1 至 1）</label><input id="affectBaseValence" type="number" min="-1" max="1" step="0.05"><label for="affectBaseArousal">唤醒基线</label><input id="affectBaseArousal" type="number" min="0" max="1" step="0.05"><label for="affectBaseDominance">主导感基线（空为未知）</label><input id="affectBaseDominance" type="number" min="0" max="1" step="0.05"><label for="affectBaseStress">压力基线</label><input id="affectBaseStress" type="number" min="0" max="1" step="0.05"><label for="affectBaseEngagement">参与基线</label><input id="affectBaseEngagement" type="number" min="0" max="1" step="0.05">
+</div>
+<div>
+<label for="affectTau">短期状态时间常数（秒）</label><input id="affectTau" type="number" min="10" max="604800" required><label for="moodTau">心境时间常数（秒）</label><input id="moodTau" type="number" min="60" max="2592000" required><label for="affectReactivity">事件反应系数（0–1）</label><input id="affectReactivity" type="number" min="0" max="1" step="0.05" required><p class="fine">时间常数不是每次读取的倒计时；没有新事件时，反复打开页面不会加快衰减。</p>
+</div>
+</div>
+<button type="submit">保存此主体参数</button>
+</form></article></section></section>
+<section id="expressionPage" class="page scroll-page"><div class="page-intro">
+<h2>语言习惯</h2>
+<p>查看已有示范中的语言特征、对话规划和实际发送表现。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>选择子页核对来源；标注示范，或跳转蒸馏建立同一套学习任务。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>统计、计划、实际表现与人工反馈分别保存；未训练的语用神经模型会明确标注。</dd>
+</div>
+</dl>
+</div>
+<div class="tabs" role="tablist" aria-label="expressionPage 分区">
+<button id="language-style-tab" type="button" role="tab" data-tab="language-style" aria-controls="language-style" aria-selected="true" tabindex="0">长期语言风格</button><button id="language-behaviour-tab" type="button" role="tab" data-tab="language-behaviour" aria-controls="language-behaviour" aria-selected="false" tabindex="-1">对话行为倾向</button><button id="language-plans-tab" type="button" role="tab" data-tab="language-plans" aria-controls="language-plans" aria-selected="false" tabindex="-1">最近表达计划</button><button id="language-actual-tab" type="button" role="tab" data-tab="language-actual" aria-controls="language-actual" aria-selected="false" tabindex="-1">实际发送与反馈</button><button id="language-evidence-tab" type="button" role="tab" data-tab="language-evidence" aria-controls="language-evidence" aria-selected="false" tabindex="-1">已有学习证据</button>
+</div>
+<section id="language-style" class="tab-panel" role="tabpanel" aria-labelledby="language-style-tab" tabindex="0"><article class="card"><h3>语言与行为习惯</h3>
+<p class="fine">程序行为统计，属于语用表征，不是心理学量表。</p>
+<div id="stylePanel"></div>
+<div id="languageIdentity"></div></article></section><section id="language-behaviour" class="tab-panel" role="tabpanel" aria-labelledby="language-behaviour-tab" tabindex="0" hidden=""><article class="card"><h3>来自人类示范的倾向</h3>
+<p id="expressionStatus" class="callout"></p>
+<div id="pragmaticProfile" class="trait-grid"></div>
+<div id="deTextStats"></div><p id="pragmaticSources" class="fine"></p>
+<h3>哪些情境会连续发送</h3>
+<div id="pragmaticContexts" class="metric-grid"></div></article></section><section id="language-plans" class="tab-panel" role="tabpanel" aria-labelledby="language-plans-tab" tabindex="0" hidden=""><article class="card"><h3>最近表达计划</h3>
+<p class="fine">解释停止、补充和追问的依据；回执未知的消息不计作确认发送。</p>
+<div id="expressionPlans"></div><div class="row"><button id="dePrevious" type="button">上一页回合</button><span id="deTurnPage" aria-live="polite"></span><button id="deNext" type="button">下一页回合</button></div></article></section><section id="language-actual" class="tab-panel" role="tabpanel" aria-labelledby="language-actual-tab" tabindex="0" hidden=""><article class="card"><h3>实际表达与独立反馈</h3>
+<div id="expressionObservation"></div><p id="deUnusedFeedback" class="fine"></p></article><article class="card"><h3>给实际回合一个明确的语言目标</h3><form id="deFeedbackForm"><label for="deTargetTurn">评价哪一轮</label><select id="deTargetTurn"></select><label for="deTargetField">希望调整的倾向</label><select id="deTargetField"></select><label for="deTargetValue">建议程度</label><input id="deTargetValue" type="range" min="0" max="1" step="0.01" value="0.5"><div id="deTargetValuePreview"></div><label for="deTargetNote">为什么这样评价</label><textarea id="deTargetNote" maxlength="1000" required></textarea><button class="primary" id="deTargetSave" type="submit">记录反馈，形成候选</button></form><button type="button" data-goto="expressionPage" data-target-tab="language-evidence">去审核语言候选</button></article><article class="card"><h3>外部表达 · 已实际执行</h3>
+<div id="actualExpression"></div>
+<div id="expressionPanel"></div>
+<p class="fine">表达抑制可降低外部强度，不代表内部负性情绪已消失。</p></article>
+</section><section id="language-evidence" class="tab-panel" role="tabpanel" aria-labelledby="language-evidence-tab" tabindex="0" hidden=""><article class="card"><details><summary>标注人类示范中的表达习惯</summary><p class="fine">只标注导入的人类原话。自动统计不能可靠判断“话题推进”和“语用省略”，有依据的人工标注才会补足这些倾向；同一事件重复修订不增加样本数。</p>
+<form id="pragmaticAnnotationForm">
+<label for="pragmaticEpisode">示范事件</label><select id="pragmaticEpisode"></select><pre id="pragmaticOriginal"></pre>
+<label for="pragmaticField">要校正的倾向</label><select id="pragmaticField"></select><label for="pragmaticValue">程度（0–1）</label><input id="pragmaticValue" type="range" min="0" max="1" step="0.01" value="0.5"><div id="pragmaticValuePreview"></div>
+<label for="pragmaticNote">原文如何支持这个判断</label><textarea id="pragmaticNote" maxlength="1000" required></textarea><button id="savePragmaticAnnotation" class="primary" type="submit">保存示范标注</button>
+</form></details></article><article class="card"><h3>候选倾向与人工审核</h3><p>同一会话范围和话语情境内，至少两个独立事件、目标差距不超过 0.6，才可应用。此门槛是工程设置。</p><div id="deCandidates"></div><form id="deReviewForm"><label for="deCandidate">选择候选</label><select id="deCandidate"></select><pre id="deCandidateEvidence"></pre><label for="deReviewNote">审核理由</label><textarea id="deReviewNote" maxlength="1000" required></textarea><div class="row"><button id="deReviewApply" class="primary" data-de-review="apply" type="submit">应用到语言档案</button><button id="deReviewReject" data-de-review="reject" type="submit">驳回</button><button id="deReviewRevoke" data-de-review="revoke" type="submit">撤销应用</button></div></form><button type="button" data-goto="distill" data-target-tab="distill-results">查看字段修改记录</button></article><article class="card"><h3>导入或复核更多示范</h3>
+<p>缺少时间戳的原话仅用于语言内容统计，不能恢复真实发送间隔。补充说话人、时间与上下文后，可在蒸馏页面预览来源。</p>
+<button data-goto="distill" data-target-tab="distill-import" type="button">导入聊天资料 →</button><button data-goto="distill" data-target-tab="learningPage" type="button">查看已有学习任务 →</button></article></section></section>
+<section id="memory" class="page scroll-page"><div class="page-intro">
+<h2>记忆</h2>
+<p>查询已保存的事件、原文来源及检索强度。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>搜索记忆，展开来源；可修订、停用或调整整理设置。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>修改保留审计记录；停用不等于删除原文，彻底删除需使用单独的来源删除操作。</dd>
+</div>
+</dl>
+</div>
+<div class="tabs" role="tablist" aria-label="memory 页面分区">
+<button id="memory-tab-list" role="tab" type="button" data-tab="memory-panel-list" aria-controls="memory-panel-list" aria-selected="true" tabindex="0">记忆列表</button><button id="memory-tab-settings" role="tab" type="button" data-tab="memory-panel-settings" aria-controls="memory-panel-settings" aria-selected="false" tabindex="-1">整理与来源</button>
+</div>
+<section id="memory-panel-list" class="tab-panel" role="tabpanel" aria-labelledby="memory-tab-list" tabindex="0"><div class="row spread">
+<div>
+<h2>经历与记忆</h2>
+<p class="muted">原始经历、推断和修订记录分别保留。</p>
+</div>
+<input id="memorySearch" placeholder="搜索记忆内容" aria-label="搜索记忆">
+</div>
+<div id="memoryList"></div></section><section id="memory-panel-settings" class="tab-panel" role="tabpanel" aria-labelledby="memory-tab-settings" hidden tabindex="0"><section class="settings-block"><h2>记忆整理与衰减</h2>
+<form id="memoryLifecycleForm">
+<label><input id="memoryGistEnabled" type="checkbox"> 持续蒸馏有原文依据的记忆要点</label><p class="fine">日常记录先进入工作记忆，批量、空闲或事件结束时整理主旨、结论与不确定性。衰减降低想起的机会，不按天数删原文；相关且被本轮采用的记忆会增强。记忆机制的心理测量效度尚待验证。</p>
+<button type="submit">保存记忆设置</button><button id="memoryConsolidateNow" type="button">现在蒸馏一批 / 重试失败项</button><p class="callout">实验机制依据事件边界估计分段，提取意义并核对旧记忆。原始记录保留，可查看每次整理的来源。</p>
+</form>
+<pre id="memoryLifecycleStatus" class="compact-result"></pre>
+<p class="fine">记忆页可查看逐字来源、停用单条记忆，或通过明确确认删除整个来源会话及其学习影响。</p></section></section></section>
+<section id="research" class="page scroll-page"><div class="page-intro">
+<h2>数据与版本</h2>
+<p>查看模型权重、训练验证、人格检查点并执行导入、导出与恢复。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>先保存备份，再选择要恢复的参数或人格版本。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>参数版本、人格状态与完整主体备份分别保存；完整备份不包含接口密钥。</dd>
+</div>
+</dl>
+</div>
+<div class="tabs" role="tablist" aria-label="research 分区">
+<button id="research-training-tab" type="button" role="tab" data-tab="research-training" aria-controls="research-training" aria-selected="true" tabindex="0">训练验证</button><button id="research-parameters-tab" type="button" role="tab" data-tab="research-parameters" aria-controls="research-parameters" aria-selected="false" tabindex="-1">模型与个体参数</button><button id="research-checkpoints-tab" type="button" role="tab" data-tab="research-checkpoints" aria-controls="research-checkpoints" aria-selected="false" tabindex="-1">人格检查点</button><button id="research-backup-tab" type="button" role="tab" data-tab="research-backup" aria-controls="research-backup" aria-selected="false" tabindex="-1">导入导出与备份</button>
+</div>
+<section id="research-training" class="tab-panel" role="tabpanel" aria-labelledby="research-training-tab" tabindex="0"><article class="card"><div class="step">训练与验证</div>
+<h2>训练记录与验证指标</h2>
+<div id="trainingPanel"></div>
+<p class="fine">保留集不参与梯度更新；弱监督标签仍来自大模型。小样本指标不能证明人格效度或跨模型泛化。</p></article></section><section id="research-parameters" class="tab-panel" role="tabpanel" aria-labelledby="research-parameters-tab" tabindex="0" hidden=""><article class="card"><div class="step">核心 θ / 个体 Δ</div>
+<h2>核心与个体参数版本</h2>
+<p id="versionLoadError" role="status"></p>
+<div id="parameterSummary"></div>
+<div class="two-col">
+<div>
+<h3>个体参数</h3>
+<div class="row">
+<button id="saveWeightsVersion" type="button">保存参数版本</button><button id="exportAdapter" type="button">导出 Adapter</button><button id="importAdapter" type="button">载入 Adapter</button>
+</div>
+<label for="weightVersion">本主体参数版本</label><select id="weightVersion"></select><button id="activateWeights" type="button">恢复选中参数版本</button>
+</div>
+<div>
+<h3>共享核心</h3>
+<div class="row">
+<button id="saveCore" type="button">登记当前核心</button><button id="exportCore" type="button">导出核心</button><button id="importCore" type="button">载入核心到目录</button>
+</div>
+<label for="coreVersion">各人格可共用的核心版本</label><select id="coreVersion"></select><button id="activateCore" type="button">启用选中核心</button><label for="coreEpochs">独立核心训练轮数</label><input id="coreEpochs" type="number" min="1" max="150" value="30"><button id="trainCore" type="button">训练并保存新核心</button>
+</div>
+</div>
+<p class="fine">新核心需手动启用。切换核心时恢复曾用的匹配 Adapter，或创建空白 Adapter；旧配对自动备份。训练数据来自当前主体，暂不等同于经过群体预训练的心理模型。</p></article>
+</section><section id="research-checkpoints" class="tab-panel" role="tabpanel" aria-labelledby="research-checkpoints-tab" tabindex="0" hidden=""><article class="card"><h3>人格状态检查点</h3>
+<div class="row">
+<button id="savePersonaRevision" type="button">保存当前人格状态</button><button id="applyPack" type="button">应用同主体人格包</button>
+</div>
+<label for="personaRevision">心理、记忆与关系版本</label><select id="personaRevision"></select><button id="rollbackPersona" type="button">恢复选中人格状态</button><p class="fine">恢复人格状态保留已有聊天记录，并自动保存恢复前状态。完整延续包含私密记忆和对象模型；精简模板移除实时私聊及对象信息，但保留目标说话人的导入材料。</p></article></section><section id="research-backup" class="tab-panel" role="tabpanel" aria-labelledby="research-backup-tab" tabindex="0" hidden=""><div class="row">
+<button id="backupBtn" type="button">导出完整主体备份</button><button id="restoreBtn" type="button">恢复主体备份</button><button id="reloadBtn" type="button">应用代码更新</button>
+</div>
+<p class="fine">完整主体备份还包含会话表与操作事件。人格包、参数文件与主体备份均不导出 API 密钥。</p>
+<div class="settings-block">
+<h2>导出人格</h2>
+<p class="fine">选择完整延续或精简模板。完整延续含私密记忆；请检查再分享。</p>
+</div>
+<select id="packageScope" aria-label="人格包导出范围"><option value="continuity">完整延续（含私密记忆）</option>
+<option value="template">精简人格模板</option></select><button id="exportPack" type="button">导出人格包</button><article class="card"><h3>历史图片资料备份</h3>
+<p>内置图库与主动用图已移除。旧素材文件仍留在原目录，升级自动备份也保留它们。完整主体 JSON 保留使用、反馈和消息记录；图片原文件请另外下载此归档，两份一同保管。</p>
+<button id="exportLegacyMedia" type="button">下载历史图片原文件与记录</button><p class="fine">此操作只导出文件，不重新启用图库，不删除原资料。归档含私人内容，请检查后再分享。</p></article></section></section>
+<section id="modelTraining" class="page scroll-page"><div class="page-intro"><span class="eyebrow">MODEL TRAINING</span><h2>模型训练</h2><p>选择训练对象，导入监督数据，查看候选、校准与发布记录。</p></div><div class="training281"><article class="card"><h3>长期人格学习</h3><form id="longMode281"><label for="pmm28LongMode">更新策略</label><select id="pmm28LongMode"><option value="disabled">禁用估计</option><option value="candidate_only">仅生成候选（默认）</option><option value="validated_commit">允许合格提案提交</option></select><button type="submit">保存更新策略</button></form></article><div id="neuralTraining281"><article class="card"><h3>独立标签与候选训练</h3><p class="fine">只接受审核过、可追溯且有使用许可的标签。合成数据可测试训练通路，不能发布正式模型。数据格式见源码 docs/V28_TRAINING.md。</p>
+<label for="pmm28DatasetFile">已审核标签 JSON</label><input id="pmm28DatasetFile" type="file" accept=".json,application/json"><button id="pmm28ImportSamples" type="button">核验并登记标签</button><p id="pmm28DataStatus" role="status"></p>
+<label for="pmm28Sample">最近审核标签</label><select id="pmm28Sample"></select><label for="pmm28WithdrawReason">撤回理由</label><input id="pmm28WithdrawReason" maxlength="1000"><button id="pmm28WithdrawSample" type="button">撤回所选事件的标签</button>
+<form id="pmm28TrainForm"><label for="pmm28PlanFile">主体与时间切分方案 JSON</label><input id="pmm28PlanFile" type="file" accept=".json,application/json"><div class="two-col"><div><label for="pmm28TrainTarget">训练对象</label><select id="pmm28TrainTarget"><option value="core">共享计算核心</option><option value="adapter">本主体个人 Adapter</option></select></div><div><label for="pmm28Epochs">训练轮数</label><input id="pmm28Epochs" type="number" min="1" max="1000" value="20"></div></div><button type="submit">训练新的候选权重</button></form>
+<label for="pmm28ScaleProtocol">状态训练使用的独立测量标定</label><select id="pmm28ScaleProtocol"></select><button id="pmm28BindScale" type="button">核验并绑定至候选网络</button><p class="fine">仅已独立标定的面向可使用真实状态标签；绑定尺度不等于网络通过发布验证。</p><label for="pmm28ModelVersion">候选 / 已发布版本</label><select id="pmm28ModelVersion"></select><div class="row"><button id="pmm28Freeze" type="button">冻结候选</button><button id="pmm28Publish" type="button">验证并发布</button><button id="pmm28Revoke" type="button">撤销此版本</button><button id="pmm28Rollback" type="button">回退至曾发布版本</button></div><p id="pmm28ModelResult" role="status"></p><div id="pmm28Validation"></div></article>
+<article class="card"><h3>长期人格候选与测量标定</h3><p id="pmm28LongStatus">没有独立纵向观测时保持未就绪。</p><label for="pmm28LongFile">纵向标定 / 候选估计请求 JSON</label><input id="pmm28LongFile" type="file" accept=".json,application/json"><button id="pmm28LongRun" type="button">审核并计算</button><label for="pmm28Proposal">候选修订</label><select id="pmm28Proposal"></select><button id="pmm28CommitProposal" type="button">核验并提交此提案</button><p id="pmm28LongResult" role="status"></p><label for="pmm28LongSource">所选候选的原始来源</label><select id="pmm28LongSource"></select><label for="pmm28LongWithdrawReason">来源撤回理由</label><input id="pmm28LongWithdrawReason" maxlength="1000"><button id="pmm28LongWithdraw" type="button">撤回来源并停用关联估计</button></article>
+</div><article class="card"><h3>情绪参数与状态监督</h3><p>动力学参数、事件响应、24 类标签及调节策略分别训练。</p><p id="affectTrainSummary" role="status"></p><form id="affectImport281"><label for="affectDataset281">监督数据 JSON</label><input type="file" id="affectDataset281" accept=".json,application/json"><button type="submit">核验并导入数据</button></form><form id="affectTrain281"><div class="two-col"><div><label for="affectDatasetChoice281">数据集</label><select id="affectDatasetChoice281"></select></div><div><label for="affectTarget281">训练对象</label><select id="affectTarget281"><option value="parameters">人格条件化动力学参数</option><option value="response">事件冲击与状态监督</option><option value="labels">24 类情绪标签</option><option value="regulation">调节策略</option><option value="all">全部情绪组件</option></select></div><div><label for="affectEpochs281">训练步数</label><input id="affectEpochs281" type="number" min="1" max="2000" value="30"></div><div><label for="affectLR281">学习率</label><input id="affectLR281" type="number" min="0.000001" max="0.1" step="0.000001" value="0.001"></div></div><button type="submit" class="primary">训练候选模型</button></form><label for="affectVersion281">情绪模型版本</label><select id="affectVersion281"></select><div class="row wrap"><button type="button" data-affect-op="calibrate">独立校准</button><button type="button" data-affect-op="publish">验证并发布</button><button type="button" data-affect-op="freeze">冻结</button><button type="button" data-affect-op="unfreeze">解除冻结</button><button type="button" data-affect-op="rollback">回退版本</button><button type="button" data-affect-op="revoke">撤销版本</button><button type="button" data-affect-op="withdraw_dataset">撤回数据集</button></div><div id="affectTrainingReport281"></div><p id="affectTrainResult281" role="status"></p></article></div></section><section id="connections" class="page scroll-page"><div class="page-intro">
+<h2>模型设置</h2>
+<p>配置 General LLM 和 PMM 内部模型，测试连接并查看实际执行结果。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>填写连接后保存，再测试；可在已存连接中切换预设。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>General LLM、A 与 B 的连接保存到当前主体；测试结果与失败详情显示在对应表单下方。</dd>
+</div>
+</dl>
+</div>
+<div class="tabs" role="tablist" aria-label="connections 页面分区">
+<button id="connections-tab-general" role="tab" type="button" data-tab="connections-panel-general" aria-controls="connections-panel-general" aria-selected="true" tabindex="0">语言模型</button><button id="connections-tab-pmm" role="tab" type="button" data-tab="connections-panel-pmm" aria-controls="connections-panel-pmm" aria-selected="false" tabindex="-1">心理模型 PMM</button><button id="connections-tab-presets" role="tab" type="button" data-tab="connections-panel-presets" aria-controls="connections-panel-presets" aria-selected="false" tabindex="-1">已存连接</button>
+</div>
+<section id="connections-panel-general" class="tab-panel" role="tabpanel" aria-labelledby="connections-tab-general" tabindex="0"><form id="settingsForm" class="settings-form">
+<div class="model-card-heading">
+<span class="model-number">01</span><div>
+<h3>语言大模型</h3>
+<p>General LLM · 理解消息、评估倾向与生成回复</p>
+</div>
+</div>
+<label for="providerPreset">服务预设</label><select id="providerPreset"></select><p id="presetHint" class="fine">选预设后填写你的密钥与实际可用模型。</p>
+<label for="provider">API 协议</label><select id="provider"><option value="ollama">Ollama · /api/chat</option>
+<option value="chat_completions">OpenAI 兼容 · Chat Completions</option>
+<option value="responses">OpenAI · Responses</option>
+<option value="anthropic">Anthropic · Messages</option>
+<option value="gemini">Google · generateContent</option>
+<option value="azure_chat">Azure OpenAI · Chat</option></select>
+<label for="baseUrl">Base URL 或完整生成地址</label><input id="baseUrl" required placeholder="服务提供的 API 地址"><label for="apiKey">大模型 API Key</label><input id="apiKey" type="password" autocomplete="off" placeholder="留空保留已有密钥"><label class="fine"><input id="clearLlmKey" type="checkbox"> 清除已保存的大模型密钥</label>
+<label for="llmThinkingMode">API 思考 / Thinking</label><select id="llmThinkingMode"><option value="auto">自动：DeepSeek 关闭，其余沿用服务</option>
+<option value="off">关闭</option>
+<option value="on">开启 · Ollama 布尔开关</option>
+<option value="low">低 · 优先速度</option>
+<option value="high">高 · 更充分推理</option>
+<option value="default">服务默认 / 附加参数</option></select><p class="fine">只控制这套 API，与 PMM 内部协商开关独立。原有附加思考参数在“自动”下保留。</p>
+<details class="thinking-details"><summary>思考协议与适用模型</summary><label for="llmThinkingAdapter">思考参数适配器</label><select id="llmThinkingAdapter"><option value="auto">按官方服务地址识别</option>
+<option value="deepseek">DeepSeek · Chat Completions</option>
+<option value="openai">OpenAI / Azure · reasoning effort</option>
+<option value="anthropic">Claude · Messages</option>
+<option value="gemini">Gemini · generateContent</option>
+<option value="ollama">Ollama · think</option></select><p class="fine">代理或自定义服务请按实际协议选择。部分模型不能关闭思考；低 / 高是服务档位或明确的 Token 预算，不能跨模型直接比较。</p></details><label for="modelInput">模型名称 / Azure 部署名</label><div class="row">
+<input id="modelInput" list="modelOptions" placeholder="从列表选择或手动填写"><datalist id="modelOptions"></datalist><button type="button" id="modelsBtn">读取列表</button>
+</div>
+<div class="row">
+<label><input type="checkbox" id="jsonMode"> 原生 JSON 模式</label><label><input type="checkbox" id="jsonRepair"> JSON 失败修复一次</label>
+</div>
+<p id="protocolHint" class="fine"></p>
+<details><summary>鉴权、Token 与兼容参数</summary><label for="authMode">鉴权方式</label><select id="authMode"><option value="auto">按协议自动选择</option>
+<option value="bearer">Authorization: Bearer</option>
+<option value="x-api-key">x-api-key</option>
+<option value="api-key">api-key</option>
+<option value="x-goog-api-key">x-goog-api-key</option>
+<option value="none">不使用鉴权</option></select>
+<label for="maxOutputTokens">输出 Token 上限（含推理模型的内部预算）</label><input id="maxOutputTokens" type="number" min="256" max="131072" required><label for="tokenField">Chat Completions 的 Token 字段</label><select id="tokenField"><option value="max_tokens">max_tokens（多数兼容服务）</option>
+<option value="max_completion_tokens">max_completion_tokens（OpenAI 新模型）</option>
+<option value="omit">不发送此字段</option></select>
+<label><input type="checkbox" id="sendTemp"> 发送温度参数</label><label for="temperature">生成温度</label><input id="temperature" type="number" min="0" max="2" step="0.05"><label for="timeout">单次大模型请求超时（秒）</label><input id="timeout" type="number" min="10" max="300">
+<label for="anthropicVersion">Anthropic API 版本</label><input id="anthropicVersion"><label for="apiVersion">Azure 旧版 api-version（v1 地址不使用）</label><input id="apiVersion">
+<label for="extraHeaders">附加请求头（JSON；留空保留，{} 清空）</label><textarea id="extraHeaders" rows="2" autocomplete="off" spellcheck="false"></textarea><label for="extraBody">附加请求参数（JSON）</label><textarea id="extraBody" rows="3" spellcheck="false"></textarea><p class="fine">可配置 thinking、reasoning_effort、top_p 等服务参数。不同模型支持项不同；不能覆盖消息、主体条件或流式模式。</p></details>
+<div class="row">
+<button class="primary" type="submit">保存大模型</button><button type="button" id="testModel">保存并测试大模型</button>
+</div>
+<details id="generalDiagnostics" hidden><summary>本次请求诊断</summary><pre id="generalDiagnosticBody"></pre></details><p id="connectionResult" role="status" class="connection-result">待测试</p>
+</form></section><section id="connections-panel-pmm" class="tab-panel" role="tabpanel" aria-labelledby="connections-tab-pmm" hidden tabindex="0"><div id="pmmWorkspace281"><form id="pmm281Form"><article class="card mode281"><label for="pmmApplication281">PMM 应用方式</label><select id="pmmApplication281"><option value="full">完整 PMM（默认）</option><option value="compatibility">备用兼容模式</option></select><p>General LLM 在外部负责语言理解与最终表达，以下设置负责 PMM 内部计算。</p></article><div id="fullPMM281"><div class="two-col connections281"><article class="card connection281"><div class="model-card-heading"><span class="model-number">A</span><div><h3>事件理解与心理推理</h3><p>提取事件事实、评价线索和行动初步偏好。</p></div></div><div id="AService281"><label for="AType281">服务位置</label><select id="AType281"><option value="local">本地 Ollama</option><option value="cloud">云 API / 兼容服务</option></select><label for="AUrl281">服务地址</label><input id="AUrl281" type="url" placeholder="本地：http://127.0.0.1:11434；云服务：提供商 API 地址"><label for="AModel281">模型名称</label><div class="row"><input id="AModel281" list="AModels281" placeholder="例如 qwen3:8b，或服务提供的模型名"><datalist id="AModels281"></datalist><button type="button" data-probe="A:models">读取模型</button></div><label for="AKey281">API 密钥</label><input id="AKey281" type="password" autocomplete="off" placeholder="留空保留已保存密钥"><label><input id="AClear281" type="checkbox"> 清除密钥</label></div><details data-disclosure="AAdvanced281"><summary>高级：协议、Thinking、Token 与超时</summary><label for="AProtocol281">API 协议</label><select id="AProtocol281"><option value="ollama">Ollama</option><option value="chat_completions">OpenAI 兼容 · Chat Completions</option><option value="responses">OpenAI · Responses</option><option value="anthropic">Anthropic · Messages</option><option value="gemini">Gemini · generateContent</option><option value="azure_chat">Azure OpenAI</option></select><label for="AThinking281">Thinking</label><select id="AThinking281"><option value="auto">自动适配</option><option value="default">沿用服务</option><option value="off">关闭</option><option value="on">开启</option><option value="low">低</option><option value="high">高</option></select><label for="AAdapter281">Thinking 适配器</label><select id="AAdapter281"><option value="auto">自动识别</option><option value="ollama">Ollama</option><option value="openai">OpenAI / Azure</option><option value="deepseek">DeepSeek</option><option value="anthropic">Anthropic</option><option value="gemini">Gemini</option></select><div class="two-col"><div><label for="ATokens281">本任务 Token 上限</label><input id="ATokens281" type="number" min="256" max="131072"></div><div><label for="ATimeout281">本任务总超时（秒）</label><input id="ATimeout281" type="number" min="10" max="300"></div></div><label><input id="AJSON281" type="checkbox"> 原生 JSON 输出</label><label for="AAuth281">鉴权方式</label><select id="AAuth281"><option value="auto">按协议</option><option value="bearer">Bearer</option><option value="x-api-key">x-api-key</option><option value="api-key">api-key</option><option value="x-goog-api-key">x-goog-api-key</option><option value="none">无需鉴权</option></select><label for="ATokenField281">Token 字段</label><select id="ATokenField281"><option value="max_tokens">max_tokens</option><option value="max_completion_tokens">max_completion_tokens</option><option value="omit">不发送</option></select><label for="AExtra281">附加请求参数 JSON</label><textarea id="AExtra281" rows="2"></textarea><label for="AHeaders281">附加请求头 JSON（留空保留）</label><textarea id="AHeaders281" rows="2" autocomplete="off"></textarea><p class="fine">B 共用 A 时仍使用 B 自己的任务预算、Thinking 与输出参数。</p></details><div class="row wrap"><button type="button" data-probe="A:connect">保存并测试连接</button><button type="button" data-probe="A:invoke">测试一次事件理解</button></div><p id="AResult281" class="connection-result" role="status">尚无测试记录</p></article><article class="card connection281"><div class="model-card-heading"><span class="model-number">B</span><div><h3>内部讨论与认知协商</h3><p>读取计算结果，复核冲突并评估行动。</p></div></div><label class="toggle-line"><input id="BShare281" type="checkbox"> 共用 A 的服务和模型</label><div id="BService281"><label for="BType281">服务位置</label><select id="BType281"><option value="local">本地 Ollama</option><option value="cloud">云 API / 兼容服务</option></select><label for="BUrl281">服务地址</label><input id="BUrl281" type="url" placeholder="本地：http://127.0.0.1:11434；云服务：提供商 API 地址"><label for="BModel281">模型名称</label><div class="row"><input id="BModel281" list="BModels281" placeholder="例如 qwen3:8b，或服务提供的模型名"><datalist id="BModels281"></datalist><button type="button" data-probe="B:models">读取模型</button></div><label for="BKey281">API 密钥</label><input id="BKey281" type="password" autocomplete="off" placeholder="留空保留已保存密钥"><label><input id="BClear281" type="checkbox"> 清除密钥</label></div><details data-disclosure="BAdvanced281"><summary>高级：协议、Thinking、Token 与超时</summary><label for="BProtocol281">API 协议</label><select id="BProtocol281"><option value="ollama">Ollama</option><option value="chat_completions">OpenAI 兼容 · Chat Completions</option><option value="responses">OpenAI · Responses</option><option value="anthropic">Anthropic · Messages</option><option value="gemini">Gemini · generateContent</option><option value="azure_chat">Azure OpenAI</option></select><label for="BThinking281">Thinking</label><select id="BThinking281"><option value="auto">自动适配</option><option value="default">沿用服务</option><option value="off">关闭</option><option value="on">开启</option><option value="low">低</option><option value="high">高</option></select><label for="BAdapter281">Thinking 适配器</label><select id="BAdapter281"><option value="auto">自动识别</option><option value="ollama">Ollama</option><option value="openai">OpenAI / Azure</option><option value="deepseek">DeepSeek</option><option value="anthropic">Anthropic</option><option value="gemini">Gemini</option></select><div class="two-col"><div><label for="BTokens281">本任务 Token 上限</label><input id="BTokens281" type="number" min="256" max="131072"></div><div><label for="BTimeout281">本任务总超时（秒）</label><input id="BTimeout281" type="number" min="10" max="300"></div></div><label><input id="BJSON281" type="checkbox"> 原生 JSON 输出</label><label for="BAuth281">鉴权方式</label><select id="BAuth281"><option value="auto">按协议</option><option value="bearer">Bearer</option><option value="x-api-key">x-api-key</option><option value="api-key">api-key</option><option value="x-goog-api-key">x-goog-api-key</option><option value="none">无需鉴权</option></select><label for="BTokenField281">Token 字段</label><select id="BTokenField281"><option value="max_tokens">max_tokens</option><option value="max_completion_tokens">max_completion_tokens</option><option value="omit">不发送</option></select><label for="BExtra281">附加请求参数 JSON</label><textarea id="BExtra281" rows="2"></textarea><label for="BHeaders281">附加请求头 JSON（留空保留）</label><textarea id="BHeaders281" rows="2" autocomplete="off"></textarea><p class="fine">B 共用 A 时仍使用 B 自己的任务预算、Thinking 与输出参数。</p></details><div class="row wrap"><button type="button" data-probe="B:connect">保存并测试连接</button><button type="button" data-probe="B:invoke">测试一次内部协商</button></div><p id="BResult281" class="connection-result" role="status">尚无测试记录</p></article></div><article class="card"><div class="two-col"><div><label for="bPolicy281">B 参与策略</label><select id="bPolicy281"><option value="auto">按需：冲突或重大决策</option><option value="always">每轮参与</option></select></div><div><label for="bRounds281">最多协商轮数</label><input id="bRounds281" type="number" min="1" max="4"></div></div><p class="fine">人格神经与情绪动力学在本机计算，每轮自动执行；模型训练另设页面。</p></article></div><button class="primary" type="submit">保存 PMM 设置</button><p id="pmmSave281" role="status"></p></form><section id="pmmRun281"><div class="row spread"><h2>本轮组件运行</h2><button type="button" id="refresh281">刷新记录</button></div><p id="pmmRunSummary281" class="fine"></p><label for="pmmTurn281">选择正式回合</label><select id="pmmTurn281"></select><div id="workflow281" class="workflow281"></div><div id="componentDetail281"></div><article class="card"><h3>保存并运行一次 PMM 测试</h3><label for="pmmTestEvent281">测试事件</label><textarea id="pmmTestEvent281" rows="3" placeholder="输入一个实际想检验的情境"></textarea><button id="preview281" type="button" class="primary">保存并测试整轮调用</button><p class="fine">实际调用模型及数值组件，测试状态保存在临时副本。</p><p id="previewStatus281" role="status"></p><div id="previewReply281"></div><button type="button" id="export281">导出当前 Trace</button></article><div id="emotionDynamics281"></div></section></div><form id="pmmForm" class="settings-form" data-compat="" hidden="">
+<div class="model-card-heading">
+<span class="model-number">02</span><div>
+<h3>备用兼容参数</h3>
+<p>选择心理模型路径，保留已有数据</p>
+</div>
+</div>
+<label for="pmmMode">兼容心理模型</label><select id="pmmMode" required><option value="" disabled>当前为兼容参数，请明确选择新引擎后保存</option>
+<option value="api">API 心理模型</option>
+<option value="learned">已保存的数值模型</option></select><div id="pmmModeHint" class="callout"></div>
+<div id="pmmApiPanel">
+<button type="button" id="copyGeneral">复制已保存的 General LLM 连接</button><p class="fine">也可使用另一家服务、另一把密钥或另一个模型；两者独立保存。</p>
+<label for="paProviderPreset">服务预设</label><select id="paProviderPreset"></select><p id="paPresetHint" class="fine">选预设后填写你的密钥与实际可用模型。</p>
+<label for="paProvider">API 协议</label><select id="paProvider"><option value="ollama">Ollama · /api/chat</option>
+<option value="chat_completions">OpenAI 兼容 · Chat Completions</option>
+<option value="responses">OpenAI · Responses</option>
+<option value="anthropic">Anthropic · Messages</option>
+<option value="gemini">Google · generateContent</option>
+<option value="azure_chat">Azure OpenAI · Chat</option></select>
+<label for="paBaseUrl">Base URL 或完整生成地址</label><input id="paBaseUrl" required placeholder="服务提供的 API 地址"><label for="paApiKey">API-PMM API Key</label><input id="paApiKey" type="password" autocomplete="off" placeholder="留空保留已有密钥"><label class="fine"><input id="paClearLlmKey" type="checkbox"> 清除已保存的API-PMM 密钥</label>
+<label for="paThinkingMode">API 思考 / Thinking</label><select id="paThinkingMode"><option value="auto">自动：DeepSeek 关闭，其余沿用服务</option>
+<option value="off">关闭</option>
+<option value="on">开启 · Ollama 布尔开关</option>
+<option value="low">低 · 优先速度</option>
+<option value="high">高 · 更充分推理</option>
+<option value="default">服务默认 / 附加参数</option></select><p class="fine">只控制这套 API，与 PMM 内部协商开关独立。原有附加思考参数在“自动”下保留。</p>
+<details class="thinking-details"><summary>思考协议与适用模型</summary><label for="paThinkingAdapter">思考参数适配器</label><select id="paThinkingAdapter"><option value="auto">按官方服务地址识别</option>
+<option value="deepseek">DeepSeek · Chat Completions</option>
+<option value="openai">OpenAI / Azure · reasoning effort</option>
+<option value="anthropic">Claude · Messages</option>
+<option value="gemini">Gemini · generateContent</option>
+<option value="ollama">Ollama · think</option></select><p class="fine">代理或自定义服务请按实际协议选择。部分模型不能关闭思考；低 / 高是服务档位或明确的 Token 预算，不能跨模型直接比较。</p></details><label for="paModelInput">模型名称 / Azure 部署名</label><div class="row">
+<input id="paModelInput" list="paModelOptions" placeholder="从列表选择或手动填写"><datalist id="paModelOptions"></datalist><button type="button" id="paModelsBtn">读取列表</button>
+</div>
+<div class="row">
+<label><input type="checkbox" id="paJsonMode"> 原生 JSON 模式</label><label><input type="checkbox" id="paJsonRepair"> JSON 失败修复一次</label>
+</div>
+<p id="paProtocolHint" class="fine"></p>
+<details><summary>鉴权、Token 与兼容参数</summary><label for="paAuthMode">鉴权方式</label><select id="paAuthMode"><option value="auto">按协议自动选择</option>
+<option value="bearer">Authorization: Bearer</option>
+<option value="x-api-key">x-api-key</option>
+<option value="api-key">api-key</option>
+<option value="x-goog-api-key">x-goog-api-key</option>
+<option value="none">不使用鉴权</option></select>
+<label for="paMaxOutputTokens">输出 Token 上限（含推理模型的内部预算）</label><input id="paMaxOutputTokens" type="number" min="256" max="131072" required><label for="paTokenField">Chat Completions 的 Token 字段</label><select id="paTokenField"><option value="max_tokens">max_tokens（多数兼容服务）</option>
+<option value="max_completion_tokens">max_completion_tokens（OpenAI 新模型）</option>
+<option value="omit">不发送此字段</option></select>
+<label><input type="checkbox" id="paSendTemp"> 发送温度参数</label><label for="paTemperature">生成温度</label><input id="paTemperature" type="number" min="0" max="2" step="0.05"><label for="paTimeout">单次 API-PMM请求超时（秒）</label><input id="paTimeout" type="number" min="10" max="300">
+<label for="paAnthropicVersion">Anthropic API 版本</label><input id="paAnthropicVersion"><label for="paApiVersion">Azure 旧版 api-version（v1 地址不使用）</label><input id="paApiVersion">
+<label for="paExtraHeaders">附加请求头（JSON；留空保留，{} 清空）</label><textarea id="paExtraHeaders" rows="2" autocomplete="off" spellcheck="false"></textarea><label for="paExtraBody">附加请求参数（JSON）</label><textarea id="paExtraBody" rows="3" spellcheck="false"></textarea><p class="fine">可配置 thinking、reasoning_effort、top_p 等服务参数。不同模型支持项不同；不能覆盖消息、主体条件或流式模式。</p></details>
+</div>
+<div id="pmmNumericPanel">
+<label for="pmmBackend">训练模型运行方式</label><select id="pmmBackend"><option value="local">本机 NumPy</option>
+<option value="http">独立 PMM HTTP 服务</option></select>
+<div id="pmmHttpFields">
+<label for="pmmUrl">PMM 服务地址</label><input id="pmmUrl" placeholder="http://127.0.0.1:8766"><label for="pmmKey">PMM 服务 API Key</label><input id="pmmKey" type="password" autocomplete="off" placeholder="留空保留"><label class="fine"><input id="clearPmmKey" type="checkbox"> 清除服务密钥</label>
+</div>
+<label for="pmmModel">PMM 模型标识</label><div class="row">
+<input id="pmmModel" list="pmmModels"><datalist id="pmmModels"></datalist><button type="button" id="pmmModelsBtn">读取列表</button>
+</div>
+<label for="pmmTimeout">单次 PMM 请求超时（秒）</label><input id="pmmTimeout" type="number" min="10" max="300">
+<button type="button" id="startPmm" class="wide">启动并连接本机独立 PMM 服务 ↗</button><p class="fine">独立服务负责数值编解码和训练，使用 PMM HTTP/1 协议。普通聊天 API 请填入 API-PMM 模式。</p>
+</div>
+<label><input type="checkbox" id="onlineLearning"> Learned-PMM 在互动后更新个体 Adapter</label><p class="fine">API-PMM 始终保存有来源的状态、记忆和待训练样本，不运行梯度训练。</p>
+<div class="row">
+<button class="primary" type="submit">保存 PMM</button><button type="button" id="testPmm">保存并测试 PMM</button>
+</div>
+<details id="pmmDiagnostics" hidden><summary>本次请求诊断</summary><pre id="pmmDiagnosticBody"></pre></details><p id="pmmResult" role="status" class="connection-result">待测试</p>
+<details><summary>参数检查点与增量训练</summary><p id="pmmCheckpoint" class="record-id"></p>
+<div class="row">
+<button type="button" id="exportWeights">导出保留的数值权重</button><button type="button" id="importWeights">载入本主体权重</button>
+</div>
+<label for="pmmEpochs">训练轮数</label><input id="pmmEpochs" type="number" min="1" max="150" value="30"><button type="button" id="trainPmm">用已有样本更新个体参数</button><p class="fine">Learned-PMM 的日常训练冻结核心 θ。核心训练、Adapter 导入和版本回退位于“实验记录”。</p></details>
+<fieldset class="deliberation-settings">
+<legend>内部倾向协商</legend>
+<label><input id="deliberationEnabled" type="checkbox"> 启用内部协商功能</label><label for="deliberationMode">运行模式</label><select id="deliberationMode"><option value="off">关闭 · PMM 单路径综合决策</option>
+<option value="auto">自动 · 有冲突或复杂情境时启动</option>
+<option value="always">始终 · 推演当前有依据的候选倾向</option></select><div class="two-col">
+<label for="maxPerspectives">最多视角数<input id="maxPerspectives" type="number" min="1" max="4"></label><label for="deliberationRounds">最多协商轮数<input id="deliberationRounds" type="number" min="1" max="4"></label>
+</div>
+<label><input id="unresolvedConflict" type="checkbox"> 分歧无法解决时允许澄清</label><p class="fine">关闭协商后，人格、情绪、记忆、语言条件和知识边界仍持续工作。候选倾向依据当前字段证据生成，不固定为三个角色。</p>
+</fieldset>
+<label for="retrievalRounds">API-PMM 初次追加检索（0 为关闭）</label><input id="retrievalRounds" type="number" min="0" max="2">
+</form></section><section id="connections-panel-presets" class="tab-panel" role="tabpanel" aria-labelledby="connections-tab-presets" hidden tabindex="0"><section class="settings-block"><h2>连接预设</h2>
+<p class="fine">先在双模型或 QQ 表单保存连接，再保存为预设。应用预设会复制到当前人格，后续修改互不影响。QQ 预设应用后保持关闭。</p>
+<div class="two-col">
+<div>
+<label for="connectionKind">连接类型</label><select id="connectionKind"><option value="general">General LLM</option>
+<option value="pmm">PMM</option>
+<option value="qq">QQ</option></select><label for="connectionPreset">已保存预设</label><select id="connectionPreset"></select>
+</div>
+<div>
+<label for="connectionName">预设名称</label><input id="connectionName" maxlength="60"><p id="connectionBinding" class="fine"></p>
+</div>
+</div>
+<div class="row wrap">
+<button id="presetNew" type="button">新建：保存当前连接</button><button id="presetSave" type="button">覆盖选中预设</button><button id="presetCopy" type="button">复制预设</button><button id="presetRename" type="button">重命名</button><button id="presetApply" class="primary" type="button">应用到当前人格</button><button id="presetTest" type="button">独立测试</button><button id="presetDelete" type="button">删除预设</button>
+</div>
+<pre id="presetResult" class="compact-result"></pre></section></section></section><section id="qqPage" class="page scroll-page"><div class="page-intro">
+<h2>QQ 设置</h2>
+<p>配置 QQ 连接、允许范围、群聊参与及收件方式。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>先测试机器人登录与事件地址，再按需启用互动；主动联系单独授权。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>配置保存在当前主体；消息状态、发送回执与错误可在后台诊断记录查看。</dd>
+</div>
+</dl>
+</div>
+<div class="tabs" role="tablist" aria-label="qqPage 页面分区">
+<button id="qqPage-tab-connection" role="tab" type="button" data-tab="qqPage-panel-connection" aria-controls="qqPage-panel-connection" aria-selected="true" tabindex="0">QQ 连接</button><button id="qqPage-tab-group" role="tab" type="button" data-tab="qqPage-panel-group" aria-controls="qqPage-panel-group" aria-selected="false" tabindex="-1">群聊参与</button><button id="qqPage-tab-social" role="tab" type="button" data-tab="qqPage-panel-social" aria-controls="qqPage-panel-social" aria-selected="false" tabindex="-1">主动联系</button><button id="qqPage-tab-incoming" type="button" role="tab" data-tab="qqPage-panel-incoming" aria-controls="qqPage-panel-incoming" aria-selected="false" tabindex="-1">收件机制</button>
+</div>
+<section id="qqPage-panel-connection" class="tab-panel" role="tabpanel" aria-labelledby="qqPage-tab-connection" tabindex="0"><form id="qqForm">
+<label><input id="qqEnabled" type="checkbox"> 启用 QQ 自动回复</label><label for="qqSelfId">机器人自己的 QQ 号（多人格并行时必填）</label><input id="qqSelfId" inputmode="numeric"><label for="qqUrl">QQ HTTP API 地址</label><input id="qqUrl" placeholder="http://127.0.0.1:3000"><label for="qqToken">API Token</label><input id="qqToken" type="password" autocomplete="off" placeholder="留空保留"><label for="qqUsers">允许的私聊 QQ 号（逗号分隔）</label><input id="qqUsers"><label for="qqGroups">允许的群号（逗号分隔）</label><input id="qqGroups"><label><input id="qqMention" type="checkbox"> 群内只回复 @ 消息</label><label for="qqHmac">事件 HMAC Secret（可选）</label><input id="qqHmac" type="password" autocomplete="off" placeholder="留空保留"><div class="row">
+<button type="submit">保存 QQ 设置</button><button id="qqTest" type="button">测试登录</button><button id="qqSetup" type="button">显示事件地址</button>
+</div>
+<p id="qqResult" class="break fine" role="status"></p>
+</form>
+<button data-goto="connections" data-target-tab="connections-panel-presets" type="button">保存或应用 QQ 连接预设 →</button></section><section id="qqPage-panel-group" class="tab-panel" role="tabpanel" aria-labelledby="qqPage-tab-group" hidden tabindex="0"><section class="settings-block"><h2>群聊参与与旁观范围</h2>
+<form id="groupAttentionForm">
+<label><input id="groupAttentionEnabled" type="checkbox"> 在白名单群内选择性读取未 @ 的消息</label><label><input id="groupAllowReply" type="checkbox"> 允许人格判断后参与未 @ 的话题</label><div class="two-col">
+<div>
+<label for="groupPerMinute">每群每分钟最多深入关注几次</label><input id="groupPerMinute" type="number" min="1" max="30">
+</div>
+<div>
+<label for="groupContextChars">群聊上下文字符预算</label><input id="groupContextChars" type="number" min="1000" max="12000">
+</div>
+</div>
+<p class="fine">可略读、关注或参与，关注不代表一定接话。旁观记录不增加熟悉度，不会被写成双方共同经历；直接互动另行累计。引用话题和不同说话人的消息分开聚合。</p>
+<button type="submit">保存群聊注意</button><p class="callout">实验机制按人格与当前状态评估相关性。每分钟额度是资源限制；每 N 条抽样和关注词仅在旧版基线使用。</p>
+</form>
+<div id="groupKnowledge"></div></section></section><section id="qqPage-panel-social" class="tab-panel" role="tabpanel" aria-labelledby="qqPage-tab-social" hidden tabindex="0"><section class="settings-block"><h2>主动联系</h2>
+<form id="socialForm">
+<label><input id="socialEnabled" type="checkbox"> 启用自动主动联系（默认关闭）</label><div class="row">
+<label><input id="socialPrivate" type="checkbox"> 允许主动私聊</label><label><input id="socialGroup" type="checkbox"> 允许主动群聊</label>
+</div>
+<label for="socialRecipients">主动联系的私聊 QQ 号（逗号分隔）</label><input id="socialRecipients" inputmode="numeric" placeholder="例如 12345678"><label for="socialGroupRecipients">主动联系的群号（逗号分隔）</label><input id="socialGroupRecipients" inputmode="numeric" placeholder="例如 87654321"><p id="socialReadiness" class="callout" role="status"></p>
+<button type="button" data-tab="qqPage-panel-connection">前往 QQ 连接设置</button><p class="fine">只填号码即可。关闭自动联系时可先保存草稿；启用前需配置 QQ 连接、机器人号码和允许名单。真正联系还需已有交流、满足免打扰和频率条件。</p>
+<div class="two-col">
+<div>
+<label for="socialIdle">至少空闲多久才评估（分钟）</label><input id="socialIdle" type="number" min="10" max="10080"><label for="socialCooldown">两次主动联系间隔（分钟）</label><input id="socialCooldown" type="number" min="10" max="10080"><label for="socialBudget">当前人格每日总预算</label><input id="socialBudget" type="number" min="1" max="20">
+</div>
+<div>
+<label for="socialUnanswered">连续未回复上限</label><input id="socialUnanswered" type="number" min="1" max="3"><label for="quietStart">免打扰开始</label><input id="quietStart" type="time"><label for="quietEnd">免打扰结束</label><input id="quietEnd" type="time"><label for="socialTimezone">时区</label><input id="socialTimezone" value="Asia/Shanghai">
+</div>
+</div>
+<button type="submit">保存主动社交设置</button>
+</form>
+<p class="fine">达到时机后仍由人格、情绪、关系和真实话题证据决定是否联系，可以保持 NO_ACTION。对方要求停止时暂停；未回复不会被解释成积极反馈。发送不确定时不自动重试。</p>
+<div class="row">
+<label for="socialPreviewScope">已保存的联系对象</label><select id="socialPreviewScope"></select><button id="socialPreview" type="button">只预览决策，不发送</button><button id="socialRefresh" type="button">刷新状态</button>
+</div>
+<div id="socialContacts"></div>
+<pre id="socialResult" class="compact-result"></pre></section></section><section id="qqPage-panel-incoming" class="tab-panel" role="tabpanel" aria-labelledby="qqPage-tab-incoming" hidden tabindex="0"><h3>图片接收与基础视觉理解</h3>
+<p>设置如何接收 QQ 图片。理解结果与失败原因保存在消息处理记录中；程序不会从旧图库自动发送图片。</p>
+<form id="mediaConfigForm">
+<label><input id="mediaReceive" type="checkbox"> 接收并理解图片</label><label for="visionModel">视觉模型名称（留空使用 General LLM 当前模型）</label><input id="visionModel" placeholder="例如 deepseek-flash"><label for="mediaHosts">图片下载允许域名（逗号分隔）</label><input id="mediaHosts"><button type="submit">保存图片收件设置</button><p class="fine">视觉请求沿用当前 General LLM 的接口与密钥。GIF 均匀抽样最多四帧；读取失败会显示 IMAGE_UNAVAILABLE。普通文字不调用视觉模型。</p>
+</form>
+<section class="settings-block"><h2>连续消息与回复时机</h2>
+<form id="turnTakingForm">
+<label><input id="turnTakingEnabled" type="checkbox"> 聚合连续片段，由人格决定等待、回复或沉默</label><div class="two-col">
+<div>
+<label for="turnDebounce">收到消息后先等多久（秒）</label><input id="turnDebounce" type="number" min="0.5" max="6" step="0.5"><label for="turnMaxWait">一轮最多等待（秒）</label><input id="turnMaxWait" type="number" min="6" max="15">
+</div>
+<div><p class="fine">同一说话人的连续消息合成一轮；生成时收到补充会重新聚合。已经开始发送的 QQ 消息无法撤回。超长片段会保留并标为待处理。</p></div>
+</div>
+<button type="submit">保存回复时机</button><p class="fine">关闭聚合只跳过短暂收集时间，不关闭事前判断。等待预算结束不会直接转为回复。</p>
+</form></section></section></section><section id="diagnostics" class="page scroll-page"><div class="page-intro">
+<h2>后台诊断记录</h2>
+<p>查看运行状态、事前决策、发送回执和失败原因。</p>
+<dl class="page-guide">
+<div>
+<dt>操作</dt>
+<dd>按分区查询记录、校准判断或导出诊断；未知回执先核对再处理。</dd>
+</div>
+<div>
+<dt>结果</dt>
+<dd>校准结果显示实际写入与下一轮使用位置；诊断导出不含接口密钥。</dd>
+</div>
+</dl>
+</div>
+<div class="tabs" role="tablist" aria-label="diagnostics 页面分区">
+<button id="diagnostics-tab-status" role="tab" type="button" data-tab="diagnostics-panel-status" aria-controls="diagnostics-panel-status" aria-selected="true" tabindex="0">状态与导出</button><button id="diagnostics-tab-pmm28" role="tab" type="button" data-tab="diagnostics-panel-pmm28" aria-controls="diagnostics-panel-pmm28" aria-selected="false" tabindex="-1">组件历史</button><button id="diagnostics-tab-cognition" role="tab" type="button" data-tab="diagnostics-panel-cognition" aria-controls="diagnostics-panel-cognition" aria-selected="false" tabindex="-1">事前决策</button><button id="diagnostics-tab-execution" role="tab" type="button" data-tab="diagnostics-panel-execution" aria-controls="diagnostics-panel-execution" aria-selected="false" tabindex="-1">执行与发送</button><button id="diagnostics-tab-history" role="tab" type="button" data-tab="diagnostics-panel-history" aria-controls="diagnostics-panel-history" aria-selected="false" tabindex="-1">操作与错误</button><button id="diagnostics-tab-runtime" role="tab" type="button" data-tab="diagnostics-panel-runtime" aria-controls="diagnostics-panel-runtime" aria-selected="false" tabindex="-1">运行设置</button>
+</div>
+<section id="diagnostics-panel-pmm28" class="tab-panel" role="tabpanel" aria-labelledby="diagnostics-tab-pmm28" hidden tabindex="0">
+<div class="row spread"><h2>组件计算与正式采用</h2><button id="pmm28Refresh" type="button">刷新协同记录</button></div>
+<p id="pmm28Readiness" class="callout" role="status">读取后显示训练与发布门禁。</p>
+<div id="pmm28Coverage" class="two-col"></div>
+<label for="pmm28Turn">已提交回合（最近 20 条）</label><select id="pmm28Turn"></select>
+<div id="pmm28Components"></div>
+<div class="row"><button id="pmm28Ablate" type="button">固定条件六项消融</button><button id="pmm28ExportTrace" type="button">导出当前完整 Trace</button></div>
+<div id="pmm28AblationResult" aria-live="polite"></div>
+</section>
+<section id="diagnostics-panel-status" class="tab-panel" role="tabpanel" aria-labelledby="diagnostics-tab-status" tabindex="0"><div class="support-actions">
+<button id="exportSupport" class="primary" type="button">下载诊断报告</button><button id="exportSource" type="button">下载完整源码</button><button id="exportSourceIndex" type="button">下载代码索引</button>
+</div>
+<p class="fine">源码和索引可交给另一段对话检查；诊断报告不含对话正文或接口密钥。启动错误见程序目录 logs/startup.log。</p>
+<div id="runtimeSummary" class="status-grid"></div>
+<h3>QQ 最近处理状态</h3>
+<button id="qqStatusBtn" type="button">刷新消息处理状态</button><div id="qqStatusPanel" class="fine"></div>
+<button id="openOperations" type="button">调整运行设置 →</button></section><section id="diagnostics-panel-cognition" class="tab-panel" role="tabpanel" aria-labelledby="diagnostics-tab-cognition" hidden tabindex="0"><p class="callout">以下为生成回复前记录的模型估计。API-PMM 与数值 PMM 是不同机制；初始参数、人工标注或低误差均不等于心理效度已验证。</p>
+<div id="cognitionStatus"></div>
+<div id="cognitiveList"></div>
+<h3>校准结果与使用去向</h3>
+<div id="cognitiveCalibrationResults"></div>
+<form id="cognitiveFeedbackForm" class="settings-form">
+<h3>校准一项判断</h3>
+<label for="cognitiveRecord">选择事前决策</label><select id="cognitiveRecord"></select><div class="two-col">
+<div>
+<label for="cognitiveField">校准字段</label><select id="cognitiveField"></select>
+</div>
+<div>
+<label for="cognitiveTarget">人工目标值（0–1）</label><input id="cognitiveTarget" type="number" min="0" max="1" step="0.05" value="0.5" required>
+</div>
+</div>
+<p class="fine">数值模式更新独立认知头，并保留一部分人工样本用于检验；API 模式只保存带来源的校准示例。</p>
+<button class="primary" type="submit">保存人工校准</button>
+</form></section><section id="diagnostics-panel-execution" class="tab-panel" role="tabpanel" aria-labelledby="diagnostics-tab-execution" hidden tabindex="0"><div class="row">
+<button id="executionRefresh" class="primary" type="button">刷新执行状态</button><button id="executionExport" type="button">下载脱敏 Trace JSONL</button><button id="executionRecover" type="button">恢复已确认发送的本地提交</button>
+</div>
+<p class="fine">发送结果未知时先核对 QQ 回执，不自动重发。回流失败会保留“已经发送”的事实。导出文件默认不含消息正文、提示词、图片和接口密钥。</p>
+<div id="executionMetrics" class="callout"></div>
+<div id="executionList"></div>
+<h3>核对未知回执</h3>
+<form id="receiptForm" class="settings-form">
+<label for="receiptOutbox">Outbox ID</label><input id="receiptOutbox" required><label for="receiptMessage">QQ 真实消息 ID</label><input id="receiptMessage" required><button type="submit">只查询回执并核对</button><p class="fine">程序调用 get_msg 验证发送者、目标和完整内容；服务无法提供足够信息时仍保留未知状态，不猜测成功。</p>
+</form></section><section id="diagnostics-panel-history" class="tab-panel" role="tabpanel" aria-labelledby="diagnostics-tab-history" hidden tabindex="0"><section id="activityHistory" class="settings-block"><h2>操作历史 · 同类连接更新合并显示</h2>
+<div class="row">
+<select id="eventFilter" aria-label="筛选操作记录"><option value="all">全部记录</option>
+<option value="connection">连接与测试</option>
+<option value="errors">错误与异常</option>
+<option value="turn">对话记录</option>
+<option value="character_updated">角色设定修改</option></select><button id="exportEvents" type="button">导出完整操作日志</button>
+</div>
+<div id="eventList"></div>
+<button id="moreEvents" type="button">加载更早记录</button></section></section><section id="diagnostics-panel-runtime" class="tab-panel" role="tabpanel" aria-labelledby="diagnostics-tab-runtime" hidden tabindex="0"><h2 id="operationsTitle">运行设置</h2>
+<form id="cognitionForm" class="settings-form">
+<p class="fine">事前认知估计与证据审计；旧配置原值保存在兼容档案中。</p>
+<label for="appraisalTimeout">单次事前评估最长时间（秒）</label><input id="appraisalTimeout" type="number" min="3" max="120" value="30"><p class="fine">资源上限只控制工作量。实验模式超过等待预算时保留消息，等待补充或手动重试，不强制发言。</p>
+<button type="submit">保存认知路径</button>
+</form>
+<section class="settings-block"><h2>回复流程与后台整理</h2>
+<form id="performanceForm">
+<div class="two-col">
+<div>
+<label for="performanceMode">回复流程</label><select id="performanceMode"><option value="balanced">前台实时状态 + 后台长期整理</option>
+<option value="full">每轮完整同步流程</option></select><label><input id="performanceQQOnly" type="checkbox"> 仅 QQ 使用前台 / 后台流程</label><label for="replyChars">普通聊天回复预算（字符）</label><input id="replyChars" type="number" min="40" max="500">
+</div>
+<div>
+<label for="batchTurns">累计有效交互后整理（5–10 条）</label><input id="batchTurns" type="number" min="5" max="10"><label for="idleSeconds">空闲后整理（60–120 秒）</label><input id="idleSeconds" type="number" min="60" max="120"><label for="workChars">工作记录字符预算</label><input id="workChars" type="number" min="4000" max="100000">
+</div>
+</div>
+<p class="fine">情绪与衰减、当前会话、必要关系事件实时更新。明确纠正、重大冲突和复杂任务保留同步处理；内部协商的关闭 / 自动 / 始终设置继续有效。</p>
+<div class="row">
+<button type="submit">保存回复流程</button><button id="consolidateNow" type="button">现在整理一批 / 重试失败项</button><button id="refreshConsolidation" type="button">刷新队列</button>
+</div>
+<pre id="consolidationStatus" class="compact-result"></pre>
+</form></section></section></section></main>
+</div>
+
+<dialog id="personaDialog"><div class="dialog-head">
+<h2>创建一个独立人格</h2>
+<button data-close="personaDialog" type="button">×</button>
+</div>
+<form id="personaForm">
+<label><input id="cloneTemplate" type="checkbox"> 复制当前人格模板，创建新身份</label><p class="fine">复制角色设定、无会话范围的已导入风格证据及全局手工边界；私聊、关系、训练权重和连接密钥均不复制。新身份需重新配置模型连接。</p>
+<label for="newName">名称</label><input id="newName" maxlength="60" required><label for="newSelfReference">自称</label><input id="newSelfReference" value="我" maxlength="60" required><label for="newInitialPersonality">初始人格（用户设定）</label><textarea id="newInitialPersonality" rows="3" maxlength="4000"></textarea><label for="newSeed">初始描述（可留空，再由聊天记录蒸馏）</label><textarea id="newSeed" rows="4" maxlength="8000"></textarea><p class="fine">新人格有独立的身份、经历与对象模型。已有主体会保留，随时可以切换回来。</p>
+<button class="primary" type="submit">创建并切换</button>
+</form></dialog>
+<dialog id="characterDialog"><div class="dialog-head">
+<h2>编辑当前角色设定</h2>
+<button data-close="characterDialog" type="button">×</button>
+</div>
+<form id="characterForm">
+<label for="characterName">名字</label><input id="characterName" maxlength="60" required><label for="characterSelfReference">自称</label><input id="characterSelfReference" maxlength="60" required><label for="characterInitialPersonality">初始人格</label><textarea id="characterInitialPersonality" rows="4" maxlength="4000" placeholder="例如：内向，偏爱简短回答；遇到分歧会直接说明"></textarea><label for="characterSeed">基础设定</label><textarea id="characterSeed" rows="5" maxlength="8000"></textarea><p class="fine">保存后下轮对话生效。用户设定与已观察到的心理证据分别保留；已有记忆、关系与训练参数不重置。修改前自动保存版本。</p>
+<button class="primary" type="submit">保存角色设定</button>
+</form></dialog><dialog id="traceDialog" class="large"><div class="dialog-head">
+<h2 id="traceTitle">本轮机制</h2>
+<button data-close="traceDialog" type="button">×</button>
+</div>
+<div id="traceBody"></div></dialog>
+
+<dialog id="feedbackDialog"><div class="dialog-head">
+<h2>校正本轮行为与表达</h2>
+<button data-close="feedbackDialog" type="button">×</button>
+</div>
+<form id="feedbackForm">
+<label for="feedbackAction">期望行动（可选）</label><select id="feedbackAction"><option value="">不标注行动</option>
+<option value="reply">回答</option>
+<option value="unknown">不知道</option>
+<option value="clarify">澄清</option>
+<option value="disagree">异议</option>
+<option value="decline">拒绝</option>
+<option value="silence">沉默</option></select><label for="feedbackPerspective">期望倾向（可选）</label><select id="feedbackPerspective"><option value="">不标注倾向</option>
+<option value="v0">第一端倾向 · v0</option>
+<option value="v1">中间状态 · v1</option>
+<option value="v2">另一端倾向 · v2</option></select><label for="correctedReply">更符合这个人的表达（可选）</label><textarea id="correctedReply" rows="3"></textarea><label for="feedbackNote">反馈说明</label><input id="feedbackNote"><button class="primary" type="submit">保存校正</button>
+</form></dialog>
+<input type="file" id="weightsFile" accept=".json" hidden><input type="file" id="packFile" accept=".json" hidden><input type="file" id="backupFile" accept=".json" hidden>
+<input type="file" id="adapterFile" accept=".json" hidden><input type="file" id="coreFile" accept=".json" hidden><input type="file" id="applyPackFile" accept=".json" hidden>
+
+<dialog id="dynamicBoundaryDialog"><div class="dialog-head">
+<h2>边界倾向</h2>
+<button type="button" data-close="dynamicBoundaryDialog" aria-label="关闭">×</button>
+</div>
+<form id="dynamicBoundaryForm" class="settings-form">
+<input id="dynamicBoundaryId" type="hidden"><label for="dynamicBoundaryTopic">希望如何相处</label><textarea id="dynamicBoundaryTopic" required maxlength="600" placeholder="例如：谈自己的私事前，希望先了解对方为什么想知道。"></textarea><label for="dynamicBoundaryDomain">领域</label><select id="dynamicBoundaryDomain"><option value="disclosure">信息披露</option>
+<option value="distance">关系距离</option>
+<option value="load">互动负荷</option>
+<option value="emotion">情绪话题</option>
+<option value="values">价值原则</option>
+<option value="autonomy">角色与自主性</option></select><label for="dynamicBoundaryStrength">长期敏感度（0–1）</label><input id="dynamicBoundaryStrength" type="number" min="0" max="1" step="0.05" value="0.65" required><div class="two-col">
+<div>
+<label for="dynamicBoundaryScope">适用情境（* 为全部）</label><input id="dynamicBoundaryScope" value="*" required placeholder="group:qq:456">
+</div>
+<div>
+<label for="dynamicBoundaryPerson">适用对象（* 为全部）</label><input id="dynamicBoundaryPerson" value="*" required placeholder="qq:123">
+</div>
+</div>
+<p class="fine">这是可修正的个人倾向，不会改变 QQ 白名单或隐私权限。一次情绪变化只影响当轮激活。</p>
+<button class="primary" type="submit">保存个人设定</button>
+</form></dialog>
+<dialog id="brmCalibrationDialog"><div class="dialog-head">
+<h2>校准实际边界判断</h2>
+<button type="button" data-close="brmCalibrationDialog" aria-label="关闭">×</button>
+</div>
+<form id="brmCalibrationForm" class="settings-form">
+<label for="brmTarget">合适的激活程度（0–1）</label><input id="brmTarget" type="number" min="0" max="1" step="0.05" value="0.5" required><label for="brmAction">更合适的表达行动</label><select id="brmAction"></select><p class="fine">同一事件不重复计数。数值模式使用固定留出划分；API 模式只保存带来源的校准示例。</p>
+<button type="submit">保存人工标注</button>
+</form></dialog><dialog id="traitSeedDialog"><div class="dialog-head">
+<h2>编辑长期倾向</h2>
+<button data-close="traitSeedDialog" type="button">×</button>
+</div>
+<form id="traitSeedForm">
+<label for="traitSeedField">特质、价值或习惯</label><select id="traitSeedField"></select><label for="traitSeedValue">主人设定值（0–1；留空恢复未知）</label><input id="traitSeedValue" type="number" min="0" max="1" step="0.01"><label for="traitSeedNote">设定说明</label><textarea id="traitSeedNote" rows="3" maxlength="1000"></textarea><p class="fine">保存为 owner_seed，不是正式量表得分。PANAS 表示“总体上/通常”，不写入此刻情绪。保存后下一轮生效，不重置记忆或训练权重。</p>
+<button class="primary" type="submit">保存长期设定</button>
+</form></dialog>
+<script defer src="/app.js?v=2.8.1"></script>
+</body>
+</html>

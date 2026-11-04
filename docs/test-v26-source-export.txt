@@ -1,0 +1,11 @@
+test_cmd_bootstrap_is_ascii_crlf_and_self_wraps (test_v220.DeliveryTests.test_cmd_bootstrap_is_ascii_crlf_and_self_wraps) ... ok
+test_existing_broken_venv_reports_recovery_not_false_success (test_v220.DeliveryTests.test_existing_broken_venv_reports_recovery_not_false_success) ... ok
+test_launcher_captures_unicode_child_failure_and_exit_code (test_v220.DeliveryTests.test_launcher_captures_unicode_child_failure_and_exit_code) ... ok
+test_source_export_excludes_runtime_data_and_symlink_escape (test_v220.DeliveryTests.test_source_export_excludes_runtime_data_and_symlink_escape) ... ok
+test_source_export_includes_real_code_with_verifiable_lines_and_hash (test_v220.DeliveryTests.test_source_export_includes_real_code_with_verifiable_lines_and_hash) ... ok
+test_source_and_diagnostic_download_endpoints (test_v220.InterfaceTests.test_source_and_diagnostic_download_endpoints) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.714s
+
+OK
