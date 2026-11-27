@@ -2,7 +2,7 @@
 
 The automatic default only changes the official DeepSeek endpoints to off.
 Existing extra_body reasoning settings remain authoritative in auto/default mode.
-Model capability rules are documented in docs/THINKING.md (DeepSeek/Ollama checked 2026-10-28).
+Model capability rules are documented in docs/ARCHITECTURE.md (DeepSeek/Ollama checked 2026-10-28).
 """
 from __future__ import annotations
 import copy, re

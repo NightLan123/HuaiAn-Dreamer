@@ -1,0 +1,921 @@
+{
+  "release": "initial-source-20261127",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 152,
+      "sha256": "27edc13c5de831ca1ef359d87738f1934879e0c4c01ea9d246b1f682b8b2c712"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 746,
+      "sha256": "b1e99507b1f9018d411a425eab8c8d2d6898ab629ab77b46b1030bc1f23ddd37"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 1068,
+      "sha256": "b39abf02181365611340374688feb8a379a9bae421fc05fe082296817fdcf5de"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 575,
+      "sha256": "b3b237d714f60f33a6564105b0ef55219dadd4f185f00f6071b5b65cc9c29c11"
+    },
+    {
+      "path": "Check_Environment.cmd",
+      "bytes": 525,
+      "sha256": "9d0f42305efa0047a41787fe3c057a8739fb0ee3a6fdddd1392e69d613024399"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "bytes": 1461,
+      "sha256": "41b50f593d67030ec138afe7461792be83b7e013b445fb96f347c790408a032a"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "bytes": 2534,
+      "sha256": "63d15ec06a3c577b7048163848d30158a7f83a157f0baf89523931300dbd82eb"
+    },
+    {
+      "path": "docs/KNOWN_LIMITATIONS.md",
+      "bytes": 1321,
+      "sha256": "7c3d386369cfd8a45274f305f4415b8063419e28f5dff2b7c9568fb358f97536"
+    },
+    {
+      "path": "docs/PUBLIC_RELEASE.md",
+      "bytes": 1736,
+      "sha256": "79dab0a63c2c121cd8ef92fcec52c8b5948ef5f3296ab48bbb9c6c66fde0f81b"
+    },
+    {
+      "path": "docs/PUBLIC_SOURCE_CHANGES.json",
+      "bytes": 1082,
+      "sha256": "ed6aca31954d73d03ec96425b30e17544135dafe6fcbee17d5112e2cb802446a"
+    },
+    {
+      "path": "launcher.py",
+      "bytes": 4706,
+      "sha256": "78082731f61d152863af8cea8f39f0a159e355b2462177b3bfbac95cc847eded"
+    },
+    {
+      "path": "persona/__init__.py",
+      "bytes": 43,
+      "sha256": "fe49d4217519ce61c2f2e19235fae161f83285ed284b53d8b95d796019efea89"
+    },
+    {
+      "path": "persona/affect.py",
+      "bytes": 29211,
+      "sha256": "3ea22fb840a2f6f0744993b1f85381cf0ba28d1f8025e740b84ae1d836cf3e3e"
+    },
+    {
+      "path": "persona/affect_dynamics_v2.py",
+      "bytes": 6524,
+      "sha256": "36832cbb5903731f7e69a711e5cdd1dd37e5dcab70821d7c9e369e0b75413ba9"
+    },
+    {
+      "path": "persona/affect_learning.py",
+      "bytes": 5611,
+      "sha256": "0dc0fa3e719436eb075c2f7d6ccf09c1c3d13d3599de286bd04ba5e22119e248"
+    },
+    {
+      "path": "persona/affect_regulation.py",
+      "bytes": 2834,
+      "sha256": "4b5e8b2ecdb981793f56a835a266d30ec7168a04d39cf3b5229f2d990ce6bb31"
+    },
+    {
+      "path": "persona/affect_response.py",
+      "bytes": 6690,
+      "sha256": "88e371e338bf4b3a38a8e45fb3f061c164a20e68bc9e9f805dbd700e974e57ed"
+    },
+    {
+      "path": "persona/affect_runtime.py",
+      "bytes": 22608,
+      "sha256": "eb147212fd8fa51152c9ac3ec9e0e8f83c0586b2c6c32940d357187906878269"
+    },
+    {
+      "path": "persona/affect_training.py",
+      "bytes": 17277,
+      "sha256": "f3e6eb8d5e4ceb689bb1e461a9d2eaf549c74638f52d424e94341274cf7738eb"
+    },
+    {
+      "path": "persona/api_pmm.py",
+      "bytes": 14627,
+      "sha256": "668360b90665d819d595376ba0d4ce3acbeef623b6ec3a4bbae3fa40a10b8757"
+    },
+    {
+      "path": "persona/boundaries.py",
+      "bytes": 39327,
+      "sha256": "f4d1e2d473aea0fb836ca1ca8d5823a81887f8f6a9c8059b8405278fd19a1a04"
+    },
+    {
+      "path": "persona/capabilities.py",
+      "bytes": 4836,
+      "sha256": "d4d1174a3a31ca837e55b07b4810a556cde6918e915072ae9244f6c8f0d85da9"
+    },
+    {
+      "path": "persona/cognition.py",
+      "bytes": 40258,
+      "sha256": "3cdb320988f3516614161c35ac40cc455a0ae93c9da55e74ab003a9b4ea4bfbc"
+    },
+    {
+      "path": "persona/common.py",
+      "bytes": 21096,
+      "sha256": "3660dcffc843dd854159bb4d4ed6ee97f2e74f2b14c7f0f72dfbfc4d18fd5ddd"
+    },
+    {
+      "path": "persona/connections.py",
+      "bytes": 4733,
+      "sha256": "f81d261f001cbd59f2fb8f1dcd5b40803f3f024aa189843821c3e2fde22179ad"
+    },
+    {
+      "path": "persona/consolidation.py",
+      "bytes": 18042,
+      "sha256": "982ef339df0e88627ff044d4918c488ab751e661eb4a3949451d74f348650f94"
+    },
+    {
+      "path": "persona/construct_registry.json",
+      "bytes": 28183,
+      "sha256": "9b2d13e1f527c458cd08822f09f06237a0d08e1278637e410d7a1e80e1cefe81"
+    },
+    {
+      "path": "persona/data_guard.py",
+      "bytes": 14574,
+      "sha256": "1f1328deab3d84255ef5ee8fd62e621f58a304f6789a5278c8f484e00e5c7194"
+    },
+    {
+      "path": "persona/decision_evaluation.py",
+      "bytes": 9874,
+      "sha256": "f06da15a0f62864287ae339f18634c4332170e896e11cae5b8fba1c1534a70dd"
+    },
+    {
+      "path": "persona/deliberation.py",
+      "bytes": 9290,
+      "sha256": "41529bfddf3686e8cf5b2380c8b93dae1254a13ac17ce18c92cbddaaa165db57"
+    },
+    {
+      "path": "persona/deliberation_v282.py",
+      "bytes": 44450,
+      "sha256": "037409112356316ed3a02739c01b8f575ce239439d37737a76eec0d2b44fc2a0"
+    },
+    {
+      "path": "persona/diagnostics.py",
+      "bytes": 5147,
+      "sha256": "2d371b80e304be11c138da71971bdd0840cd0d9265e4d91ec53b4a0792c24d42"
+    },
+    {
+      "path": "persona/engine.py",
+      "bytes": 159780,
+      "sha256": "76f9be37a1fb9155ae8551e15eca794db904cec7dcf8414f0584dec7f69c3348"
+    },
+    {
+      "path": "persona/erasure.py",
+      "bytes": 9735,
+      "sha256": "35344cea795e8887540674ec6ea05f4171f0b833e6652cae8b2a37632597e0bf"
+    },
+    {
+      "path": "persona/event_router.py",
+      "bytes": 5029,
+      "sha256": "30ac1218f532ec1a59ddf272305d00d2c8a49d23beb1a313a289928b48211105"
+    },
+    {
+      "path": "persona/evidence.py",
+      "bytes": 12183,
+      "sha256": "0b334f83416544e7013908f72a2a9fbb61c4dcb86dbd1c4831e9f8c007ef3158"
+    },
+    {
+      "path": "persona/execution.py",
+      "bytes": 27716,
+      "sha256": "780b967d098698a3d1c722b39cd9656c9f131f4373198b5dfc8fbf1165d2102f"
+    },
+    {
+      "path": "persona/experience_learning.py",
+      "bytes": 46626,
+      "sha256": "440f4dfec2ffe4d237406c44579d4765c3d08887eb5cc6e5780ccde85116c194"
+    },
+    {
+      "path": "persona/expression_drive.py",
+      "bytes": 151614,
+      "sha256": "eab355be6771b858a9b48c31faa8e6b0ce564cc88313e31b44c18dc181a6ca9a"
+    },
+    {
+      "path": "persona/expression_drive_training.py",
+      "bytes": 6637,
+      "sha256": "e5fd35be54dc2e72cb5d060877c86305099eb028ed5d31da5f5e285ced83a722"
+    },
+    {
+      "path": "persona/expression_plan.py",
+      "bytes": 22039,
+      "sha256": "185eba8aec8e193dd7e5a494de74741bd4733084d8e0be2223a39bb603e5d762"
+    },
+    {
+      "path": "persona/formation.py",
+      "bytes": 14358,
+      "sha256": "30c55f51cdda0316de0334bcde84b9a28d0c2a4a552c8db99af0430d650940b0"
+    },
+    {
+      "path": "persona/group_attention.py",
+      "bytes": 3607,
+      "sha256": "2ff810ec99d5a4d4d3f60591824a0419b7feaca4f80b23b098b1d4f52e0e46a6"
+    },
+    {
+      "path": "persona/joint_expression.py",
+      "bytes": 16062,
+      "sha256": "2e1d7deffff96a7d1c915185984a126e18268ad899f7ba0d6582ef9d57813201"
+    },
+    {
+      "path": "persona/known_personality.py",
+      "bytes": 5256,
+      "sha256": "c88053ec8ed14a08ac0aaa63c508e4ef518fb4b3d073e49700d97c4a8d998ebc"
+    },
+    {
+      "path": "persona/language_learning.py",
+      "bytes": 13489,
+      "sha256": "071afa86fe6011b956d15904a074767176b1507f40e508c95a9677d1e84e71e5"
+    },
+    {
+      "path": "persona/learned_pmm.py",
+      "bytes": 14674,
+      "sha256": "da1b9890e0b9d6d3f88b3a8c1aa2f24a4924a4c9d58a840042983f4bdfbbad9e"
+    },
+    {
+      "path": "persona/learning.py",
+      "bytes": 54314,
+      "sha256": "c20b945e229f835ff717f3d8fd01b373d85bd927109e1d86126a3d460fa1258d"
+    },
+    {
+      "path": "persona/lock.py",
+      "bytes": 955,
+      "sha256": "9caab224e9a8e8471da00941ce86ff90ab3da6f233524fbc263f468c32ccfa0d"
+    },
+    {
+      "path": "persona/media.py",
+      "bytes": 10921,
+      "sha256": "f3e4e2acf58656c404a6e86b9066de2f1226cbc6123f8c2df06636c010627cf6"
+    },
+    {
+      "path": "persona/memory_lifecycle.py",
+      "bytes": 20460,
+      "sha256": "bbd9856815d650e686516889f0e2080952ac869b916720382570992deff5ba06"
+    },
+    {
+      "path": "persona/memory_ops.py",
+      "bytes": 4226,
+      "sha256": "993a6b12e84c631f36a3617c0b4d42f6be595834d46f1ae2b195988f7ad1c25d"
+    },
+    {
+      "path": "persona/memory_role_changes.py",
+      "bytes": 11018,
+      "sha256": "8be14ea210883270e27dbae59d6a3bcae7cceae423cb7aa7f87385e651294f84"
+    },
+    {
+      "path": "persona/motive_generation.py",
+      "bytes": 22431,
+      "sha256": "e078396428733a4cdf928d20ba4ee0b8f9d54ca62b783f8947d5334fa82e9f35"
+    },
+    {
+      "path": "persona/motive_history.py",
+      "bytes": 5206,
+      "sha256": "8a615cc8dfcc44c53ce39b46a99c9ffebbe800348a4038cab7628a00be41a7fa"
+    },
+    {
+      "path": "persona/notifications.py",
+      "bytes": 3296,
+      "sha256": "c31bcec78349b3f77f434d952d829745ddb8ac6910ece98bf9706294ec302916"
+    },
+    {
+      "path": "persona/packages.py",
+      "bytes": 16324,
+      "sha256": "c2ee56e1eca08c9c57c66fd15c3a9faaa4b2416c553374972257478ccffc0199"
+    },
+    {
+      "path": "persona/people.py",
+      "bytes": 6301,
+      "sha256": "d84568be1852c548ed2ef5824f8513401a350d09b201939b7ff806738c15a418"
+    },
+    {
+      "path": "persona/persona_catalog.py",
+      "bytes": 16814,
+      "sha256": "b5ae897e99844751916c812c0d6035781fbdfedf81ab7605a6a4257364622d63"
+    },
+    {
+      "path": "persona/persona_views.py",
+      "bytes": 22673,
+      "sha256": "da2ba933ddfa25d9904d5fe8e4c3e963e44334f3c5ce08ca9bce6fbc217ed0f7"
+    },
+    {
+      "path": "persona/pmm.py",
+      "bytes": 11556,
+      "sha256": "4ef2ab7c98e64379db90045768edea4d653b064baf030f53c9f5594c169601c8"
+    },
+    {
+      "path": "persona/pmm_connections.py",
+      "bytes": 5947,
+      "sha256": "e072b8155f9c923c1ccbc17c081528c5a0e7033cbbabcb4be5d5fd0c113f580b"
+    },
+    {
+      "path": "persona/pmm_contracts.py",
+      "bytes": 6871,
+      "sha256": "d9a854ec5fedf7f930dfcb6597f8a7b81748cab8e976ec8d674858f0b3a39d05"
+    },
+    {
+      "path": "persona/pmm_coordinator.py",
+      "bytes": 38947,
+      "sha256": "109a99eba41d72183363dd7de9c461d46fe2cb3ffea9d7ae772229f760f7e8ab"
+    },
+    {
+      "path": "persona/pmm_event_reasoner.py",
+      "bytes": 13763,
+      "sha256": "9f9ba8d7dbf0119ffefb09c72d8fa60217654aae151181df8d29131122d52a3d"
+    },
+    {
+      "path": "persona/pmm_experiments.py",
+      "bytes": 8264,
+      "sha256": "c193ac88394c28e8433256f15f5a3746d2c21396f9df8b3cda29ecfa16c61386"
+    },
+    {
+      "path": "persona/pmm_interface.py",
+      "bytes": 14250,
+      "sha256": "dcce38cd9769b39e326b7e1e5191f16072a87fb4360de9edac6c95d1da1b028a"
+    },
+    {
+      "path": "persona/pmm_longitudinal.py",
+      "bytes": 14741,
+      "sha256": "47c909dc3711905bfc4939b69a182c60d9f5cb887d6335668d3397d55175fff9"
+    },
+    {
+      "path": "persona/pmm_negotiator.py",
+      "bytes": 8843,
+      "sha256": "2d5e1ed19e5c0967396969399e7c6d790de8624ba0317fab5a13fdd2d1f90331"
+    },
+    {
+      "path": "persona/pmm_service.py",
+      "bytes": 2907,
+      "sha256": "348ac94977647fe2cdec3d6ea35a7103bd008f35621628e1bee8be6285d52e69"
+    },
+    {
+      "path": "persona/pmm_trainer.py",
+      "bytes": 27127,
+      "sha256": "2e85499f38b41b147b4608f9680b7afd595b5fff4d58a7e7b862c5b11111a540"
+    },
+    {
+      "path": "persona/pmm_workspace.py",
+      "bytes": 5428,
+      "sha256": "47097c3ac30fbbc205d1b00761f443a777a82ee69a17eaef4def782c4e13ba8a"
+    },
+    {
+      "path": "persona/policy.py",
+      "bytes": 7110,
+      "sha256": "c304ff162c82bb67e514fc7d912ca4216e97201789e932e3f5c7fff5060dba9b"
+    },
+    {
+      "path": "persona/pragmatics.py",
+      "bytes": 17146,
+      "sha256": "6c266593e4a0dbccb60f8c085fd603ca047a8daffa9f60bacc5a38e8c97ee390"
+    },
+    {
+      "path": "persona/presets.py",
+      "bytes": 2925,
+      "sha256": "d00094b43203d96bb2d7e603602373c1e6e1a85ff0292036830a2d103618d2d4"
+    },
+    {
+      "path": "persona/prompt_compiler.py",
+      "bytes": 18765,
+      "sha256": "ae2948e08b87cd5fc04a90201ae764061021738dd8e0a2807c0f97524534508d"
+    },
+    {
+      "path": "persona/provider.py",
+      "bytes": 26333,
+      "sha256": "c870936f6ff19398596f31ce272ab3495288e33a456d5b5aeefcf1d145d8a940"
+    },
+    {
+      "path": "persona/psychology.py",
+      "bytes": 23079,
+      "sha256": "08f53abbd4dfe7d2eda863efa8dcc901db3dd2a354e0263a75073cd794fd0d8f"
+    },
+    {
+      "path": "persona/qq.py",
+      "bytes": 20044,
+      "sha256": "49802e880de91365dfc0615fa65faedc1859c0bbbca35877734943721067a1cc"
+    },
+    {
+      "path": "persona/registry.py",
+      "bytes": 13401,
+      "sha256": "b16d5ca67ac48564d6c19a131273fdc1a51d084864649e3a3464863471343592"
+    },
+    {
+      "path": "persona/registry_pmm.py",
+      "bytes": 20660,
+      "sha256": "16768b9e33885432bd1986159778dd8eb83c3efdc846eacabb4b458628cf7ae3"
+    },
+    {
+      "path": "persona/relationships.py",
+      "bytes": 14115,
+      "sha256": "390fe75cdb018d9dd9093a53e354e6dfe4a5a9b7b19dab88144470d9b25a2145"
+    },
+    {
+      "path": "persona/research_export.py",
+      "bytes": 7038,
+      "sha256": "85db463ae993d3907316bc8db45b19ca595be07861a375409d1c2bafc718ca84"
+    },
+    {
+      "path": "persona/research_operations.py",
+      "bytes": 11721,
+      "sha256": "44ea0de83badedc1319bfbf43a3e7d76bd04fb47243a06dc7cc3ecf13aae7023"
+    },
+    {
+      "path": "persona/role_context.py",
+      "bytes": 8903,
+      "sha256": "59e6def45dd7cdc668b69b6c8e04f4ff63c79b145b2d2e8740b8bab68660490f"
+    },
+    {
+      "path": "persona/role_development.py",
+      "bytes": 3011,
+      "sha256": "ed86f69eb0465a9d8d7f60f0d4cfa64792598ba9c33aaf6bb6d295190ff8cbb8"
+    },
+    {
+      "path": "persona/runtime_history.py",
+      "bytes": 5785,
+      "sha256": "3ffc58c4cd26b7516b0b7793308924598fc87ae6aacba8e20e70d1d525a5f0dc"
+    },
+    {
+      "path": "persona/scheduler.py",
+      "bytes": 4041,
+      "sha256": "69205a52a7325aa0d264f5c9616bd8848512a01a03d6d3f8e8ba5499608bd9c5"
+    },
+    {
+      "path": "persona/server.py",
+      "bytes": 71162,
+      "sha256": "7d8c794abc9eaf1970d44902daf029423a62d9e65c562bd8c02b4c95c0fafe4d"
+    },
+    {
+      "path": "persona/social.py",
+      "bytes": 35233,
+      "sha256": "4cb483cc63864516aa52a1fe395e47deb77501b4fdf03b416792b7bea52f9493"
+    },
+    {
+      "path": "persona/social_graph.py",
+      "bytes": 11868,
+      "sha256": "e77556fb64e6407c4ef6e4c90514497258b587e6708c3b4df2e520de4944ebcd"
+    },
+    {
+      "path": "persona/storage.py",
+      "bytes": 17031,
+      "sha256": "64d81d798e5b875e03307425917efc9cd6fa0de87247aec9702f5be6007178d7"
+    },
+    {
+      "path": "persona/subjects.py",
+      "bytes": 12500,
+      "sha256": "4f357c3bb5c2f96acdc51c9c7885094d6774aa427e75421da570877ee598b6e3"
+    },
+    {
+      "path": "persona/support.py",
+      "bytes": 1957,
+      "sha256": "b66b9af7cddaea19bb10d9e46499cae48cb8ddc83111d4b90abff4c988ac5ad0"
+    },
+    {
+      "path": "persona/thinking.py",
+      "bytes": 8202,
+      "sha256": "de3979bb9df792145d13899e6d16d9e9136a1ee8123fe29da66fa306f41933f4"
+    },
+    {
+      "path": "persona/token_ledger.py",
+      "bytes": 11509,
+      "sha256": "ff01a09d448f9c8176572b868a3739cdbc652bb6c4f0240848b411d728a4eba6"
+    },
+    {
+      "path": "persona/token_prices.py",
+      "bytes": 14797,
+      "sha256": "59120ab0249bb3f763542f4905a1b610c5015e9f028c7fdde11ed7332502b274"
+    },
+    {
+      "path": "persona/trait_disposition_registry.json",
+      "bytes": 2247,
+      "sha256": "a82b186b7f60a5b221fd256d64227cb5a30f5925d17a7604eb606cf44eadd7e6"
+    },
+    {
+      "path": "persona/trait_dynamics.py",
+      "bytes": 17349,
+      "sha256": "ab8d7e42d81ecef39ed01d2bb1ceb618ce7ce51acd989a2359b7ffa1973693fc"
+    },
+    {
+      "path": "persona/trait_estimator.py",
+      "bytes": 18265,
+      "sha256": "49bb3586185342eeb785013db4596aad30741b16d99e3856146e651c78a284d9"
+    },
+    {
+      "path": "persona/traits.py",
+      "bytes": 25996,
+      "sha256": "077ef1415fc1923c81d5437f2936808189a212e2e62e4c71f6081bc0670c498c"
+    },
+    {
+      "path": "persona/turn_taking.py",
+      "bytes": 18240,
+      "sha256": "edd444716e68f1116511c395edfd422b592ae1cf4637ac352abeae10b6ddbb4a"
+    },
+    {
+      "path": "persona/ui3_projection.py",
+      "bytes": 26139,
+      "sha256": "02052c4e1c4d313beb41a87f44a2d6dd02e16ae1cfffa1b529afc80ea96d1225"
+    },
+    {
+      "path": "persona/validation.py",
+      "bytes": 34173,
+      "sha256": "894cd71524a1c70758c6564f57177988d46ba4c40deab70a6bc66d6ed52dd164"
+    },
+    {
+      "path": "persona/versions.py",
+      "bytes": 8974,
+      "sha256": "eb0657819a92b53e1df5de46f09068b61bf5ab04295d95b2772e34f770a2938b"
+    },
+    {
+      "path": "PUBLIC_RELEASE_CHECKS.json",
+      "bytes": 1016,
+      "sha256": "0e0f7243b60dbe1ad4df05fdbeea83a269fe2344644b96a23009bb9a6d4f6ff6"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3563,
+      "sha256": "105b011fa86185545a41e15ed6d5581902f6cbc20a0ae8ed32f0da812376c37e"
+    },
+    {
+      "path": "RELEASE.json",
+      "bytes": 448,
+      "sha256": "f0d48d4504699167656890f50fdb3b46dd5630e093a01146ff6790a882be7cc2"
+    },
+    {
+      "path": "requirements-learning.txt",
+      "bytes": 117,
+      "sha256": "c0e09bad9a09bb724cdb36b9592b6dd41ca919c95a9ad72c99df81dba1cefed1"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 47,
+      "sha256": "4d8cd049d52239543fb33b4ac3aa1e4a713a0d050d409257a71db26f7b9994bc"
+    },
+    {
+      "path": "run.py",
+      "bytes": 3179,
+      "sha256": "9452e8260847166b008eda0e14264bf167f2455c62fe5d8e1244bb0ca253cc6e"
+    },
+    {
+      "path": "run_pmm_service.py",
+      "bytes": 1895,
+      "sha256": "7945f46504f3a846f687f2c57ce9b45ac7b60954e440cfb34e5dbd92f769d99a"
+    },
+    {
+      "path": "scripts/export_construct_map.py",
+      "bytes": 2582,
+      "sha256": "4f51c86d98ed1916de79fcc7a32567c04e462a3a747b172c93f94aea20d4d2a1"
+    },
+    {
+      "path": "scripts/export_pmm_openapi.py",
+      "bytes": 6382,
+      "sha256": "81c1be75057d3ba9c6e464224b1137928e3b7e7ef66e83b9d9705c25eddd6334"
+    },
+    {
+      "path": "scripts/export_sources.py",
+      "bytes": 2781,
+      "sha256": "eae864135462bc2e94299fc9640f84e14de66952374c0af02f109061ffea4eb5"
+    },
+    {
+      "path": "scripts/train_affect_v281.py",
+      "bytes": 2051,
+      "sha256": "941b3eaed89c4ace664436e933ef5cf1cc435c9f825e57f4002f96768f167e60"
+    },
+    {
+      "path": "scripts/train_expressive_candidate.py",
+      "bytes": 1105,
+      "sha256": "7e81060da4a7dff208c75555038f45ef756af9af4bd0f5ae046d532b924fcc61"
+    },
+    {
+      "path": "scripts/train_pmm28.py",
+      "bytes": 2417,
+      "sha256": "5d0a033d432aeb5493e155594e9e9bfd200fb503f9efc9e142404958e7c1e9e7"
+    },
+    {
+      "path": "Start_HuaiAn.cmd",
+      "bytes": 511,
+      "sha256": "a9c1ab16cbbed68ddd760be1ca4e955f0b4b1559cebcc11a6356e07ce5263511"
+    },
+    {
+      "path": "start_mac_linux.sh",
+      "bytes": 121,
+      "sha256": "afddd327d55eeffcd9e38d442672e07f6da1618ae173f4f59d0d85932c547970"
+    },
+    {
+      "path": "start_pmm_mac_linux.sh",
+      "bytes": 126,
+      "sha256": "e5bb1d6fd4f59b60664c1ade4937b0a683e15099b6bea6911f995cf6127876da"
+    },
+    {
+      "path": "start_pmm_windows.bat",
+      "bytes": 521,
+      "sha256": "c6f10bb6fe84367cf4a153b99421802d5b72073d9814b374c3fc8f18a9c92c81"
+    },
+    {
+      "path": "start_windows.bat",
+      "bytes": 511,
+      "sha256": "a9c1ab16cbbed68ddd760be1ca4e955f0b4b1559cebcc11a6356e07ce5263511"
+    },
+    {
+      "path": "tests/test_connection_roles_20261125.js",
+      "bytes": 3404,
+      "sha256": "ae338aa1fbb9c3a0a3e29361884015f946372a337a04f0d3e570fc8d204722b1"
+    },
+    {
+      "path": "tests/test_connection_roles_20261125.py",
+      "bytes": 5045,
+      "sha256": "d40b78eded71c38357cf9689ff10864f09c2947a0e106be664b6d407f46884e3"
+    },
+    {
+      "path": "ui-shell/index.html",
+      "bytes": 67169,
+      "sha256": "6cc1ca309f7a826283a7192f3d994a7dda94fb14aa067411a4a6b6bbdcff91dd"
+    },
+    {
+      "path": "ui-shell/public/assets/character/dev_character_avatar.png",
+      "bytes": 2843,
+      "sha256": "d17f63a0ec0e37ba6f85edad4e65a4b2751c0876e4e2c47c73dbc4d3cedb0a1b"
+    },
+    {
+      "path": "ui-shell/public/assets/character/dev_psych_cloud.png",
+      "bytes": 17858,
+      "sha256": "b6700e524d8532114ad77e7cf4edd2c4654cb0cd2622c7098c603ab9d79b6758"
+    },
+    {
+      "path": "ui-shell/public/assets/character/user_header_avatar.png",
+      "bytes": 4961,
+      "sha256": "98f528394e1fce3177e9017bd71cc6ff55da506603ec6a1ad4acf0a650fcfadd"
+    },
+    {
+      "path": "ui-shell/public/assets/decorations/card_memory_polaroid.png",
+      "bytes": 37002,
+      "sha256": "1925bb427876798d13575e3bca53066dc3c70b4df0a99a4046f84436a3261018"
+    },
+    {
+      "path": "ui-shell/public/assets/decorations/card_parlor_window.png",
+      "bytes": 41385,
+      "sha256": "bcda80203e83351056fddf25e5f2758eac3e6423b6d52713963cad03d0a04420"
+    },
+    {
+      "path": "ui-shell/public/assets/decorations/card_state_hydrangea.png",
+      "bytes": 35411,
+      "sha256": "5290683d76d4f9cd2e1d114b060c09b395b59067e084ed61bbaa09aca639de67"
+    },
+    {
+      "path": "ui-shell/public/assets/decorations/card_studio_books.png",
+      "bytes": 50098,
+      "sha256": "b76238dc981f2b5710bd026ae807e4e335365707649cb8f278470faca031a1c4"
+    },
+    {
+      "path": "ui-shell/public/assets/decorations/dev_psych_cloud.png",
+      "bytes": 17858,
+      "sha256": "b6700e524d8532114ad77e7cf4edd2c4654cb0cd2622c7098c603ab9d79b6758"
+    },
+    {
+      "path": "ui-shell/public/assets/decorations/foreground_hydrangea_bl.png",
+      "bytes": 138693,
+      "sha256": "b14a37e94baf209d8bf5685b1da4f13a5a50569dc3b7327f7a5f12bb0fcdf3ad"
+    },
+    {
+      "path": "ui-shell/public/assets/developer_home_background.png",
+      "bytes": 2258288,
+      "sha256": "7ae323e5cb7eefe42a24a4f61c3acb6ce0cbea422f92930ced423d122bc0b0ec"
+    },
+    {
+      "path": "ui-shell/public/assets/user_home_background.png",
+      "bytes": 2231093,
+      "sha256": "02c8838bd940956b52e7417609690d19bdeb421c4cc1f6dd1dc33ded0d9d1d6d"
+    },
+    {
+      "path": "ui-shell/README.md",
+      "bytes": 627,
+      "sha256": "1d7cf0fad2d02902dd281c99633dc4d041c41b6a59480059a0cf5b0ab4b51f84"
+    },
+    {
+      "path": "ui-shell/src/adapters/ConnectionAdapter.js",
+      "bytes": 14986,
+      "sha256": "fda5cdcddeb11ff51a17d1e511eb57a32f366c261a314800f3a03db818ac25cb"
+    },
+    {
+      "path": "ui-shell/src/adapters/MockAdapter.js",
+      "bytes": 2207,
+      "sha256": "a3e0997ecdb97ef478ff4d691b5bbb7e0ea964dc62a0a426a6ffe9bda30f1369"
+    },
+    {
+      "path": "ui-shell/src/adapters/mockFallbackData.js",
+      "bytes": 785,
+      "sha256": "715c251d38f30bffb2d077a4cce660b41dbc94cf491ad46f472a95fcfb25d79f"
+    },
+    {
+      "path": "ui-shell/src/adapters/ModelAdapter.js",
+      "bytes": 11284,
+      "sha256": "7334ec692e40d449b23c7d8269a69fb85491af4c19749cd6f7f7b3f72e7770e8"
+    },
+    {
+      "path": "ui-shell/src/adapters/PMMAdapter.js",
+      "bytes": 66381,
+      "sha256": "1550b3b2f3de49f14324e6da1cfeeee12c76c93f8ac7b0b46f2b5c54b742aeb5"
+    },
+    {
+      "path": "ui-shell/src/app/phase20Controller.js",
+      "bytes": 271275,
+      "sha256": "33e99558678d4adbdd658d30f3e4abfcd1cb1344bcc4bb90a541f65c74200279"
+    },
+    {
+      "path": "ui-shell/src/contracts/DataEnvelope.js",
+      "bytes": 7799,
+      "sha256": "0fe16058627575a9bc081c769f2fa7cc41bbf67e520ed4eff2a24225cd03ca0a"
+    },
+    {
+      "path": "ui-shell/src/styles/developer-theme.css",
+      "bytes": 13500,
+      "sha256": "5e4cb7373faeaa86bf380577aff101ae0f8ac901e310e2c25ba0673283af798c"
+    },
+    {
+      "path": "ui-shell/src/styles/global.css",
+      "bytes": 1176,
+      "sha256": "c828c562490c2e67a7d1acad4c2c00961c813ca558f5661c6f4ac843a5a8466e"
+    },
+    {
+      "path": "ui-shell/src/styles/phase20-extensions.css",
+      "bytes": 16616,
+      "sha256": "db1591e4b446fd21b7cc87a132f73f05b86aad0fbb9fc00534a57da054f2ee46"
+    },
+    {
+      "path": "ui-shell/src/styles/tokens.css",
+      "bytes": 1439,
+      "sha256": "163cdcded25b752473e7be7e9b52cc568ed523b0428f3b43d5315b8aadda22f8"
+    },
+    {
+      "path": "ui-shell/src/styles/user-theme.css",
+      "bytes": 16936,
+      "sha256": "37934fe02f7c0dc270b884bc836c9ca62868c9039eb6227dc508c4f215dd3319"
+    },
+    {
+      "path": "ui-shell/src/visualizations/connection-settings.css",
+      "bytes": 3229,
+      "sha256": "ce73562da9069115c97c17c1e52ff565b1fabec7eb2f43a33d75e0b83584ac45"
+    },
+    {
+      "path": "ui-shell/src/visualizations/dev-workbench.css",
+      "bytes": 18743,
+      "sha256": "9f9afef6a242a2df7850b665b37d93d5cc7da55876c58d487b679440452b0d2b"
+    },
+    {
+      "path": "ui-shell/src/visualizations/DeveloperViews.js",
+      "bytes": 32624,
+      "sha256": "0901e969faa80f307688d6418a6f2cd942e7757bb2e0dcb6e64119b743f46590"
+    },
+    {
+      "path": "ui-shell/src/visualizations/DevViz.js",
+      "bytes": 2709,
+      "sha256": "062ad062181bf8700ca4108f2c937ada419255ef2e2b00b603daf3cac6df4988"
+    },
+    {
+      "path": "ui-shell/src/visualizations/DisplayText.js",
+      "bytes": 7162,
+      "sha256": "61f32873c64fb1723ca8aa824ff9817d849846d3071bed563d4196b9354725a7"
+    },
+    {
+      "path": "ui-shell/src/visualizations/drive-view.css",
+      "bytes": 4042,
+      "sha256": "a589a0a707c706cc7f58b284b079563869de6ddd07fc169e028daa838ff5921f"
+    },
+    {
+      "path": "ui-shell/src/visualizations/DriveView.js",
+      "bytes": 20109,
+      "sha256": "9a488834377742fad887e112ca3e66d6a9b2344c0c14ba4a1e508f32ffdc8f98"
+    },
+    {
+      "path": "ui-shell/src/visualizations/emotion-view.css",
+      "bytes": 8322,
+      "sha256": "50635c2b16f38bb01a6d050db5e9583b39189b637c2081aeefd44ed9c8b68c41"
+    },
+    {
+      "path": "ui-shell/src/visualizations/EmotionView.js",
+      "bytes": 19769,
+      "sha256": "19c83fedfefce82d75b08f855e4ff4513268bf2e7b0567a8094e7ad41713b315"
+    },
+    {
+      "path": "ui-shell/src/visualizations/GraphViewport.js",
+      "bytes": 2955,
+      "sha256": "9808b426288b6471196867215d4f085746afda1ab1ff97fbdd0267cd8e2a39cc"
+    },
+    {
+      "path": "ui-shell/src/visualizations/life-views.css",
+      "bytes": 10688,
+      "sha256": "a02660a84fe51cfb16e912642b9e52ba2a596ed2913220f371a0bb68d2977ade"
+    },
+    {
+      "path": "ui-shell/src/visualizations/LifeViews.js",
+      "bytes": 24296,
+      "sha256": "5ff3363236fa875d536ded89bac640c14f0de217bdae347530dbc73259beece9"
+    },
+    {
+      "path": "ui-shell/src/visualizations/memory-graph.css",
+      "bytes": 4310,
+      "sha256": "2037fcb147297c06627c6fa0948bd84b0a47a603861f7687f7a2f5c15a37aa16"
+    },
+    {
+      "path": "ui-shell/src/visualizations/MemoryGraphView.js",
+      "bytes": 21212,
+      "sha256": "ed7f99cdfe927e179a6a549691cc2457ebbe22a2802e7069fd5508ab484b0df1"
+    },
+    {
+      "path": "ui-shell/src/visualizations/ModelSettings.js",
+      "bytes": 11990,
+      "sha256": "7b3816a99b2eaddc0a082aa94db3ccd224b55c569b0e6f21ce3134de0c88f5a2"
+    },
+    {
+      "path": "ui-shell/src/visualizations/NotificationView.js",
+      "bytes": 2566,
+      "sha256": "fa1602e9c4db7431714f02cfe420aebe71228b521af22d18dcfa67e89f5c2f60"
+    },
+    {
+      "path": "ui-shell/src/visualizations/ParlorView.js",
+      "bytes": 9085,
+      "sha256": "4945c5f167ee16fa043e043e4061622e38ca54803f0c8337063664c821c2f6c0"
+    },
+    {
+      "path": "ui-shell/src/visualizations/persona-view.css",
+      "bytes": 8450,
+      "sha256": "2bf9e0c3235f495cf1914483faea91a02860b112c4b48eb2d9fd0691de3f0ba0"
+    },
+    {
+      "path": "ui-shell/src/visualizations/PersonalityView.js",
+      "bytes": 21480,
+      "sha256": "98f837a6eca624f5b52bba47fd9ed4d825a0258c256f77467da942f6663c077d"
+    },
+    {
+      "path": "ui-shell/src/visualizations/PersonaManager.js",
+      "bytes": 8638,
+      "sha256": "e62fbc1eab6c2d1daac613f2df0b4e95d5a1a6891bcf7609ec50858221c81291"
+    },
+    {
+      "path": "ui-shell/src/visualizations/PmmFlow.js",
+      "bytes": 20560,
+      "sha256": "b6032eb5649ebd0b87c692ef8ef7772226ab9260e3619aa324fbda6f5e47a687"
+    },
+    {
+      "path": "ui-shell/src/visualizations/psych-viz.css",
+      "bytes": 4571,
+      "sha256": "296c0ecb870ae8d911eb45f09eb795ef0a564c637c17b0c57bf6c2cb2b238ba2"
+    },
+    {
+      "path": "ui-shell/src/visualizations/PsychViz.js",
+      "bytes": 9268,
+      "sha256": "722acc1dcbd1a5c667f7165d8e9fdcc121b2d1a6dd5fec2445962c5005c6f33d"
+    },
+    {
+      "path": "ui-shell/src/visualizations/ReasoningView.js",
+      "bytes": 6145,
+      "sha256": "6fc9f55aeb1d1c819a0ef027e66437df4fa4b2946ade4644da1498f6b2312440"
+    },
+    {
+      "path": "ui-shell/src/visualizations/RelationView.js",
+      "bytes": 15549,
+      "sha256": "321478ce1717d71cabc903fc21eb39ff6734812796126c080872540945dd1b67"
+    },
+    {
+      "path": "ui-shell/src/visualizations/ResearchView.js",
+      "bytes": 12432,
+      "sha256": "4ab964e6fc9c8b70d827ffc21a0c7f10b4b86139115cd771f8ae2a38b0d428cc"
+    },
+    {
+      "path": "ui-shell/src/visualizations/SampleView.js",
+      "bytes": 5207,
+      "sha256": "209e28bcb4311db043aa568c4adb0adbaddce33b199d8213a5d98390297e268f"
+    },
+    {
+      "path": "ui-shell/src/visualizations/SchedulerView.js",
+      "bytes": 6560,
+      "sha256": "fe77910fbb135f99502511a19550abfa090aef4b5adbda9f465ad32ff54ad104"
+    },
+    {
+      "path": "ui-shell/src/visualizations/TokenView.js",
+      "bytes": 6237,
+      "sha256": "3b693a0b7e3811860cf194c532f8245e30d74c38f516c92bf1e561b714182ea0"
+    },
+    {
+      "path": "web/app.js",
+      "bytes": 340483,
+      "sha256": "df6c567ab8a72904bf4a9fc671385aee6b264d4d78b379bfa8f3d32b9cbd7447"
+    },
+    {
+      "path": "web/favicon.svg",
+      "bytes": 268,
+      "sha256": "25c6a93b32d9861db5c75adcf1d47cef74a95572e45860d976185180112dd711"
+    },
+    {
+      "path": "web/index.html",
+      "bytes": 140725,
+      "sha256": "65f9aef559e8a3824af409b228304ea22d5c87049fc85efdb2f65186a9168462"
+    },
+    {
+      "path": "web/style.css",
+      "bytes": 57769,
+      "sha256": "a4a0e01a577a9306774457a14c5d2b3a6df8a582fc7fcf48f086345e7b8826e2"
+    }
+  ]
+}

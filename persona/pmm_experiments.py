@@ -63,3 +63,37 @@ def from_turn(engine,body):
     output.update(turn_id=trace['turn_id'],scope=trace['scope'],formal_calibration=neural['calibration'],
                   actual_policy_comparison=trace.get('policy_comparison'),actual_decision=trace.get('official_decision'))
     return output
+
+
+def expressive_from_turn(engine, body):
+    """Inspect four frozen ED links. Never regenerate language or update state."""
+    from .policy import choose
+    from .expression_plan import decide_expression
+    owner=engine.profile()['id']
+    if body.get('persona_id')!=owner:raise ValueError('当前主体已变化')
+    rows=engine.store.rows("SELECT payload FROM events WHERE kind IN ('turn','expression_partial') AND json_extract(payload,'$.turn_id')=? LIMIT 1",(body.get('turn_id'),))
+    if not rows:raise ValueError('此回合没有已提交记录')
+    trace=json.loads(rows[0]['payload']);f=copy.deepcopy(trace.get('decision_inputs'))
+    if not f or f.get('input_digest')!=digest({k:v for k,v in f.items() if k!='input_digest'}):raise ValueError('缺少完整固定条件，不能以当前状态替代')
+    drive=copy.deepcopy(trace.get('expressive_drive') or {})
+    if not drive:raise ValueError('此回合未保留表达欲条件')
+    u=copy.deepcopy(f['understanding']);base=choose(u,f['profile'],f['views'],f['assessment']['views'],f['decoded'],f['memories'],f['event']['text'])
+    without=copy.deepcopy(u);without.pop('expressive_drive_policy',None)
+    ablated=choose(without,f['profile'],f['views'],f['assessment']['views'],f['decoded'],f['memories'],f['event']['text'])
+    plan=trace.get('interaction_plan') or {};context=trace.get('turn_context') or {}
+    def expression(enabled):
+        candidate=copy.deepcopy(trace['decision']);language=copy.deepcopy(trace.get('understanding') or {})
+        if not enabled:language.pop('expressive_drive_policy',None);candidate.pop('expressive_drive',None)
+        return decide_expression(f['event']['text'],language,candidate,context,f['relationship'],plan.get('trait_ref'),plan.get('affect_ref'),plan.get('pragmatic_condition') or {},expressive_drive=drive if enabled else None)
+    turn=context.get('cognitive_decision') or {};turn_scores=turn.get('scores');terms=(turn.get('expressive_drive') or {}).get('score_deltas')
+    turn_case={'status':'available','saved_scores':turn_scores,'without_ed_scores':{k:v-terms.get(k,0) for k,v in turn_scores.items()},
+               'note':'Only the saved additive link is removed; no new permission or response is inferred.'} if turn_scores and terms else {'status':'unavailable','reason':'turn_score_snapshot_missing'}
+    proactive=drive.get('proactive_eligible')
+    return {'schema':'expressive-drive-link-experiment/1','turn_id':trace['turn_id'],'input_digest':f['input_digest'],
+        'fixed':{'time':f['at'],'profile':True,'emotion':True,'scope':f['event']['scope'],'language_model_outputs':True,'permissions':True},
+        'turn_taking':turn_case,
+        'action':{'baseline':base,'without_ed_link':ablated,'baseline_reproduces_actual':base['action']==trace['decision']['action']},
+        'expression':{'baseline':expression(True),'without_ed_link':expression(False),'stage':'initial_strategy_before_joint_refinement'},
+        'proactive':{'status':'available','saved_eligible':proactive,'with_ed_initiation_disabled':False,'permission_granted':False} if proactive is not None else {'status':'unavailable','reason':'this_turn_has_no_proactive_snapshot'},
+        'model_calls':0,'sent':False,'state_written':False,
+        'interpretation':'Local link interventions under frozen evidence, not a full language-generation trial or validated psychological causality.'}

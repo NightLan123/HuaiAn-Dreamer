@@ -1,0 +1,38 @@
+[
+  {
+    "path": "run.py",
+    "change": "public release sanitization or isolated startup"
+  },
+  {
+    "path": "run_pmm_service.py",
+    "change": "public release sanitization or isolated startup"
+  },
+  {
+    "path": "persona/thinking.py",
+    "change": "public release sanitization or isolated startup"
+  },
+  {
+    "path": "ui-shell/src/adapters/MockAdapter.js",
+    "change": "public release sanitization or isolated startup"
+  },
+  {
+    "path": "ui-shell/src/adapters/mockFallbackData.js",
+    "change": "public release sanitization or isolated startup"
+  },
+  {
+    "path": "ui-shell/src/styles/developer-theme.css",
+    "change": "public release sanitization or isolated startup"
+  },
+  {
+    "path": "ui-shell/public/assets/character/dev_lizi_avatar.png",
+    "change": "renamed generic illustration"
+  },
+  {
+    "path": "ui-shell/index.html",
+    "change": "removed named role and static example records; preserved all DOM targets and layout"
+  },
+  {
+    "path": "scripts/export_construct_map.py",
+    "change": "public release sanitization or isolated startup"
+  }
+]

@@ -1,7 +1,0 @@
-Managed Registry-PMM subprocess startup: PASS
-Model: learned-pmm-v21
-Actual HTTP encode/decode and independent synthetic client training: PASS
-Main identity/checkpoint unchanged: PASS
-PMM HTTP 鉴权、编码与解码通过；未训练或改写当前主体
-仅用于接口演示的合成样本，训练步数： 5
-解码结构字段： ['latent', 'state', 'style', 'action_probabilities', 'perspective_weights', 'perspective_offsets', 'linguistic', 'personality', 'memory_semantic', 'memory_read_weights', 'influence', 'reconstruction_error', 'mode', 'core_sha256', 'adapter_id', 'registry_view_weights', 'registry_contract', 'psychology_prediction']

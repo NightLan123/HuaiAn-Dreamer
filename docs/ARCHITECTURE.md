@@ -1,57 +1,29 @@
-# v2.1 实际实现
+# 代码结构与阅读顺序
 
-本说明以源码为准。研究原契约见 RESEARCH_CONTRACT_V21.md；完整稳定字段在 persona/construct_registry.json。字段是研究操作化，不是诊断或正式量表测分。
+这是当前源码的导航，不是全部机制已经有效的保证。
 
-## 双模型及协商控制
+| 位置 | 作用 |
+| --- | --- |
+| `launcher.py` / `run.py` | 准备依赖、启动后端；公开版默认使用本目录的数据 |
+| `persona/server.py` | HTTP 路由、后台任务、两套界面与角色操作 |
+| `persona/subjects.py` / `persona/storage.py` | 角色目录、隔离存储、归档恢复与记录 |
+| `persona/common.py` | 内部协议版本与未配置连接的初始值 |
+| `persona/engine.py` | 对话主流程和心理、决策、回复环节的串接 |
+| `persona/psychology.py` / `persona/role_context.py` | 心理条件及模型可见上下文；以实际调用处为准 |
+| `persona/prompt_compiler.py` / `provider.py` | 精简提示词、语言模型请求与返回处理 |
+| `persona/pmm_coordinator.py` / `pmm_event_reasoner.py` / `pmm_negotiator.py` | PMM 协调、事件评价与内部协商 |
+| `persona/pmm.py` / `learned_pmm.py` / `registry_pmm.py` | 本地数值／神经计算及权重结构 |
+| `persona/affect_dynamics_v2.py` / `expression_drive.py` | 情绪动力学与表达欲计算 |
+| `persona/experience_learning.py` / `memory_role_changes.py` | 经历学习与受约束的慢速人设候选变化 |
+| `persona/boundaries.py` / `validation.py` | 已有边界策略与候选回复检查；参见已知缺口 |
+| `persona/token_ledger.py` | 模型调用用量记录 |
+| `ui-shell/index.html` / `ui-shell/src/app/phase20Controller.js` | 当前界面的真实入口和控制器 |
+| `ui-shell/src/adapters/PMMAdapter.js` | 后端读取、任务轮询与写入调用 |
+| `ui-shell/src/visualizations/` | 各页面、可视化与角色管理组件 |
+| `web/` | `/legacy` 兼容界面 |
 
-General LLM 理解事件并生成最后一句回复。API-PMM 用独立接口做心理评价、单路径效用判断/多路径复核、蒸馏、语言条件与反馈更新。Learned-PMM 用真实数值编码器和梯度；所需语义标签仍由 General LLM 或人类提供。
+阅读一轮对话时，沿 `server → engine → PMM 协调与语言生成 → validation → 发送及记录` 查找真实调用；不能仅看配置字段是否存在就判断机制已生效。模型的 thinking 适配集中在 `persona/thinking.py`，可用性仍取决于所配置服务。
 
-关闭协商时：理解 → PMM 检索/解码 → 单路径评估 → PMM 知识与边界门控 → 生成 → 实际反馈。API 模式单路径评估请求由 API-PMM 接口负责；数值模式由 General LLM 提供可行性效用，PMM 决策规则综合。关闭不会跳过检索、字段读取、状态更新或学习。
+`construct_registry.json` 与 `trait_disposition_registry.json` 是程序构念定义，不是某个角色的数值档案，所以保留在源码中。角色训练数据与检查点不随源码发布。数值推断、训练候选、正式发布以及长期人格更新是不同环节。
 
-自动触发规则 deliberation-trigger/1：价值冲突；行动分布熵 × 事件歧义；敌意 × max(亲近信号, 熟悉度)；紧迫 × 复杂度；复杂度。任一分数达到 0.6 触发。这是可检查的工程规则，未经人类效度校准。始终模式允许只有一个有意义候选。
-
-候选来自真实已知 HEXACO、价值、调节和人际字段，按事件相关性、证据不确定性与强度排序；基准视角加最多三个候选。当前事件明确复杂/冲突而稳定人格未知时，可加入带 event_only 标记的“不确定性”候选，不赋予虚构个性。每个候选记录 source_features、evidence_ids、intensity、weight、uncertainty、shared_identity。Schwartz 相邻圆环顺序用于生成对立倾向提示；圆环距离是近似操作化，不作为硬门控。
-
-General 按实际候选 ID 返回效用摘要。PMM 校验证据引用，API 复核可调整权重、拒绝候选、要求再检索；数值路径执行确定的证据审查与效用分歧复核。最多 1–4 轮。存在未解决分歧且领先效用差小于 0.08 时，可选择澄清。知识、隐私范围与启用的硬边界先于效用。日志仅含结构化摘要，不含思维链；候选和内部协商留在本轮日志，不进入人物源记录、长期记忆或真实事件标签。
-
-## 心理数据
-
-固定 93 字段，顺序由原始注册表遍历一次确定。注册表 SHA256 使用排序键紧凑 JSON；字段顺序另显式锁定。psychological-profile/1 外壳保留兼容旧证据，新增 psychology 的 state_schema_version/schema_version 为 2.1.0。不得将外壳版本误认为只剩旧五因素。
-
-每项存 estimate|null、posterior_uncertainty|null、evidence_ids/count、scope、source_type、updated_at、method_version、schema_version、conflict；底层 observations 保留不同情境的相反证据，不删除反例。posterior_uncertainty 是有记录的工程不确定性启发式，不是校准贝叶斯后验。未知值无置信度、无伪造中性值。值域为 0–1，VAD valence 为 -1–1；心理学构念的数值编码是本项目操作化。
-
-慢变量导入时按带置信权重的观察汇总；在线已有慢变量每轮最大变化 0.003。即时 affect 使用新的有证据评价。证据只接受指定说话者原文中的逐字引用，不能拿相邻上下文冒充目标自述。生成回复不产生稳定 HEXACO/价值真值。AI 对输入的瞬时情绪可单独引用实际用户事件，存于 psychology.evidence_records；不会混进 AI 原始风格样本。
-
-canonical affect 不凭空指定中性基线：两小时的工程时间常数提升旧估计的不确定性，过时值的训练掩码归零。基线引用未观测时保持 null。旧版四维情绪/心境仍作为连续运行状态，按旧策略回落；VAD 与旧四维字段不冒充同一测量。
-
-各域都进入蒸馏与反馈 schema，经过同一证据验证器、状态存储、导出导入、UI、完整条件和数值输入/输出。稀疏观察不要求每轮推断全部字段。认知/语言/情绪“被注册”不代表已获得真实监督。
-
-## 370 维 Learned-PMM
-
-模型 learned-pmm-v21、检查点 learned-pmm/2.1，保留 64 维 latent。输入前 184 维为历史版本前缀；追加 93 个归一化值和 93 个 missing mask。未知数值位置为 0 但 mask=0；已观测的零值 mask=1。已知 valence 映射为 (v+1)/2。
-
-核心 θ 包含全输入编码 E、重建 D、旧状态/风格/行动/语用头，新增 93 构念头 F，以及 94 路动态视角门控 W（综合基准 + 93 字段）。个体 Δ 包含 rank-8 latent 残差 U/V、各预测头残差，以及新增输入条件 C（64×186）。
-
-z0 = tanh(Eθ x + bθ + CΔ x[184:])；h = tanh(VΔ z0)；z = clip(z0 + UΔ h)。因此核心冻结时，完整心理输入仍可以经 CΔ 被个体训练使用。日常 fit(target=adapter) 不更新 θ；独立核心训练不改 Δ 参数，并发布尚未激活的新版本。
-
-重建误差屏蔽未知心理值；监督损失按标签缺失掩码计算。F 仅训练有实际标签的字段，未获得训练监督的输出返回 null，不以随机数声称人格已知。旧标签头保留兼容迁移，当前运行不把内部假设投影当训练真值。人类选择某候选时按该候选来源字段生成 W 的监督分布；动态权重以最高 0.35 的工程影响上限加入候选权重。预测为推理条件，不自动写回永久人格估计。
-
-学习率 0.08，梯度逐元素截断到 ±1。训练样本组 SHA256 划分 20% 保留组，保留标签不参与任何梯度。样本回放上限 512，API 待训练队列 1024；完整原始证据、记录与事件仍保留，队列不是证据唯一存储。原始事件可重放，但本版不承诺无限神经回放或抗遗忘。
-
-## 迁移与模型接口
-
-旧 learned-pmm/2 与 pmm/3 通过显式“旧前缀 + 零扩展”迁移；新字段全缺失时，测试验证旧状态、风格、行动等输出保持一致。旧配置、身份、原始记录、记忆和版本文件不删除。旧权重保存为迁移前版本。旧 profile 仅增加未知 canonical 字段，绝不拆分旧五因素或十价值制造 facet。
-
-每个新检查点、核心、Adapter、人格包和 370 维待训练样本都携带 registry_hash、encoder_version、state_schema_version、feature_order。旧 184 维待训练记录仅允许显式补零与零 mask；错序/错哈希的 370 维输入拒绝。Adapter 还绑定 identity_id 与 core_sha256。共享核心只跨同编码合约切换；旧核心应先按完整检查点迁移。
-
-本机/远程数值接口均提供 encode、decode、train、rank_feedback、inspect。HTTP worker 无主体持久副作用；客户端验证返回身份、摘要、维度及核心冻结规则，再事务提交。General 与 API-PMM 的六种文本协议不受数值编码版本影响。
-
-## 关系、认识状态与证据边界
-
-pmm_dyads 按 person_id × context_id 的摘要键隔离，保存信任、熟悉度、亲近、偏好、共享梗、称呼、冲突与证据。信任/亲近未知为 null；行动计算所需 .5 基线另行明示。关系更新必须引用当前用户原话。轨迹记录实际行动、回复风格、带引文的对方情绪，不记录未经发生的内部辩论。
-
-旧 relations 表保留兼容旧数据，但不用于跨情境灌入新关系。模型提示只使用最近20条关系历史，完整历史留存。对象心理模型和自己严格分开。记忆条件标明来源、可靠性、私密范围及观察/推断；AI 生成内容不是可证明的亲历。个人或当前事实证据不足时允许不知道，不让投票越过门控。
-
-## 实现边界
-
-文本语义仍依赖外部 LLM；有限散列编码与工程特征没有预训练心理能力。关系偏好影响生成条件，但尚未通过真实人群验证其对调侃误判的改善。数值、协议和事务测试不等于人格效度、真人量表一致性或长期稳定性。未实现语音/视觉/Agent 执行/Live2D，也未验证真实云端密钥、真实QQ账户或浏览器视觉验收。
+公开版仅改变启动时默认数据位置、清理预览内容与发布工具，不改写 PMM 的计算公式。完整模型是否遵守角色设定、边界和情绪条件，需要后续明确的行为验收。

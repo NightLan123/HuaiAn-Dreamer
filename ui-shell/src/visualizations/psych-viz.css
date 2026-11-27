@@ -1,0 +1,43 @@
+/* All rules are scoped to Stage 1 pages / details. The two accepted homes are untouched. */
+.psych-viz-page { --viz-ink: #34432e; --viz-soft: #64735a; --viz-line: rgba(87,109,66,.18); }
+.psych-viz-page .subpage-header-bar h2 { letter-spacing: .04em; }
+.psych-viz-page .subpage-card-grid { gap: 20px; }
+.psych-viz-page .ui-frosted-card { min-width: 0; border-radius: var(--card-radius); }
+.psych-viz-page .card-header-row { gap: 16px; align-items: start; }
+.psych-viz-page button:focus-visible, .psych-viz-page select:focus-visible,
+.psych-viz-page input:focus-visible, .psych-viz-page [tabindex]:focus-visible,
+.viz-drawer :focus-visible { outline: 3px solid #647e42; outline-offset: 4px; }
+.viz-provenance { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-top: 1px solid rgba(87,109,66,.16); margin-top: 18px; padding-top: 12px; font-size: 11px; color: #626b5b; }
+.viz-provenance button { border: 0; background: none; color: inherit; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font: inherit; padding: 4px 0; }
+.viz-source { border: 1px solid #adbba0; border-radius: 5px; padding: 2px 5px; letter-spacing: .07em; color: #496139; font-size: 9px; font-weight: 700; }
+.viz-source-mock { background: #fbefd7; border-color: #b7a57c; color: #745522; }
+.viz-source-unavailable, .viz-source-error { color: #78564c; border-color: #bca69e; }
+.viz-legend { display: flex; flex-wrap: wrap; gap: 16px; list-style: none; padding: 0; font-size: 12px; color: #5e6d56; }
+.viz-legend li { display: flex; gap: 6px; align-items: center; }
+.viz-state { min-height: 160px; display: grid; align-content: center; justify-items: center; text-align: center; gap: 12px; color: #586b64; background: rgba(204,216,210,.18); border: 1px dashed #a8b8b0; border-radius: 18px; padding: 24px; }
+.viz-state p { max-width: 45em; line-height: 1.8; }
+.viz-drawer-backdrop { position: fixed; inset: 0; z-index: 1400; background: rgba(32,43,26,.24); backdrop-filter: blur(4px); display: flex; justify-content: end; }
+.viz-drawer-backdrop[hidden] { display: none; }
+.viz-drawer { width: min(520px, 100%); height: 100%; background: #f8f6ef; color: #35402e; box-shadow: -14px 0 60px #26372126; display: flex; flex-direction: column; font-family: var(--font-sans); }
+.viz-drawer header { padding: 26px 28px 22px; border-bottom: 1px solid #d9dfd0; display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.viz-drawer h2 { font-family: var(--font-serif); font-size: 24px; margin: 8px 0 0; }
+.viz-eyebrow { color: #6b7c5e; font-size: 11px; letter-spacing: .12em; }
+.viz-icon-button { background: #edf0e6; border: 1px solid #ced6c4; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 24px; color: #496038; flex-shrink: 0; }
+.viz-drawer-scroll { overflow: auto; padding: 24px 28px; flex: 1; }
+.viz-description { font-size: 13px; line-height: 1.8; color: #596650; margin: 0 0 22px; }
+.viz-detail-fields { margin: 0 0 24px; font-size: 13px; }
+.viz-detail-fields > div { display: grid; grid-template-columns: 125px minmax(0,1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid #e2e7da; }
+.viz-detail-fields dt { color: #6a765f; }
+.viz-detail-fields dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.viz-drawer h3 { font-family: var(--font-serif); font-size: 16px; margin: 18px 0 8px; }
+.viz-muted { font-size: 12px; color: #707866; line-height: 1.7; }
+.viz-drawer details { border-top: 1px solid #d9dfd0; padding: 16px 0; }
+.viz-drawer summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.viz-drawer pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; line-height: 1.7; background: #edf0e6; padding: 12px; border-radius: 8px; margin-top: 12px; }
+.viz-records { padding-left: 18px; font-size: 12px; line-height: 1.7; }
+.viz-drawer footer { display: flex; gap: 12px; align-items: center; padding: 16px 28px; border-top: 1px solid #d9dfd0; }
+.viz-button { border: 1px solid #c8d2bc; border-radius: 9px; padding: 9px 13px; background: #e7eddd; color: #425c32; cursor: pointer; font-size: 12px; }
+.viz-copy-status { flex: 1; font-size: 11px; color: #667a56; }
+body.viz-drawer-open { overflow: hidden; }
+@media (max-width: 1000px) { .psych-viz-page .subpage-card-grid { grid-template-columns: minmax(0,1fr); } .psych-viz-page [data-card-size="wide"] { grid-column: auto; } }
+@media (prefers-reduced-motion: reduce) { .psych-viz-page *, .viz-drawer * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

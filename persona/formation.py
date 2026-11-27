@@ -116,7 +116,7 @@ class Formation:
             for k in (*LONG_IDS,*tr.DISPOSITIONS):
                 f=t['dispositions'][k] if k in tr.DISPOSITIONS else p['psychology']['features'][k]
                 ids=f.get('evidence_ids',[]) or [e['record_id'] for e in f.get('evidence',[])]
-                if rid not in ids or f.get('source_type')!='promoted_evidence':continue
+                if rid not in ids or f.get('source_type') not in ('promoted_evidence','experience_derived'):continue
                 before=copy.deepcopy(f)
                 # Do not silently recover an older estimate still based on the
                 # invalid source; remove the affected derived prior for review.

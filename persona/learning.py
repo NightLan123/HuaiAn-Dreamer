@@ -24,6 +24,7 @@ def default_policy():
             'strength':.5 if k not in ('language','memory') else 1.,'scopes':[],'people':[],
             'allow_group_observation':False} for k in DOMAINS},
         'budget':{'batch_records':20,'batch_chars':16000,'max_calls':5,'max_tokens':120000},
+        'experience':{'enabled':True,'new_memories':10,'max_attempts':3,'retry_seconds':300},
         'note':'强度是受证据门控约束的工程系数，不是心理准确率；0%不写长期状态。'}
 
 def validate_policy(p):
@@ -35,11 +36,17 @@ def validate_policy(p):
             if not isinstance(r.get(f),list) or len(r[f])>500 or any(not isinstance(v,str) or not v or len(v)>200 for v in r[f]):raise ValueError('学习范围必须是具体范围或对象的列表')
         if type(r.get('allow_group_observation')) is not bool:raise ValueError('旁观学习必须单独授权')
     b=p.get('budget',{})
+    from .experience_learning import validate_settings,settings
+    validate_settings(settings(p))
     for k,lo,hi in (('batch_records',1,50),('batch_chars',2000,32000),('max_calls',1,100),('max_tokens',2000,2000000)):
         if type(b.get(k)) is not int or not lo<=b[k]<=hi:raise ValueError('学习资源预算超出范围：'+k)
     return p
 
-def policy(engine):return copy.deepcopy(engine.store.meta('learning_policy') or default_policy())
+def policy(engine):
+    p=copy.deepcopy(engine.store.meta('learning_policy') or default_policy())
+    from .experience_learning import settings
+    p['experience']=settings(p)
+    return p
 
 def permission(engine,domain,scope,person,*,manual=False,observed_only=False):
     p=policy(engine);r=p['domains'][domain];reasons=[]
@@ -54,6 +61,9 @@ def permission(engine,domain,scope,person,*,manual=False,observed_only=False):
 
 def live_report(engine,domain,report,session,manual=False):
     gate=permission(engine,domain,session['scope'],session['person'],manual=manual,observed_only=not session.get('direct_interaction',True))
+    # A checker/turn-feedback report has no authority to rewrite the self.
+    # Completed experiences are processed by the separate batch learning job.
+    if domain=='self':return {},{**gate,'allowed':False,'reasons':gate['reasons']+['turn_feedback_is_not_role_learning'],'destination':'experience_memory_only'}
     if not gate['allowed']:return {},gate
     result=copy.deepcopy(report or {})
     if gate['mode']=='candidate_only' and not manual:
@@ -140,6 +150,8 @@ class Learning:
             for j in state['jobs']:
                 if j['status']=='running':j.update(status='paused',reason='restart_requires_resume')
             self.st.setmeta('learning_center',state)
+        from .experience_learning import ExperienceLearning
+        self.experiences=ExperienceLearning(self)
     def state(self):return copy.deepcopy(self.st.meta('learning_center') or {'schema':'learning-center/1','jobs':[],'cursors':{}})
     def save_policy(self,body):
         with self.e.lock,self.st.lock,self.st.db:
@@ -260,7 +272,7 @@ class Learning:
         offset=max(0,int(offset));limit=min(50,max(1,int(limit)))
         profile=self.e.profile();generated={r['id'] for r in profile['source_records'] if r.get('source')=='generated'}
         legacy=[o for o in profile.get('observations',[]) if any(e.get('record_id') in generated for e in o.get('evidence',[]))]
-        return {'policy':policy(self.e),'jobs':[self.public(j) for j in jobs[offset:offset+limit]],'offset':offset,'limit':limit,'total_jobs':len(jobs),'processed_sources':len(s['cursors']),'other_status':self.other_status(),
+        return {'policy':policy(self.e),'experience_learning':self.experiences.status(),'jobs':[self.public(j) for j in jobs[offset:offset+limit]],'offset':offset,'limit':limit,'total_jobs':len(jobs),'processed_sources':len(s['cursors']),'other_status':self.other_status(),
             'legacy_generated_audit':{'generated_records':len(generated),'old_observations':len(legacy),'action':'旧资料保留；重新分析只选真人原文，不把生成回复当独立人格真值。旧权重不自动重置。'},
             'running':self.lock.locked(),'available_scopes':sorted(set(r['scope'] for r in self.st.sessions())|{'self:imported'}),
             'last_success':next((j['id'] for j in jobs if j['status']=='completed'),None),'last_failure':next((self.public(j) for j in jobs if j['status']=='failed'),None),
@@ -526,6 +538,7 @@ class Learning:
         if graph_gate['allowed']:self.e.social_graph.observe_membership(p['scope'],p['person'],records)
     def poll(self):
         if self.lock.locked() or self.thread and self.thread.is_alive() or policy(self.e)['paused']:return
+        if self.experiences.poll():return
         if self.e.consolidation.status()['running']:return
         source=self.st.meta('learning_observed_sources') or {}
         for domain in ('other','social_graph'):
@@ -567,5 +580,5 @@ class Learning:
         key=self.e.other_key(scope,person);profile=self.e.profile() if domain=='self' else (self.st.meta('pmm_interlocutors') or {}).get(key,ensure_profile(empty_profile(key,person),'model_of_other'))
         return {'report':totals,'profile':profile,'model':self.e.model_info(),'learning_job':result,'status':result['status']}
     def activities(self,offset=0,limit=20):
-        rows=self.st.rows("SELECT * FROM events WHERE kind IN ('learning_activity','learning_job_failed','distillation','consolidation','persona_synthesized') ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?",(min(50,max(1,int(limit))),max(0,int(offset))))
+        rows=self.st.rows("SELECT * FROM events WHERE kind IN ('learning_activity','learning_job_failed','distillation','consolidation','persona_synthesized','experience_learning') ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?",(min(50,max(1,int(limit))),max(0,int(offset))))
         return [{**r,'payload':json.loads(r['payload'])} for r in rows]

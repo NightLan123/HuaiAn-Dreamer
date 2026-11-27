@@ -4,7 +4,7 @@ import copy
 import numpy as np
 from .registry import digest
 from .affect import empty as legacy_empty,AXES,LABELS
-from .affect_dynamics_v2 import seconds,iso,inverse,link,propagate,MOOD_AXES
+from .affect_dynamics_v2 import seconds,iso,inverse,link,propagate,coupled_moments,MOOD_AXES
 from .affect_response import initial_model,validate_model,parameters,response
 from .affect_regulation import choose,expression
 from .pmm_contracts import construct_blocks
@@ -172,3 +172,195 @@ def archive_view(existing,current):
         out[name]=prior+[copy.deepcopy(r) for r in current.get(name,[]) if not r.get(identity) or r[identity] not in seen]
     out['migration']=copy.deepcopy(existing.get('migration'));out['transition_params']=copy.deepcopy(existing['transition_params'])
     return out
+
+
+def apply_expression_feedback(base, model, profile, event, at, feedback, relation=None, *, standalone=False):
+    """Apply post-expression internal appraisal feedback to fast emotion and slow mood.
+
+    Explicitly separates:
+    1) Pre-expression inbound event reaction ('inbound_event_reaction' / 'external_partner_response'),
+    2) Post-expression internal appraisal ('internal_expression_feedback': delivered_full,
+       delivered_partial, voluntary_restraint_or_listening, obstructed_or_suppressed_expression),
+    3) Subsequent external partner response on later turns.
+
+    Idempotent per feedback_id and never re-applies the inbound event jump.
+    """
+    owner = profile['id']
+    validate(base, owner)
+    validate_model(model, owner)
+    out = copy.deepcopy(base)
+    at = seconds(at)
+    base_event = {
+        'id': str(event.get('id') or 'internal_expr'),
+        'text': str(event.get('text') or 'internal_expression_appraisal'),
+        'scope': str(event.get('scope') or 'private:web:owner'),
+        'person': str(event.get('person') or 'web:owner'),
+        'session_id': str(event.get('session_id') or event.get('scope') or 'private:web:owner'),
+    }
+    key = stream_key(owner, base_event)
+    row = out['streams'].setdefault(key, initial_stream(base, base_event, model, at))
+    if not isinstance(feedback, dict) or not feedback.get('applied') or not feedback.get('checks_delta'):
+        return out, {
+            'applied': False,
+            'updated': False,
+            'replayed': False,
+            'event_origin': 'internal_expression_feedback',
+            'reason': (feedback or {}).get('rationale', 'no_feedback_delta'),
+        }
+
+    kind = str(feedback.get('internal_event_kind') or feedback.get('outcome') or 'expression_outcome')
+    fb_id = str(feedback.get('feedback_id') or f"expr_fb:{base_event['id']}:{kind}")
+    deltas = {k: float(v) for k, v in (feedback.get('checks_delta') or {}).items() if v is not None}
+    fingerprint = digest([fb_id, kind, deltas, base_event['scope'], base_event['person']])
+    applied_map = row.setdefault('expression_feedback_events', {})
+    if fb_id in applied_map:
+        prev = applied_map[fb_id]
+        if prev.get('content_sha256') != fingerprint:
+            raise ValueError('同一表达反馈事件 ID 的评价内容发生变化')
+        cached = copy.deepcopy(prev['result'])
+        cached.update(updated=False, replayed=True)
+        return out, cached
+
+    blocks = construct_blocks(profile)
+    params = parameters(model, blocks)
+    before_fast = [float(x) for x in row['fast']]
+    before_mood = [float(x) for x in row['mood']]
+    effective = max(at, row['last_at'])
+    dt = effective - row['last_at']
+    before_rng = copy.deepcopy(row['rng_state'])
+    rng = np.random.default_rng()
+    rng.bit_generator.state = before_rng
+
+    if standalone and dt > 0:
+        fast_prop, mood_prop, propagation = propagate(before_fast, before_mood, params, dt, rng, 0)
+    else:
+        fast_prop = np.asarray(before_fast, dtype=float)
+        mood_prop = np.asarray(before_mood, dtype=float)
+        propagation = None
+
+    from .registry import APPRAISAL_IDS
+    # Map signed checks_delta in [-0.5, 0.5] into [0, 1] check inputs around 0.5 so
+    # affect_response.masked(v) = 2*v - 1 = 2*delta drives model['parameters']['jump_W'].
+    internal_checks = {}
+    for k in APPRAISAL_IDS:
+        if k in deltas and abs(deltas[k]) > 1e-9:
+            internal_checks[k] = float(max(0.0, min(1.0, 0.5 + deltas[k])))
+        else:
+            internal_checks[k] = None
+
+    fb_packet = {
+        'checks': internal_checks,
+        'mask': {k: internal_checks[k] is not None for k in APPRAISAL_IDS},
+        'event_facts': {
+            'event_id': fb_id,
+            'parent_event_id': base_event['id'],
+            'text': base_event['text'][:300],
+            'scope': base_event['scope'],
+            'person': base_event['person'],
+            'internal_event_kind': kind,
+        },
+        'evidence_ids': [base_event['id']],
+        'quote': base_event['text'][:180],
+        'kind': 'internal_expression_appraisal_not_external_fact',
+        'reappraisal_candidate': None,
+    }
+    after_fast, jump = response(model, fb_packet, blocks, relation or {}, mood_prop, fast_prop)
+    delta_fast = after_fast - fast_prop
+
+    # Couple the post-expression fast emotion shift into slow mood via coupled_moments
+    after_mood = np.asarray(mood_prop, dtype=float).copy()
+    reflect_horizon = 90.0
+    for i in range(3):
+        mean_with, _ = coupled_moments(
+            float(after_fast[i]), float(mood_prop[i]),
+            params['mu'][i], params['mu'][i + 5],
+            params['kappa'][i], params['kappa'][i + 5],
+            0.0, 0.0, params['coupling'][i], reflect_horizon
+        )
+        mean_base, _ = coupled_moments(
+            float(fast_prop[i]), float(mood_prop[i]),
+            params['mu'][i], params['mu'][i + 5],
+            params['kappa'][i], params['kappa'][i + 5],
+            0.0, 0.0, params['coupling'][i], reflect_horizon
+        )
+        after_mood[i] = float(mood_prop[i]) + float(mean_with[1] - mean_base[1])
+
+    observed_fast = link(after_fast)
+    observed_mood = link(after_mood, MOOD_AXES)
+
+    in_turn_event = (not standalone) and (base_event['id'] in row['events'])
+    if in_turn_event:
+        state_rev = row['revision']
+        cat_rev = out['revision']
+    else:
+        state_rev = row['revision'] + 1
+        cat_rev = out['revision'] + 1
+
+    fb_result = {
+        'schema': SCHEMA,
+        'subject_id': owner,
+        'event_id': fb_id,
+        'parent_event_id': base_event['id'],
+        'event_origin': 'internal_expression_feedback',
+        'internal_event_kind': kind,
+        'outcome': feedback.get('outcome'),
+        'rationale': feedback.get('rationale'),
+        'delivered_externally': bool(feedback.get('delivered_externally', False)),
+        'scope': base_event['scope'],
+        'person_id': base_event['person'],
+        'session_id': base_event['session_id'],
+        'at': iso(effective),
+        'received_at': iso(at),
+        'affect_model_version': model['sha256'],
+        'calibration_status': model['calibration']['status'],
+        'checks_delta': copy.deepcopy(deltas),
+        'internal_appraisal_checks': {k: v for k, v in internal_checks.items() if v is not None},
+        'before_fast': before_fast,
+        'before_mood': before_mood,
+        'fast_state_latent': after_fast.tolist(),
+        'slow_mood_latent': after_mood.tolist(),
+        'jump': jump['jump'],
+        'mood_coupling_delta': (after_mood - mood_prop).tolist(),
+        'affect_observed': observed_fast,
+        'mood_observed': observed_mood,
+        'emotion_labels': jump['emotion_labels'],
+        'label_activations': jump['label_activations'],
+        'label_status': jump['label_status'],
+        'state_revision': state_rev,
+        'catalog_revision': cat_rev,
+        'delta_seconds': dt,
+        'delta_turns': 0,
+        'turn_index': row['turn_index'],
+        'updated': True,
+        'replayed': False,
+        'applied': True,
+    }
+
+    row.update(
+        fast=after_fast.tolist(),
+        mood=after_mood.tolist(),
+        last_at=effective,
+        revision=state_rev,
+        rng_state=copy.deepcopy(rng.bit_generator.state),
+    )
+    applied_map[fb_id] = {'content_sha256': fingerprint, 'result': copy.deepcopy(fb_result)}
+
+    if in_turn_event:
+        ev_res = row['events'][base_event['id']]['result']
+        ev_res.setdefault('event_origin', 'inbound_event_reaction' if row['turn_index'] <= 1 else 'external_partner_response')
+        ev_res.setdefault('pre_expression_fast_state_latent', copy.deepcopy(before_fast))
+        ev_res.setdefault('pre_expression_slow_mood_latent', copy.deepcopy(before_mood))
+        ev_res.setdefault('pre_expression_affect_observed', copy.deepcopy(ev_res['affect_observed']))
+        ev_res.setdefault('pre_expression_mood_observed', copy.deepcopy(ev_res['mood_observed']))
+        ev_res['fast_state_latent'] = after_fast.tolist()
+        ev_res['slow_mood_latent'] = after_mood.tolist()
+        ev_res['post_expression_affect_observed'] = observed_fast
+        ev_res['post_expression_mood_observed'] = observed_mood
+        ev_res['expression_feedback'] = copy.deepcopy(fb_result)
+        ev_res['expressive_drive_feedback'] = copy.deepcopy(fb_result)
+    else:
+        row['events'][fb_id] = {'content_sha256': fingerprint, 'result': copy.deepcopy(fb_result)}
+        out['revision'] = cat_rev
+
+    validate(out, owner)
+    return out, fb_result

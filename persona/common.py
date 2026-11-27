@@ -2,7 +2,7 @@ from __future__ import annotations
 import json, os, tempfile, math, time, uuid
 from pathlib import Path
 
-VERSION = '2.8.1'
+VERSION = '2.8.3-dev'
 SCHEMA = 1
 
 def uid(): return uuid.uuid4().hex

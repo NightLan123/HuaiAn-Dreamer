@@ -1,0 +1,45 @@
+/* ==========================================================================
+   槐安梦客 UI Shell V1.0 — Design Tokens (Section 3.1–3.3)
+   ========================================================================== */
+:root {
+  /* 主色 */
+  --color-sage-green: #96A875;
+  --color-olive-dark: #596A3E;
+  --color-grass-light: #C6D0A5;
+  --color-pill-green: #DCE6C6;
+  --color-arrow-btn: #6F7F44;
+
+  /* 背景 */
+  --bg-warm-white: #F7F4EC;
+  --bg-rice-white: #F3EEE3;
+  --bg-card-white: rgba(248, 245, 236, 0.84);
+  --bg-card-strong: rgba(251, 248, 240, 0.88);
+  --bg-sidebar-glass: rgba(244, 239, 230, 0.82);
+  --bg-topbar-glass: rgba(245, 241, 232, 0.78);
+
+  /* 文字 */
+  --text-primary: #292D25;
+  --text-secondary: #5E6156;
+  --text-muted: #77776D;
+  --text-aux: #9B998C;
+
+  /* 状态 */
+  --status-normal: #83A85C;
+  --status-warn: #D5B75C;
+  --status-error: #C87969;
+  --status-info: #82A8BD;
+
+  /* 卡片边框与阴影 */
+  --card-radius: 22px;
+  --card-border: 1px solid rgba(255, 255, 255, 0.86);
+  --card-shadow: 0 8px 24px rgba(45, 42, 34, 0.08), 0 2px 6px rgba(45, 42, 34, 0.04);
+  --card-blur: blur(15px);
+
+  /* 字体规范 */
+  --font-serif: 'Noto Serif CJK SC', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
+  --font-sans: 'Noto Sans CJK SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* 基准画布尺寸 */
+  --canvas-width: 1672px;
+  --canvas-height: 941px;
+}

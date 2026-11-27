@@ -124,7 +124,8 @@ class QQBridge:
                 if decision.get('await_input'):self.turn_taking.pause(b,decision);return
                 if p['message_type']=='private' and decision['attention']!='SKIM':
                     with self.store.lock,self.store.db:self.engine.memory_lifecycle.enqueue(records,p['scope'],p['person'],b['thread'],appraisal=decision.get('estimates'),cognitive_id=decision.get('cognitive_id'))
-                self.turn_taking.finish(b,'silent',{'reason':decision['reason'],'attention':decision['attention'],'merged_count':len(records)});return
+                self.turn_taking.finish(b,'silent',{'reason':decision['reason'],'attention':decision['attention'],'merged_count':len(records),
+                    'close_floor':decision.get('expressive_intent')=='CLOSE'});return
             progress('聚合消息完成')
             session_map=self.store.meta('qq_thread_sessions') or {};sid=session_map.get(b['key'])
             if not sid or not self.store.rows('SELECT id FROM sessions WHERE id=?',(sid,)):
@@ -183,7 +184,7 @@ class QQBridge:
                 sent.update(status='sent_interrupted' if interrupted else 'sent',message_id=receipt['message_id'],message_ids=receipt.get('message_ids',[receipt['message_id']]),outbox_id=outbox_id,qq_send_ms=round((time.monotonic()-send_started)*1000))
             result=self.engine.turn(sid,text,progress=progress,person_override=p['person'],media_context=vision,valid=lambda:self.turn_taking.valid(b),delivery=deliver,precommit=lambda:verify_bot(self.config.get()['qq']),turn_context={'execution_turn_id':turn_id,'thread':b['thread'],'sources':b['ids'],'version':b['version'],'direct_interaction':p['addressed'],'observations':self.engine.group_attention.context(p),'cognitive_decision':decision,'raw_records':records})
             turn_id=result['turn_id']
-            self.turn_taking.finish(b,sent.get('status','silent'),{**sent,'turn_id':turn_id,'vision':vision,'merged_count':len(records),'timing':{**result['trace'].get('timing',{}),'turn_control_ms':decision.get('duration_ms',0),'qq_send_ms':sent.get('qq_send_ms',0),'qq_total_ms':round((time.monotonic()-started)*1000)}})
+            self.turn_taking.finish(b,sent.get('status','silent'),{**sent,'turn_id':turn_id,'vision':vision,'merged_count':len(records),'timing':{**result['trace'].get('timing',{}),'turn_control_ms':decision.get('duration_ms',0),'qq_send_ms':sent.get('qq_send_ms',0),'qq_total_ms':round((time.monotonic()-started)*1000)}},interaction_kind=(result.get('trace',{}).get('interaction_plan') or {}).get('interaction_kind','final_reply'))
         except StaleTurn as ex:
             # These old IDs remain in the newer window, so all original fragments survive.
             update('pending',{'phase':'后续消息已到达，重新聚合','superseded_version':b['version']})
@@ -207,11 +208,6 @@ class QQBridge:
                     try:self.process(rows[0])
                     finally:self.busy=False
             if not rows:
-                self.engine.recover_delivered()
-                self.engine.consolidation.poll()
-                self.engine.learning.poll()
-                self.engine.memory_lifecycle.poll()
-                self.engine.social.poll()
                 self.stop.wait(.5)
     def status(self):
         c=self.config.get();q=c['qq']

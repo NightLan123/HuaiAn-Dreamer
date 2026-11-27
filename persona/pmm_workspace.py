@@ -3,33 +3,47 @@ from __future__ import annotations
 import copy,json,tempfile
 from pathlib import Path
 from . import affect_runtime as ar
-from .pmm_connections import receipt
+from . import expression_drive as ed
+from .pmm_connections import receipt,PROBE_CONTRACT
 
 def status(engine):
     from .affect_learning import AffectLearning
-    from .pmm_coordinator import PMMCoordinator
+    from .pmm_coordinator import PMMCoordinator, appraisal_use
     config=engine.config.get();co=PMMCoordinator(engine);traces=co.traces();connections={}
     probes=[json.loads(x['payload']) for x in engine.store.rows("SELECT payload FROM events WHERE kind='pmm281_connection_test' ORDER BY rowid DESC LIMIT 80")]
     for role in ('A','B'):
-        current=receipt(config,role);last=next((x for x in probes if x['role']==role and x['configuration_sha256']==current['configuration_sha256']),None)
+        current=receipt(config,role)
+        matching=[x for x in probes if x.get('role')==role and x.get('configuration_sha256')==current['configuration_sha256']]
+        last=next((x for x in matching if x.get('operation')=='invoke' and x.get('task_contract')==PROBE_CONTRACT[role]),None)
         actual=None
         for t in traces:
             node=t.get('components',{}).get('reasoner' if role=='A' else 'negotiation',{})
             con=node.get('connection',{})
-            if node.get('executed') and con.get('configuration_sha256')==current['configuration_sha256']:
-                actual={'at':t.get('timestamp'),'status':node.get('status'),'elapsed_ms':node.get('elapsed_ms'),'provider':current['provider'],'model':current['model'],'service':current['service']};break
+            if (node.get('executed') or node.get('status')=='failed') and con.get('configuration_sha256')==current['configuration_sha256']:
+                data=node.get('payload') or {}
+                use=appraisal_use(node) if role=='A' else {}
+                error=data.get('reappraisal_failure') or data.get('error') or (node if role=='B' and node.get('status')=='failed' else {})
+                if not isinstance(error,dict):error={}
+                public_error={key:error[key] for key in ('failure_code','failure_category','failure_reason','http_status','contract_path','contract_reason','contract_issues','error_type','repair_skipped') if key in error}
+                actual={'at':t.get('timestamp'),'status':'failed' if use.get('last_attempt')=='failed' else node.get('status'),
+                    'effective_evaluation_status':use.get('source'),'evaluation_use':use or None,
+                    'retained_valid_result':use.get('source')=='retained_previous_valid_evidence','failure':public_error,
+                    'elapsed_ms':node.get('elapsed_ms'),'provider':current['provider'],'model':current['model'],'service':current['service']};break
         use_turn=actual and (not last or (actual.get('at') or 0)>=last['at']);latest=actual if use_turn else last
         value='unconfigured' if not current['model'] else 'saved_not_tested'
+        if current['model'] and not latest and matching and matching[0].get('operation') in ('models','connect'):
+            value='connected_only' if matching[0].get('ok') else 'connection_failed'
         if latest and current['model']:
             value=('last_call_succeeded' if actual['status']=='ok' else 'last_call_failed') if use_turn else ('tested' if last['ok'] else 'failed')
-        connections[role]={**current,'configured':bool(current['model']),'last_test':last,'last_turn_call':actual,'latest':latest,'status':value}
+        connections[role]={**current,'configured':bool(current['model']),'last_test':last,'last_probe':matching[0] if matching else None,'last_turn_call':actual,'latest':latest,'status':value}
 
     state=engine.store.meta(ar.KEY);streams=[]
     for key,row in state['streams'].items():
         history=[v['result'] for v in row['events'].values()]
         streams.append({'key':key,**row['identity'],'revision':row['revision'],'last_at':row['last_at'],'model_version':row['model_version'],'history':history[-80:]})
     return {'schema':'pmm-workspace/2.8.1','subject_id':state['subject_id'],'mode':config['pmm281']['mode'],'connections':connections,
-        'affect':{'revision':state['revision'],'streams':streams},'emotion_training':AffectLearning(engine).status(),
+        'affect':{'revision':state['revision'],'streams':streams},'expressive_drive':ed.status_summary(engine.store,engine.profile()),
+        'emotion_training':AffectLearning(engine).status(),
         'neural_training':co.status(),'traces':traces,'default_engine':'NumPy forward / optional PyTorch training'}
 
 def preview(engine,body):

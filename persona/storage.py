@@ -11,6 +11,7 @@ BASE_STATE = {'traits': {'curiosity': .65, 'restraint': .65, 'assertiveness': .5
 
 class Store:
     TABLES = ('meta', 'sessions', 'messages', 'memories', 'events', 'relations')
+    EXTRA_TABLES = ('affect_samples', 'notifications')
     def __init__(self, directory, create=True):
         from .data_guard import inspect_database,DataGuardError
         path=Path(directory)/'subject.sqlite3'
@@ -30,9 +31,14 @@ class Store:
                 confidence REAL, importance REAL, status TEXT, source_turn TEXT, evidence TEXT, created_at REAL, updated_at REAL, revision INTEGER, interpretation TEXT);
             CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, kind TEXT, payload TEXT, created_at REAL);
             CREATE TABLE IF NOT EXISTS relations (id TEXT PRIMARY KEY, name TEXT, data TEXT, updated_at REAL);
+            CREATE TABLE IF NOT EXISTS affect_samples (id TEXT PRIMARY KEY, stream_key TEXT, scope TEXT, person TEXT, at REAL, source_kind TEXT, payload TEXT);
+            CREATE INDEX IF NOT EXISTS affect_sample_stream ON affect_samples(stream_key, at, id);
+            CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, kind TEXT, title TEXT, source_id TEXT, created_at REAL, read_at REAL);
+            CREATE INDEX IF NOT EXISTS notification_time ON notifications(created_at,id);
             CREATE TABLE IF NOT EXISTS inbox (id TEXT PRIMARY KEY, payload TEXT, status TEXT, result TEXT, created_at REAL);
             CREATE INDEX IF NOT EXISTS message_session ON messages(session_id, created_at);
             CREATE INDEX IF NOT EXISTS memory_scope ON memories(scope, status);
+            CREATE INDEX IF NOT EXISTS event_kind_time ON events(kind, created_at, id);
             ''')
             if not self.meta('identity'):
                 self.setmeta('identity', {'id':uid(), 'created_at':now(), 'schema':SCHEMA})
@@ -46,11 +52,26 @@ class Store:
             r = self.db.execute('SELECT value FROM meta WHERE key=?',(key,)).fetchone()
             return json.loads(r[0]) if r else None
     def setmeta(self, key, value):
+        if key == 'pmm_experience_learning':
+            from .notifications import on_experience_change
+            on_experience_change(self,self.meta(key),value)
+        if key == 'pmm281_affect':
+            from .research_operations import record_event_samples
+            record_event_samples(self,self.meta(key),value)
+        if key == 'learning_center':
+            from .notifications import on_learning_change
+            on_learning_change(self,self.meta(key),value)
+        if key in ('pmm283_expression_drive','pmm283_research_drive'):
+            from .motive_history import record_changes
+            record_changes(self, self.meta(key), value)
         self.db.execute('INSERT OR REPLACE INTO meta VALUES (?,?)', (key,dumps(value)))
     def rows(self, sql, args=()):
         with self.lock: return [dict(x) for x in self.db.execute(sql,args).fetchall()]
     def event(self, kind, payload):
-        self.db.execute('INSERT INTO events VALUES (?,?,?,?)',(uid(),kind,dumps(payload),now()))
+        identifier=uid();at=now()
+        self.db.execute('INSERT INTO events VALUES (?,?,?,?)',(identifier,kind,dumps(payload),at))
+        from .notifications import on_event
+        on_event(self,identifier,kind,payload,at)
     def session(self, person='web:owner', scope='private:web:owner', title='新的对话'):
         i = uid()
         with self.lock,self.db:
@@ -78,11 +99,14 @@ class Store:
     def snapshot(self):
         with self.lock:
             return {'format':'persona-dialogue', 'schema':SCHEMA, 'exported_at':now(),
+                    'extensions':{t:self.rows('SELECT * FROM '+t) for t in self.EXTRA_TABLES},
                     'qq_inbox':self.rows('SELECT * FROM inbox'),'tables':{t:self.rows('SELECT * FROM '+t) for t in self.TABLES}}
     def restore(self, snap):
         if snap.get('format')!='persona-dialogue' or snap.get('schema')!=SCHEMA: raise ValueError('不兼容的主体快照')
         ts=snap.get('tables',{})
         if set(ts)!=set(self.TABLES): raise ValueError('快照缺少数据表')
+        extensions=snap.get('extensions',{})
+        if not isinstance(extensions,dict) or set(extensions)-set(self.EXTRA_TABLES):raise ValueError('快照扩展表无效')
         inbox=snap.get('qq_inbox',[])
         if not isinstance(inbox,list) or len(inbox)>50000:raise ValueError('QQ 收件备份无效或超过上限')
         seen=set()
@@ -101,7 +125,25 @@ class Store:
                 for row in ts[t]:
                     if set(row)!=set(cols): raise ValueError('快照列不兼容')
                     probe.execute('INSERT INTO '+t+' VALUES ('+','.join('?'*len(cols))+')', [row[c] for c in cols])
+            for t in self.EXTRA_TABLES:
+                rows=extensions.get(t,[])
+                if not isinstance(rows,list):raise ValueError('扩展记录无效')
+                cols=[x[1] for x in self.db.execute('PRAGMA table_info('+t+')')]
+                schema=self.db.execute("SELECT sql FROM sqlite_master WHERE name=?",(t,)).fetchone()[0];probe.execute(schema)
+                for row in rows:
+                    if not isinstance(row,dict) or set(row)!=set(cols):raise ValueError('扩展记录列不兼容')
+                    if t=='affect_samples':
+                        payload=json.loads(row['payload'])
+                        if not isinstance(payload,dict) or payload.get('stream_key')!=row['stream_key'] or payload.get('scope')!=row['scope'] or payload.get('person')!=row['person']:raise ValueError('采样范围不一致')
+                    for field in (('at',) if t=='affect_samples' else ('created_at','read_at')):
+                        if row[field] is not None and (type(row[field]) not in (int,float) or not math.isfinite(row[field])):raise ValueError('扩展时间无效')
+                    probe.execute('INSERT INTO '+t+' VALUES ('+','.join('?'*len(cols))+')',[row[c] for c in cols])
             meta={x['key']:json.loads(x['value']) for x in ts['meta']}
+            for sample in extensions.get('affect_samples',[]):
+                if json.loads(sample['payload']).get('subject_id')!=meta.get('identity',{}).get('id'):raise ValueError('采样主体不匹配')
+            if meta.get('pmm283_research_drive') is not None:
+                from .expression_drive import validate as validate_research_drive
+                validate_research_drive(meta['pmm283_research_drive'],meta['identity']['id'])
             from .affect_runtime import validate_metadata as validate_affect_v2
             validate_affect_v2(meta)
             from .pmm_trainer import validate_metadata as validate_pmm28
@@ -115,6 +157,10 @@ class Store:
             validate_graph(meta.get('social_graph'))
             if not meta.get('identity',{}).get('id') or not isinstance(meta.get('state'),dict): raise ValueError('主体信息缺失')
             identity=meta['identity'];state=meta['state']
+            from .persona_views import validate as validate_persona_views
+            validate_persona_views(meta.get('pmm_persona_views'),identity['id'])
+            from .token_prices import validate as validate_token_prices
+            validate_token_prices(meta.get('pmm_token_prices'),identity['id'])
             from .affect import validate as validate_affect
             validate_affect(meta.get('pmm_affect'),identity['id'])
             from .pragmatics import validate as validate_pragmatics
@@ -148,6 +194,10 @@ class Store:
             for t in self.TABLES:
                 cols=[x[1] for x in self.db.execute('PRAGMA table_info('+t+')')]
                 for row in ts[t]:self.db.execute('INSERT INTO '+t+' VALUES ('+','.join('?'*len(cols))+')',[row[c] for c in cols])
+            for t in self.EXTRA_TABLES:
+                self.db.execute('DELETE FROM '+t)
+                cols=[x[1] for x in self.db.execute('PRAGMA table_info('+t+')')]
+                for row in extensions.get(t,[]):self.db.execute('INSERT INTO '+t+' VALUES ('+','.join('?'*len(cols))+')',[row[c] for c in cols])
             self.db.execute('DELETE FROM inbox')
             for row in inbox:self.db.execute('INSERT INTO inbox VALUES (?,?,?,?,?)',(row['id'],row['payload'],'interrupted' if row['status']=='processing' else row['status'],row['result'],row['created_at']))
             self.setmeta('consolidation_generation',uid())

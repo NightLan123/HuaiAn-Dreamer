@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="app-build" content="__APP_BUILD__">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>槐安梦客 · 人格对话</title>
+<title>槐安梦客 · 角色空间与人格培养工作台 (UI 3.0)</title>
 <link rel="icon" href="/favicon.svg">
-<link rel="stylesheet" href="/style.css?v=2.8.1">
+<link rel="stylesheet" href="/style.css?v=2.8.3-dev">
 </head>
-<body>
+<body class="ui-port-user" data-ui3-theme="light">
 <div class="app">
-<aside class="sidebar"><a class="brand" href="/">◒ <span>槐安梦客<small>HUAIAN DREAMER · 2.8.1</small></span></a><div class="persona-picker">
+<aside class="sidebar"><a class="brand" href="/">◒ <span>槐安梦客<small>HUAIAN DREAMER · 2.8.3-dev</small></span></a><div class="persona-picker">
 <label for="personaSelect">当前主体</label><select id="personaSelect" aria-label="切换人格"></select><div class="row">
 <button id="newPersona" class="quiet" type="button">＋ 创建人格</button><button id="importPack" class="quiet" type="button">载入人格包</button>
 </div>
@@ -25,7 +25,13 @@
 </div>
 <button id="settingsBtn" type="button">模型连接与测试 →</button>
 </div></aside>
-<main><header class="topbar"><div>
+<main><div id="ui3DevReturnBar" class="ui3-dev-return-bar">
+  <div><strong>🛠 高级研究与开发者工作台</strong> · 完整保留 PMM-A/B、Learned-PMM、TraitDynamics、ExpressiveDrive、CognitiveRouter、Token 账本与 Outbox 原始视图</div>
+  <div class="row">
+    <button type="button" id="ui3DevThemeBtn">☀/☾ 切换主题</button>
+    <button type="button" id="ui3ReturnToUserBtn">✨ 返回用户角色空间 (UI 3.0)</button>
+  </div>
+</div><header class="topbar"><div>
 <span class="eyebrow" id="pageKicker">CONTINUOUS DIALOGUE</span><h1 id="pageTitle" tabindex="-1">对话</h1>
 </div>
 <div class="top-actions">
@@ -128,6 +134,7 @@
  <p class="fine">强度只调整通过证据门槛后的长期更新幅度。0%停止该领域的长期学习；100%仍需来源和授权。调用频率与预算独立设置。</p>
  <form id="learningPolicyForm">
 <div id="learningPolicyFields" class="learning-policy-grid"></div>
+<fieldset><legend>从经历中成长</legend><label><input id="experienceLearningEnabled" type="checkbox"> 自动整理新增完整经历</label><label>触发条数 <input id="experienceLearningCount" type="number" min="3" max="50" step="1"></label><p id="experienceLearningStatus" class="fine"></p><p class="fine">模式与强度沿用“自身人格”。达到数量后评估，证据不足保持不变；只从新记录的完整经历学习。</p></fieldset>
 <details><summary>资源预算与自动处理</summary><label><input id="learningPaused" type="checkbox"> 暂停自动学习</label><div class="two-col">
 <label>每批消息数 <input id="learningBatchRecords" type="number" min="1" max="50"></label><label>每批字符上限 <input id="learningBatchChars" type="number" min="2000" max="32000"></label><label>每任务调用上限 <input id="learningMaxCalls" type="number" min="1" max="100"></label><label>每任务 Token 预算 <input id="learningMaxTokens" type="number" min="2000" max="2000000"></label>
 </div></details><button class="primary" type="submit">保存策略（只影响后续工作）</button>
@@ -169,7 +176,7 @@
 <button id="editCharacter" type="button">编辑角色设定</button>
 </div>
 <p id="characterSummary" class="fine"></p>
-<p class="fine">使用“编辑角色设定”修改名称、自称和初始描述；创建独立身份或载入人格包请使用侧栏。已有记忆与训练权重不会因改名而重置。</p></article></section><section id="profiles-self" class="tab-panel" role="tabpanel" aria-labelledby="profiles-self-tab" tabindex="0" hidden=""><aside class="metric-legend"><strong>数值图例</strong><p><span class="legend-estimate">粗条 · 特征估计值</span>：范围 0–1。<span class="legend-uncertainty">细条 · 工程不确定性</span>：越大表示估计越不确定；未经心理统计校准，不是置信概率。未知不绘制有效分数条。</p></aside><article class="card"><div class="step">AI 自身</div>
+<p class="fine">使用“编辑角色设定”修改名称、自称和初始描述；创建独立身份或载入人格包请使用侧栏。已有记忆与训练权重不会因改名而重置。</p></article><article class="card" id="personaViews282"><div class="row spread"><h3>人设 JSON 与版本记录</h3><button type="button" id="personaViewsRefresh282">刷新人设版本</button></div><p class="callout">生成器和校验器始终使用当前角色资料编译的最新有效版本。查看历史仅供核对，不会切换人设；删除历史不会改动当前人设。</p><p id="personaViewsStatus282" role="status">打开人物设定后读取当前角色的版本记录。</p><div id="personaVersionsList282"></div><div class="row"><button type="button" id="personaVersionsDelete282">删除勾选的历史记录</button></div><div id="personaVersionDetail282" aria-live="polite"><div id="personaCatalog282" hidden></div><select id="personaCategory282" hidden></select></div></article></section><section id="profiles-self" class="tab-panel" role="tabpanel" aria-labelledby="profiles-self-tab" tabindex="0" hidden=""><aside class="metric-legend"><strong>数值图例</strong><p><span class="legend-estimate">粗条 · 特征估计值</span>：范围 0–1。<span class="legend-uncertainty">细条 · 工程不确定性</span>：越大表示估计越不确定；未经心理统计校准，不是置信概率。未知不绘制有效分数条。</p></aside><article class="card"><div class="step">AI 自身</div>
 <p id="registrySummary" class="callout"></p>
 <div id="psychologyPanel"></div>
 <h3>习惯性情绪表达 · BEQ</h3>
@@ -490,7 +497,7 @@
 <button class="primary" type="submit">保存大模型</button><button type="button" id="testModel">保存并测试大模型</button>
 </div>
 <details id="generalDiagnostics" hidden><summary>本次请求诊断</summary><pre id="generalDiagnosticBody"></pre></details><p id="connectionResult" role="status" class="connection-result">待测试</p>
-</form></section><section id="connections-panel-pmm" class="tab-panel" role="tabpanel" aria-labelledby="connections-tab-pmm" hidden tabindex="0"><div id="pmmWorkspace281"><form id="pmm281Form"><article class="card mode281"><label for="pmmApplication281">PMM 应用方式</label><select id="pmmApplication281"><option value="full">完整 PMM（默认）</option><option value="compatibility">备用兼容模式</option></select><p>General LLM 在外部负责语言理解与最终表达，以下设置负责 PMM 内部计算。</p></article><div id="fullPMM281"><div class="two-col connections281"><article class="card connection281"><div class="model-card-heading"><span class="model-number">A</span><div><h3>事件理解与心理推理</h3><p>提取事件事实、评价线索和行动初步偏好。</p></div></div><div id="AService281"><label for="AType281">服务位置</label><select id="AType281"><option value="local">本地 Ollama</option><option value="cloud">云 API / 兼容服务</option></select><label for="AUrl281">服务地址</label><input id="AUrl281" type="url" placeholder="本地：http://127.0.0.1:11434；云服务：提供商 API 地址"><label for="AModel281">模型名称</label><div class="row"><input id="AModel281" list="AModels281" placeholder="例如 qwen3:8b，或服务提供的模型名"><datalist id="AModels281"></datalist><button type="button" data-probe="A:models">读取模型</button></div><label for="AKey281">API 密钥</label><input id="AKey281" type="password" autocomplete="off" placeholder="留空保留已保存密钥"><label><input id="AClear281" type="checkbox"> 清除密钥</label></div><details data-disclosure="AAdvanced281"><summary>高级：协议、Thinking、Token 与超时</summary><label for="AProtocol281">API 协议</label><select id="AProtocol281"><option value="ollama">Ollama</option><option value="chat_completions">OpenAI 兼容 · Chat Completions</option><option value="responses">OpenAI · Responses</option><option value="anthropic">Anthropic · Messages</option><option value="gemini">Gemini · generateContent</option><option value="azure_chat">Azure OpenAI</option></select><label for="AThinking281">Thinking</label><select id="AThinking281"><option value="auto">自动适配</option><option value="default">沿用服务</option><option value="off">关闭</option><option value="on">开启</option><option value="low">低</option><option value="high">高</option></select><label for="AAdapter281">Thinking 适配器</label><select id="AAdapter281"><option value="auto">自动识别</option><option value="ollama">Ollama</option><option value="openai">OpenAI / Azure</option><option value="deepseek">DeepSeek</option><option value="anthropic">Anthropic</option><option value="gemini">Gemini</option></select><div class="two-col"><div><label for="ATokens281">本任务 Token 上限</label><input id="ATokens281" type="number" min="256" max="131072"></div><div><label for="ATimeout281">本任务总超时（秒）</label><input id="ATimeout281" type="number" min="10" max="300"></div></div><label><input id="AJSON281" type="checkbox"> 原生 JSON 输出</label><label for="AAuth281">鉴权方式</label><select id="AAuth281"><option value="auto">按协议</option><option value="bearer">Bearer</option><option value="x-api-key">x-api-key</option><option value="api-key">api-key</option><option value="x-goog-api-key">x-goog-api-key</option><option value="none">无需鉴权</option></select><label for="ATokenField281">Token 字段</label><select id="ATokenField281"><option value="max_tokens">max_tokens</option><option value="max_completion_tokens">max_completion_tokens</option><option value="omit">不发送</option></select><label for="AExtra281">附加请求参数 JSON</label><textarea id="AExtra281" rows="2"></textarea><label for="AHeaders281">附加请求头 JSON（留空保留）</label><textarea id="AHeaders281" rows="2" autocomplete="off"></textarea><p class="fine">B 共用 A 时仍使用 B 自己的任务预算、Thinking 与输出参数。</p></details><div class="row wrap"><button type="button" data-probe="A:connect">保存并测试连接</button><button type="button" data-probe="A:invoke">测试一次事件理解</button></div><p id="AResult281" class="connection-result" role="status">尚无测试记录</p></article><article class="card connection281"><div class="model-card-heading"><span class="model-number">B</span><div><h3>内部讨论与认知协商</h3><p>读取计算结果，复核冲突并评估行动。</p></div></div><label class="toggle-line"><input id="BShare281" type="checkbox"> 共用 A 的服务和模型</label><div id="BService281"><label for="BType281">服务位置</label><select id="BType281"><option value="local">本地 Ollama</option><option value="cloud">云 API / 兼容服务</option></select><label for="BUrl281">服务地址</label><input id="BUrl281" type="url" placeholder="本地：http://127.0.0.1:11434；云服务：提供商 API 地址"><label for="BModel281">模型名称</label><div class="row"><input id="BModel281" list="BModels281" placeholder="例如 qwen3:8b，或服务提供的模型名"><datalist id="BModels281"></datalist><button type="button" data-probe="B:models">读取模型</button></div><label for="BKey281">API 密钥</label><input id="BKey281" type="password" autocomplete="off" placeholder="留空保留已保存密钥"><label><input id="BClear281" type="checkbox"> 清除密钥</label></div><details data-disclosure="BAdvanced281"><summary>高级：协议、Thinking、Token 与超时</summary><label for="BProtocol281">API 协议</label><select id="BProtocol281"><option value="ollama">Ollama</option><option value="chat_completions">OpenAI 兼容 · Chat Completions</option><option value="responses">OpenAI · Responses</option><option value="anthropic">Anthropic · Messages</option><option value="gemini">Gemini · generateContent</option><option value="azure_chat">Azure OpenAI</option></select><label for="BThinking281">Thinking</label><select id="BThinking281"><option value="auto">自动适配</option><option value="default">沿用服务</option><option value="off">关闭</option><option value="on">开启</option><option value="low">低</option><option value="high">高</option></select><label for="BAdapter281">Thinking 适配器</label><select id="BAdapter281"><option value="auto">自动识别</option><option value="ollama">Ollama</option><option value="openai">OpenAI / Azure</option><option value="deepseek">DeepSeek</option><option value="anthropic">Anthropic</option><option value="gemini">Gemini</option></select><div class="two-col"><div><label for="BTokens281">本任务 Token 上限</label><input id="BTokens281" type="number" min="256" max="131072"></div><div><label for="BTimeout281">本任务总超时（秒）</label><input id="BTimeout281" type="number" min="10" max="300"></div></div><label><input id="BJSON281" type="checkbox"> 原生 JSON 输出</label><label for="BAuth281">鉴权方式</label><select id="BAuth281"><option value="auto">按协议</option><option value="bearer">Bearer</option><option value="x-api-key">x-api-key</option><option value="api-key">api-key</option><option value="x-goog-api-key">x-goog-api-key</option><option value="none">无需鉴权</option></select><label for="BTokenField281">Token 字段</label><select id="BTokenField281"><option value="max_tokens">max_tokens</option><option value="max_completion_tokens">max_completion_tokens</option><option value="omit">不发送</option></select><label for="BExtra281">附加请求参数 JSON</label><textarea id="BExtra281" rows="2"></textarea><label for="BHeaders281">附加请求头 JSON（留空保留）</label><textarea id="BHeaders281" rows="2" autocomplete="off"></textarea><p class="fine">B 共用 A 时仍使用 B 自己的任务预算、Thinking 与输出参数。</p></details><div class="row wrap"><button type="button" data-probe="B:connect">保存并测试连接</button><button type="button" data-probe="B:invoke">测试一次内部协商</button></div><p id="BResult281" class="connection-result" role="status">尚无测试记录</p></article></div><article class="card"><div class="two-col"><div><label for="bPolicy281">B 参与策略</label><select id="bPolicy281"><option value="auto">按需：冲突或重大决策</option><option value="always">每轮参与</option></select></div><div><label for="bRounds281">最多协商轮数</label><input id="bRounds281" type="number" min="1" max="4"></div></div><p class="fine">人格神经与情绪动力学在本机计算，每轮自动执行；模型训练另设页面。</p></article></div><button class="primary" type="submit">保存 PMM 设置</button><p id="pmmSave281" role="status"></p></form><section id="pmmRun281"><div class="row spread"><h2>本轮组件运行</h2><button type="button" id="refresh281">刷新记录</button></div><p id="pmmRunSummary281" class="fine"></p><label for="pmmTurn281">选择正式回合</label><select id="pmmTurn281"></select><div id="workflow281" class="workflow281"></div><div id="componentDetail281"></div><article class="card"><h3>保存并运行一次 PMM 测试</h3><label for="pmmTestEvent281">测试事件</label><textarea id="pmmTestEvent281" rows="3" placeholder="输入一个实际想检验的情境"></textarea><button id="preview281" type="button" class="primary">保存并测试整轮调用</button><p class="fine">实际调用模型及数值组件，测试状态保存在临时副本。</p><p id="previewStatus281" role="status"></p><div id="previewReply281"></div><button type="button" id="export281">导出当前 Trace</button></article><div id="emotionDynamics281"></div></section></div><form id="pmmForm" class="settings-form" data-compat="" hidden="">
+</form></section><section id="connections-panel-pmm" class="tab-panel" role="tabpanel" aria-labelledby="connections-tab-pmm" hidden tabindex="0"><div id="pmmWorkspace281"><form id="pmm281Form"><article class="card mode281"><label for="pmmApplication281">PMM 应用方式</label><select id="pmmApplication281"><option value="full">完整 PMM（默认）</option><option value="compatibility">备用兼容模式</option></select><p>General LLM 在外部负责语言理解与最终表达，以下设置负责 PMM 内部计算。</p></article><div id="fullPMM281"><div class="two-col connections281"><article class="card connection281"><div class="model-card-heading"><span class="model-number">A</span><div><h3>事件理解与心理推理</h3><p>提取事件事实、评价线索和行动初步偏好。</p></div></div><div id="AService281"><label for="AType281">服务位置</label><select id="AType281"><option value="local">本地 Ollama</option><option value="cloud">云 API / 兼容服务</option></select><label for="AUrl281">服务地址</label><input id="AUrl281" type="url" placeholder="本地：http://127.0.0.1:11434；云服务：提供商 API 地址"><label for="AModel281">模型名称</label><div class="row"><input id="AModel281" list="AModels281" placeholder="例如 qwen3:8b，或服务提供的模型名"><datalist id="AModels281"></datalist><button type="button" data-probe="A:models">读取模型</button></div><label for="AKey281">API 密钥</label><input id="AKey281" type="password" autocomplete="off" placeholder="留空保留已保存密钥"><label><input id="AClear281" type="checkbox"> 清除密钥</label></div><details data-disclosure="AAdvanced281"><summary>高级：协议、Thinking、Token 与超时</summary><label for="AProtocol281">API 协议</label><select id="AProtocol281"><option value="ollama">Ollama</option><option value="chat_completions">OpenAI 兼容 · Chat Completions</option><option value="responses">OpenAI · Responses</option><option value="anthropic">Anthropic · Messages</option><option value="gemini">Gemini · generateContent</option><option value="azure_chat">Azure OpenAI</option></select><label for="AThinking281">Thinking</label><select id="AThinking281"><option value="auto">自动适配</option><option value="default">沿用服务</option><option value="off">关闭</option><option value="on">开启</option><option value="low">低</option><option value="high">高</option></select><label for="AAdapter281">Thinking 适配器</label><select id="AAdapter281"><option value="auto">自动识别</option><option value="ollama">Ollama</option><option value="openai">OpenAI / Azure</option><option value="deepseek">DeepSeek</option><option value="anthropic">Anthropic</option><option value="gemini">Gemini</option></select><div class="two-col"><div><label for="ATokens281">本任务 Token 上限</label><input id="ATokens281" type="number" min="256" max="131072"></div><div><label for="ATimeout281">本任务总超时（秒）</label><input id="ATimeout281" type="number" min="10" max="300"></div></div><label><input id="AJSON281" type="checkbox"> 原生 JSON 输出</label><label for="AAuth281">鉴权方式</label><select id="AAuth281"><option value="auto">按协议</option><option value="bearer">Bearer</option><option value="x-api-key">x-api-key</option><option value="api-key">api-key</option><option value="x-goog-api-key">x-goog-api-key</option><option value="none">无需鉴权</option></select><label for="ATokenField281">Token 字段</label><select id="ATokenField281"><option value="max_tokens">max_tokens</option><option value="max_completion_tokens">max_completion_tokens</option><option value="omit">不发送</option></select><label for="AExtra281">附加请求参数 JSON</label><textarea id="AExtra281" rows="2"></textarea><label for="AHeaders281">附加请求头 JSON（留空保留）</label><textarea id="AHeaders281" rows="2" autocomplete="off"></textarea><p class="fine">B 共用 A 时仍使用 B 自己的任务预算、Thinking 与输出参数。</p></details><div class="row wrap"><button type="button" data-probe="A:connect">保存并测试连接</button><button type="button" data-probe="A:invoke">测试一次事件理解</button></div><p id="AResult281" class="connection-result" role="status">尚无测试记录</p></article><article class="card connection281"><div class="model-card-heading"><span class="model-number">B</span><div><h3>内部讨论与认知协商</h3><p>读取计算结果，复核冲突并评估行动。</p></div></div><label class="toggle-line"><input id="BShare281" type="checkbox"> 共用 A 的服务和模型</label><div id="BService281"><label for="BType281">服务位置</label><select id="BType281"><option value="local">本地 Ollama</option><option value="cloud">云 API / 兼容服务</option></select><label for="BUrl281">服务地址</label><input id="BUrl281" type="url" placeholder="本地：http://127.0.0.1:11434；云服务：提供商 API 地址"><label for="BModel281">模型名称</label><div class="row"><input id="BModel281" list="BModels281" placeholder="例如 qwen3:8b，或服务提供的模型名"><datalist id="BModels281"></datalist><button type="button" data-probe="B:models">读取模型</button></div><label for="BKey281">API 密钥</label><input id="BKey281" type="password" autocomplete="off" placeholder="留空保留已保存密钥"><label><input id="BClear281" type="checkbox"> 清除密钥</label></div><details data-disclosure="BAdvanced281"><summary>高级：协议、Thinking、Token 与超时</summary><label for="BProtocol281">API 协议</label><select id="BProtocol281"><option value="ollama">Ollama</option><option value="chat_completions">OpenAI 兼容 · Chat Completions</option><option value="responses">OpenAI · Responses</option><option value="anthropic">Anthropic · Messages</option><option value="gemini">Gemini · generateContent</option><option value="azure_chat">Azure OpenAI</option></select><label for="BThinking281">Thinking</label><select id="BThinking281"><option value="auto">自动适配</option><option value="default">沿用服务</option><option value="off">关闭</option><option value="on">开启</option><option value="low">低</option><option value="high">高</option></select><label for="BAdapter281">Thinking 适配器</label><select id="BAdapter281"><option value="auto">自动识别</option><option value="ollama">Ollama</option><option value="openai">OpenAI / Azure</option><option value="deepseek">DeepSeek</option><option value="anthropic">Anthropic</option><option value="gemini">Gemini</option></select><div class="two-col"><div><label for="BTokens281">本任务 Token 上限</label><input id="BTokens281" type="number" min="256" max="131072"></div><div><label for="BTimeout281">本任务总超时（秒）</label><input id="BTimeout281" type="number" min="10" max="300"></div></div><label><input id="BJSON281" type="checkbox"> 原生 JSON 输出</label><label for="BAuth281">鉴权方式</label><select id="BAuth281"><option value="auto">按协议</option><option value="bearer">Bearer</option><option value="x-api-key">x-api-key</option><option value="api-key">api-key</option><option value="x-goog-api-key">x-goog-api-key</option><option value="none">无需鉴权</option></select><label for="BTokenField281">Token 字段</label><select id="BTokenField281"><option value="max_tokens">max_tokens</option><option value="max_completion_tokens">max_completion_tokens</option><option value="omit">不发送</option></select><label for="BExtra281">附加请求参数 JSON</label><textarea id="BExtra281" rows="2"></textarea><label for="BHeaders281">附加请求头 JSON（留空保留）</label><textarea id="BHeaders281" rows="2" autocomplete="off"></textarea><p class="fine">B 共用 A 时仍使用 B 自己的任务预算、Thinking 与输出参数。</p></details><div class="row wrap"><button type="button" data-probe="B:connect">保存并测试连接</button><button type="button" data-probe="B:invoke">测试一次内部协商</button></div><p id="BResult281" class="connection-result" role="status">尚无测试记录</p></article></div><article class="card"><div class="two-col"><div><label for="bPolicy281">B 参与策略</label><select id="bPolicy281"><option value="auto">按需：冲突或重大决策</option><option value="always">每轮参与</option></select></div><div><label for="bRounds281">最多协商轮数</label><input id="bRounds281" type="number" min="1" max="4"></div></div><p class="fine">人格神经与情绪动力学在本机计算，每轮自动执行；模型训练另设页面。</p></article></div><button class="primary" type="submit">保存 PMM 设置</button><p id="pmmSave281" role="status"></p></form><section id="pmmRun281"><div class="row spread"><h2>本轮组件运行</h2><button type="button" id="refresh281">刷新记录</button></div><article class="card runtime282" id="runtimeWorkspace282"><div class="row spread"><div><span class="eyebrow">PMM 运行历史</span><h3>本轮路径、内部方案与 Token</h3></div><button id="runtimeRefresh282" type="button">刷新完整历史</button></div><p class="fine">同一回合查看原文与分析、实际调用、未选方案、检查和发送结果。失败回合也保留已完成阶段。</p><form id="runtimeFilters282" class="runtime-filters282"><label>统计范围<select id="runtimeRange282"><option value="20">最近 20 轮</option><option value="100">最近 100 轮</option><option value="all">已载入全部</option></select></label><label>回合 / 事件<input id="runtimeQuery282" type="search" placeholder="回合 ID 或事件摘要"></label><label>模型角色<select id="runtimeRole282"><option value="">全部角色</option><option value="General">General 语言模型</option><option value="PMM-A">A 事件评价</option><option value="PMM-B">B 内部讨论</option></select></label><label>模型<input id="runtimeModel282" placeholder="模型名包含" list="runtimeModels282"><datalist id="runtimeModels282"></datalist></label><label>阶段<input id="runtimePhase282" placeholder="阶段名包含"></label><label>起始日期<input type="date" id="runtimeFrom282"></label><label>结束日期<input type="date" id="runtimeTo282"></label><button type="submit">应用筛选</button></form><p id="runtimeStatus282" role="status">打开 PMM 设置后读取真实回合记录。</p><div id="runtimeOverview282"></div><div id="runtimeTrend282"></div><div class="row wrap"><button id="runtimeExportJSON282" type="button">导出脱敏 JSON</button><button id="runtimeExportCSV282" type="button">导出脱敏调用 CSV</button></div><div class="row spread"><p id="runtimePageStatus282" class="fine"></p><button id="runtimeMore282" type="button" hidden>继续载入更早回合</button></div><details class="token-prices282"><summary>单价与费用折算</summary><p class="fine">填写你实际使用服务的每百万 Token 单价，币种分别统计。费用按供应商返回的用量和当前价目计算；没有用量、缓存计价或失败计费依据时保持未知。此处折算不等于服务商账单。</p><p class="fine">协议标识须与请求详情一致，例如 ollama、chat_completions、responses、anthropic。模型名须完全一致。</p><form id="tokenPricesForm282"><div class="row wrap"><button id="tokenPricesLoad282" type="button">读取当前价目</button><button id="tokenPricesAdd282" type="button">添加价目</button></div><div id="tokenPriceRows282"></div><button id="tokenPricesSave282" type="submit" disabled>保存价目并重新折算</button><p id="tokenPricesStatus282" role="status">读取价目后可编辑；留空的用量或单价保持未知。</p></form></details><div class="runtime-layout282"><div id="runtimeRuns282" aria-label="回合列表"></div><div id="runtimeDetail282" aria-live="polite"><p class="empty">选择一个成功或失败回合，查看已保存的计算与用量。</p></div></div></article><p id="pmmRunSummary281" class="fine"></p><label for="pmmTurn281">选择正式回合</label><select id="pmmTurn281"></select><div id="workflow281" class="workflow281"></div><div id="componentDetail281"></div><article class="card"><h3>保存并运行一次 PMM 测试</h3><label for="pmmTestEvent281">测试事件</label><textarea id="pmmTestEvent281" rows="3" placeholder="输入一个实际想检验的情境"></textarea><button id="preview281" type="button" class="primary">保存并测试整轮调用</button><p class="fine">实际调用模型及数值组件，测试状态保存在临时副本。</p><p id="previewStatus281" role="status"></p><div id="previewReply281"></div><button type="button" id="export281">导出当前 Trace</button></article><div id="emotionDynamics281"></div></section></div><form id="pmmForm" class="settings-form" data-compat="" hidden="">
 <div class="model-card-heading">
 <span class="model-number">02</span><div>
 <h3>备用兼容参数</h3>
@@ -753,6 +760,647 @@
 </form></section></section></section></main>
 </div>
 
+<div id="ui3Workspace" aria-label="槐安梦客 UI 3.0 角色空间与人格培养工作台">
+<header class="ui3-header">
+  <div class="ui3-brand-cluster">
+    <a class="ui3-logo" href="#ui3PageHome" id="ui3BrandLink">
+      <span class="ui3-logo-mark">◒</span>
+      <span>槐安梦客<small>CHARACTER SPACE &amp; CULTIVATION STUDIO · 3.0</small></span>
+    </a>
+    <div class="ui3-persona-switcher">
+      <label for="ui3PersonaSelect" class="sr-only">当前角色</label>
+      <select id="ui3PersonaSelect" aria-label="切换当前角色"></select>
+      <button type="button" id="ui3NewPersonaBtn" title="创建新角色">＋ 新建</button>
+      <button type="button" id="ui3ClonePersonaBtn" title="克隆当前角色模板">克隆</button>
+    </div>
+  </div>
+  <div class="ui3-nav" role="navigation" aria-label="UI 3.0 主导航">
+    <button type="button" class="active" data-ui3-page="ui3PageHome" id="ui3NavHome">角色空间</button>
+    <button type="button" data-ui3-page="ui3PageInner" id="ui3NavInner">内心世界</button>
+    <button type="button" data-ui3-page="ui3PageTimeline" id="ui3NavTimeline">时光与对话</button>
+    <button type="button" data-ui3-page="ui3PageMemory" id="ui3NavMemory">记忆与关系</button>
+    <button type="button" data-ui3-page="ui3PageStudio" id="ui3NavStudio">成长工作室</button>
+    <button type="button" data-ui3-page="ui3PageSettings" id="ui3NavSettings">连接与设置</button>
+  </div>
+  <div class="ui3-header-controls">
+    <span id="ui3ConnBadge" class="ui3-badge">正在同步本地状态…</span>
+    <button type="button" id="ui3ThemeToggle" class="ui3-pill-btn" title="切换浅色/深色主题">☾ 槐安夜境</button>
+    <button type="button" id="ui3PortSwitchBtn" class="ui3-pill-btn primary" title="切换到开发者与高级研究工作台">🛠 开发者研究台</button>
+  </div>
+</header>
+
+<div class="ui3-main">
+  <div id="ui3GlobalBanner" class="ui3-card-compact" hidden></div>
+
+  <!-- 1. 角色空间 (首页) -->
+  <div id="ui3PageHome" class="ui3-section active">
+    <div id="ui3IdentityHero" class="ui3-card ui3-hero"></div>
+    <div id="ui3PendingActionsWrap" class="ui3-card" hidden>
+      <div class="ui3-card-head">
+        <div>
+          <span class="ui3-kicker">ACTION ITEMS · 待处理事项</span>
+          <h2>需要你留意的事项</h2>
+        </div>
+      </div>
+      <div id="ui3PendingActionsList" class="ui3-grid-3"></div>
+    </div>
+    <div class="ui3-grid-2">
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">PSYCHOLOGICAL CENTER · 当前心理状态</span>
+            <h2>此刻的情绪与心境空间</h2>
+            <p class="ui3-sub">结合实时快情绪、背景慢心境与最近一次内部状态跃迁方向。</p>
+          </div>
+          <button type="button" class="ui3-pill-btn" data-ui3-jump="ui3PageInner" data-ui3-subtab="ui3InnerEmotion">进入情绪空间 →</button>
+        </div>
+        <div id="ui3HomeEmotionCenter"></div>
+      </div>
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">EXPRESSIVE DRIVE · 表达欲与互动倾向</span>
+            <h2>当前想表达的程度与话轮意图</h2>
+            <p class="ui3-sub">由长期人格基线、当前情绪心境、事件评价与未竟动机共同驱动。</p>
+          </div>
+          <button type="button" class="ui3-pill-btn" data-ui3-jump="ui3PageInner" data-ui3-subtab="ui3InnerDrive">查看表达欲详情 →</button>
+        </div>
+        <div id="ui3HomeDriveCenter"></div>
+      </div>
+    </div>
+
+    <div class="ui3-grid-2">
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">UNFINISHED MOTIVES · 尚未完成的表达</span>
+            <h2>仍在等待时机的内部表达动机</h2>
+            <p class="ui3-sub">这些是角色内心形成但尚未发出的表达目标，不等同于已发送消息。</p>
+          </div>
+          <button type="button" class="ui3-pill-btn" id="ui3HomeAdvanceIdleBtn">推进静默时间演化</button>
+        </div>
+        <div id="ui3HomeUnfinishedList"></div>
+      </div>
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">RECENT EXPERIENCES · 最近经历</span>
+            <h2>近期有意义的互动、记忆与成长</h2>
+            <p class="ui3-sub">点击任一经历可定位到原始 QQ 聊天档案或记忆证据。</p>
+          </div>
+          <button type="button" class="ui3-pill-btn" data-ui3-jump="ui3PageTimeline">浏览全部时光档案 →</button>
+        </div>
+        <div id="ui3HomeRecentList"></div>
+      </div>
+    </div>
+
+    <div class="ui3-card">
+      <div class="ui3-card-head">
+        <div>
+          <span class="ui3-kicker">QUICK ENTRY · 重要操作入口</span>
+          <h2>角色培养与日常管理</h2>
+        </div>
+      </div>
+      <div class="ui3-grid-4" id="ui3HomeQuickActions">
+        <button type="button" class="ui3-action-tile" data-ui3-jump="ui3PageStudio">
+          <strong>导入聊天记录并蒸馏</strong>
+          <span>通过六步引导式流程，从历史对话提炼记忆、长期人格候选或认识新朋友。</span>
+        </button>
+        <button type="button" class="ui3-action-tile" data-ui3-jump="ui3PageInner" data-ui3-subtab="ui3InnerPersonality">
+          <strong>查看长期人格档案</strong>
+          <span>探索 HEXACO 特征谱、Schwartz 价值环、依恋二维空间与长期变化版本。</span>
+        </button>
+        <button type="button" class="ui3-action-tile" data-ui3-jump="ui3PageMemory">
+          <strong>记忆与人际关系图谱</strong>
+          <span>在可交互关联网络图与档案列表中检索记忆、查看人物关系与人际边界。</span>
+        </button>
+        <button type="button" class="ui3-action-tile" data-ui3-jump="ui3PageSettings">
+          <strong>配置模型、QQ 与研究台</strong>
+          <span>管理 General LLM、PMM 内部推理模型、QQ 主动联系授权及开发者研究工作台。</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 内心世界 (长期人格、动态情绪、表达欲) -->
+  <div id="ui3PageInner" class="ui3-section">
+    <div class="ui3-card-compact" style="margin-bottom:16px">
+      <div class="ui3-card-head" style="margin-bottom:0">
+        <div>
+          <span class="ui3-kicker">INNER WORLD · 内心世界三系统架构</span>
+          <h2 style="font-size:16px">长期人格、动态情绪与表达欲相互关联但性质独立，不混合为单一综合心理分数</h2>
+        </div>
+        <div class="ui3-subtabs" style="margin-bottom:0;border:none;padding:0">
+          <button type="button" class="active" data-ui3-inner-tab="ui3InnerPersonality">一、长期人格（稳定特质谱）</button>
+          <button type="button" data-ui3-inner-tab="ui3InnerEmotion">二、动态情绪（状态空间）</button>
+          <button type="button" data-ui3-inner-tab="ui3InnerDrive">三、表达欲（Expressive Drive）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2.1 长期人格 -->
+    <div id="ui3InnerPersonality" class="ui3-subpanel active">
+      <div class="ui3-grid-2">
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">LAYER 1 · 整体人格档案</span>
+              <h2>HEXACO 六领域结构入口</h2>
+              <p class="ui3-sub">仅作为长期人格结构入口展示稳定倾向概览；未经心理统计量表校准，不声称为标准量表测量分。</p>
+            </div>
+            <button type="button" class="ui3-pill-btn" id="ui3OpenTraitSeedBtn">＋ 设定初始长期倾向</button>
+          </div>
+          <div id="ui3HexacoRadarBox"></div>
+        </div>
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">LAYER 2A · 价值观与人际结构</span>
+              <h2>Schwartz 19 项精细价值环与依恋/人际二维空间</h2>
+              <p class="ui3-sub">保留价值间相容与冲突环形结构，以及焦虑—依恋/能动—亲和二维空间坐标。</p>
+            </div>
+          </div>
+          <div id="ui3ValuesAndAttachmentBox"></div>
+        </div>
+      </div>
+
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">LAYER 2B · 完整构念特征谱与独立倾向档案</span>
+            <h2>HEXACO 分面、情绪调节习惯与语言风格倾向（68 项注册构念）</h2>
+            <p class="ui3-sub">严格区分：主人初始设定（owner_seed）、经审核更新（promoted）、模型估计、工程先验与未知（null）。点击任一构念可查看第三层来源与证据。</p>
+          </div>
+          <div>
+            <label for="ui3ConstructGroupFilter" class="sr-only">筛选构念分组</label>
+            <select id="ui3ConstructGroupFilter" class="ui3-pill-btn">
+              <option value="all">全部长期构念分组</option>
+              <option value="HEXACO">HEXACO 六领域与 25 分面</option>
+              <option value="VALUES">Schwartz 19 项价值优先级</option>
+              <option value="AFFECTIVE">情绪调节与基底情感习惯 (BEQ/ERQ/PANAS)</option>
+              <option value="INTERPERSONAL">人际关系能动与亲和倾向</option>
+              <option value="STYLE">语言表达与互动风格倾向 (15 项)</option>
+            </select>
+          </div>
+        </div>
+        <div id="ui3ConstructsSpectrumList"></div>
+      </div>
+
+      <div class="ui3-grid-2">
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">LAYER 3 · 人格来源及应用证据</span>
+              <h2>构念溯源与认知决策影响核查</h2>
+              <p class="ui3-sub">区分初始值、当前估计、情境表现、正反历史证据、最近审核更新及实际决策影响。</p>
+            </div>
+          </div>
+          <div id="ui3ConstructProvenanceDetail"></div>
+        </div>
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">LAYER 4 · 长期变化与版本演化</span>
+              <h2>经真实提交的人格版本与晋升历史</h2>
+              <p class="ui3-sub">单次情绪波动或未审核推测绝不显示为长期人格发展；支持保存恢复点与版本回滚。</p>
+            </div>
+            <button type="button" class="ui3-pill-btn" id="ui3SaveCheckpointBtn">保存当前恢复点</button>
+          </div>
+          <div id="ui3TraitLongitudinalHistory"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2.2 动态情绪 -->
+    <div id="ui3InnerEmotion" class="ui3-subpanel">
+      <div class="ui3-grid-2">
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">A · 当前情绪与慢心境二维空间</span>
+              <h2>愉悦度 (Valence) — 唤醒度 (Arousal) 动态投影</h2>
+              <p class="ui3-sub">同图对比快情绪（即时反应）与慢心境（背景基调）位置及最近一次移动方向。</p>
+            </div>
+          </div>
+          <div id="ui3Emotion2DSpaceBox"></div>
+        </div>
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">B · 多类别情绪同时激活</span>
+              <h2>24 类情绪标签激活状态</h2>
+              <p class="ui3-sub">允许多个情绪类别同时并存，不强制指定唯一“主导情绪”，未校准项保持明确标注。</p>
+            </div>
+          </div>
+          <div id="ui3Emotion24Grid"></div>
+        </div>
+      </div>
+
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">C &amp; D · 情绪变化轨迹与归因解释</span>
+            <h2>多成因状态演化轨迹（事件反应 / 时间松弛 / 情绪调节 / 表达反馈）</h2>
+            <p class="ui3-sub">默认呈现自然语言状态解释；研究者可展开查看原始潜变量向量、事件评价与动力学参数。</p>
+          </div>
+          <div>
+            <label for="ui3EmotionHorizonFilter" class="sr-only">时间范围</label>
+            <select id="ui3EmotionHorizonFilter" class="ui3-pill-btn">
+              <option value="all">全部可用轨迹记录</option>
+              <option value="6h">最近 6 小时</option>
+              <option value="24h">最近 24 小时</option>
+              <option value="7d">最近 7 天</option>
+            </select>
+          </div>
+        </div>
+        <div id="ui3EmotionTrajectoryBox"></div>
+      </div>
+    </div>
+
+    <!-- 2.3 表达欲 Expressive Drive -->
+    <div id="ui3InnerDrive" class="ui3-subpanel">
+      <div class="ui3-grid-2">
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">EXPRESSIVE DRIVE · 三通道动态状态</span>
+              <h2>Activation · Urgency · Persistence 与话轮意图</h2>
+              <p class="ui3-sub">直观反映当前想表达的程度、是否倾向立即接话、是否有未竟挂念，以及对情绪的双向反馈。</p>
+            </div>
+            <button type="button" class="ui3-pill-btn" id="ui3InnerAdvanceIdleBtn">推进静默时间演化</button>
+          </div>
+          <div id="ui3DriveChannelsBox"></div>
+        </div>
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">THREE-CHANNEL HISTORY · 表达欲变化曲线</span>
+              <h2>表达欲三通道随真实事件与时间演化的轨迹</h2>
+              <p class="ui3-sub">关联每一次真实认知评估、话轮等待、部分发送与完整送达回执。</p>
+            </div>
+          </div>
+          <div id="ui3DriveCurveBox"></div>
+        </div>
+      </div>
+
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">MOTIVE INSPECTOR · 未完成与历史表达动机详情</span>
+            <h2>主体内部表达目标、待发步骤与事件关联链（source_message_ids → turn_id → motive_id）</h2>
+            <p class="ui3-sub">严格区分：内部想表达的目标（intended_expression） ≠ 已生成候选回复 ≠ 实际已发送消息。</p>
+          </div>
+        </div>
+        <div id="ui3DriveMotivesDetailList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 时光与对话 (QQ 历史档案、事件时间线、历史回顾) -->
+  <div id="ui3PageTimeline" class="ui3-section">
+    <div class="ui3-card">
+      <div class="ui3-card-head">
+        <div>
+          <span class="ui3-kicker">TIME &amp; DIALOGUE ARCHIVE · 时光与对话</span>
+          <h2>QQ 历史对话档案、事件时间线与经历回顾</h2>
+          <p class="ui3-sub">网页以只读历史回顾与事件溯源为主；点击任一消息或事件可查看关联记忆、心理评价与表达状态。</p>
+        </div>
+        <div class="ui3-subtabs" style="margin-bottom:0;border:none;padding:0">
+          <button type="button" class="active" data-ui3-timeline-tab="ui3TimelineArchive">对话档案</button>
+          <button type="button" data-ui3-timeline-tab="ui3TimelineEvents">事件时间线</button>
+          <button type="button" data-ui3-timeline-tab="ui3TimelineReview">历史回顾</button>
+        </div>
+      </div>
+      <div class="ui3-grid-4" style="margin-bottom:16px">
+        <div>
+          <label for="ui3TimelineSessionSelect" class="ui3-sub">选择会话与人物</label>
+          <select id="ui3TimelineSessionSelect" style="width:100%;margin-top:4px"></select>
+        </div>
+        <div>
+          <label for="ui3TimelineSearchInput" class="ui3-sub">关键词检索</label>
+          <input id="ui3TimelineSearchInput" type="search" placeholder="搜索消息原文、话题或记忆…" style="width:100%;margin-top:4px">
+        </div>
+        <div>
+          <label for="ui3TimelineDateInput" class="ui3-sub">按日期定位</label>
+          <input id="ui3TimelineDateInput" type="date" style="width:100%;margin-top:4px">
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px">
+          <button type="button" class="ui3-pill-btn" id="ui3TimelineClearFilterBtn">重置筛选</button>
+          <button type="button" class="ui3-pill-btn" id="ui3NewLocalSessionBtn">＋ 新建本机测试会话</button>
+        </div>
+      </div>
+
+      <div id="ui3TimelineArchive" class="ui3-subpanel active">
+        <div id="ui3TimelineMessagesBox"></div>
+        <details id="ui3LocalSandboxDrawer" style="margin-top:18px;border:1px solid var(--ui3-border);border-radius:12px;padding:12px 16px;background:var(--ui3-surface-solid)">
+          <summary style="cursor:pointer;font-weight:600;font-size:13px">展开本机调试沙盒对话（仅用于 private:web:owner 本机会话测试，非主聊天界面）</summary>
+          <div style="margin-top:12px;display:flex;gap:10px;align-items:flex-start">
+            <label for="ui3SandboxInput" class="sr-only">本机测试消息</label>
+            <textarea id="ui3SandboxInput" rows="2" placeholder="在本机会话中输入一条测试消息，验证完整 PMM 与表达欲计算链…" style="flex:1"></textarea>
+            <button type="button" class="ui3-pill-btn primary" id="ui3SandboxSendBtn">发送本机测试 ↗</button>
+          </div>
+          <p class="ui3-sub" id="ui3SandboxHint">QQ 会话为只读历史档案，请在 QQ 客户端继续真实交流。</p>
+        </details>
+      </div>
+
+      <div id="ui3TimelineEvents" class="ui3-subpanel">
+        <div id="ui3TimelineEventsBox"></div>
+      </div>
+
+      <div id="ui3TimelineReview" class="ui3-subpanel">
+        <div id="ui3TimelineReviewBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 记忆与关系 (记忆档案、Nomi 风格记忆关联图、人际关系) -->
+  <div id="ui3PageMemory" class="ui3-section">
+    <div class="ui3-card-compact" style="margin-bottom:16px">
+      <div class="ui3-card-head" style="margin-bottom:0">
+        <div>
+          <span class="ui3-kicker">MEMORY &amp; RELATIONSHIPS · 记忆与人际关系</span>
+          <h2 style="font-size:16px">所有关联边均来自真实互动证据、共同会话或未竟动机，不虚构人际关系</h2>
+        </div>
+        <div class="ui3-subtabs" style="margin-bottom:0;border:none;padding:0">
+          <button type="button" class="active" data-ui3-mem-tab="ui3MemoryNetworkTab">一、记忆关联图与记忆档案</button>
+          <button type="button" data-ui3-mem-tab="ui3RelationshipsTab">二、人物档案与人际关系</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ui3MemoryNetworkTab" class="ui3-subpanel active">
+      <div class="ui3-grid-2">
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">MIND MAP · 记忆与关系关联网络图</span>
+              <h2>角色核心 · 人物 · 事件记忆 · 归纳记忆 · 待表达目标</h2>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button type="button" class="ui3-pill-btn primary" id="ui3GraphViewBtn">网络视图</button>
+              <button type="button" class="ui3-pill-btn" id="ui3ListViewBtn">列表视图</button>
+            </div>
+          </div>
+          <div id="ui3MemoryGraphWrap" class="ui3-graph-svg-wrap"></div>
+          <div id="ui3MemoryNodeDetail" class="ui3-card-compact" style="margin-top:12px"></div>
+        </div>
+
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">MEMORY ARCHIVE · 记忆检索与审核校正</span>
+              <h2>区分事实记录、归纳记忆、内部评价与用户修正</h2>
+            </div>
+            <button type="button" class="ui3-pill-btn" id="ui3RunMemoryGistBtn">执行记忆归纳整理</button>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <label for="ui3MemorySearchInput" class="sr-only">搜索记忆</label>
+            <input id="ui3MemorySearchInput" type="search" placeholder="搜索记忆内容、来源或人物…" style="flex:1;min-width:180px">
+            <label for="ui3MemoryKindFilter" class="sr-only">记忆类型</label>
+            <select id="ui3MemoryKindFilter" class="ui3-pill-btn">
+              <option value="all">全部类型</option>
+              <option value="episode">具体经历 (episode)</option>
+              <option value="gist">要点归纳 (gist)</option>
+              <option value="semantic">语义/偏好 (semantic)</option>
+              <option value="hypothesis">推测 (hypothesis)</option>
+            </select>
+          </div>
+          <div id="ui3MemoryArchiveList" style="max-height:540px;overflow:auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ui3RelationshipsTab" class="ui3-subpanel">
+      <div class="ui3-grid-2">
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">PEOPLE &amp; DYADS · 已知人物与关系状态</span>
+              <h2>信任度、熟悉度、亲和度与交谈对象模型</h2>
+              <p class="ui3-sub">明确区分主人手动设定的关系信息与系统根据互动经历推测的关系。</p>
+            </div>
+          </div>
+          <div id="ui3PeopleAndDyadsList"></div>
+        </div>
+        <div class="ui3-card">
+          <div class="ui3-card-head">
+            <div>
+              <span class="ui3-kicker">INTERPERSONAL BOUNDARIES · 人际边界与规则</span>
+              <h2>硬边界规则与情境动态边界倾向</h2>
+              <p class="ui3-sub">支持新增、修改或清理人际边界，不会越过安全白名单。</p>
+            </div>
+            <button type="button" class="ui3-pill-btn" id="ui3AddDynamicBoundaryBtn">＋ 新增动态边界倾向</button>
+          </div>
+          <div id="ui3BoundariesPanel"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 成长工作室 (六步引导式人格蒸馏与持续学习) -->
+  <div id="ui3PageStudio" class="ui3-section">
+    <div class="ui3-card">
+      <div class="ui3-card-head">
+        <div>
+          <span class="ui3-kicker">GROWTH STUDIO · 成长工作室</span>
+          <h2>引导式人格蒸馏、持续学习、候选审阅与版本恢复</h2>
+          <p class="ui3-sub">无需手动挑选底层算法模块，按六步引导即可从历史聊天提炼记忆与人格候选，并严格区分“蒸馏完成 / 记忆入库 / 人格参数更新 / 权重训练完成”。</p>
+        </div>
+      </div>
+
+      <div class="ui3-stepper" id="ui3StudioStepper">
+        <button type="button" class="ui3-step-btn active" data-ui3-step="1"><span>STEP 01</span><strong>1. 确定目标</strong></button>
+        <button type="button" class="ui3-step-btn" data-ui3-step="2"><span>STEP 02</span><strong>2. 选择数据</strong></button>
+        <button type="button" class="ui3-step-btn" data-ui3-step="3"><span>STEP 03</span><strong>3. 选择学习内容</strong></button>
+        <button type="button" class="ui3-step-btn" data-ui3-step="4"><span>STEP 04</span><strong>4. 执行与进度</strong></button>
+        <button type="button" class="ui3-step-btn" data-ui3-step="5"><span>STEP 05</span><strong>5. 候选审阅</strong></button>
+        <button type="button" class="ui3-step-btn" data-ui3-step="6"><span>STEP 06</span><strong>6. 结果与版本</strong></button>
+      </div>
+
+      <div id="ui3StudioStep1" class="ui3-subpanel active">
+        <div class="ui3-grid-3">
+          <div class="ui3-card-compact">
+            <span class="ui3-badge accent">任务模式 A · self</span>
+            <h3 style="margin:10px 0 6px">创建 / 塑形角色自身人格</h3>
+            <p class="ui3-sub">从目标人物的历史聊天记录中提炼人格倾向、价值观、记忆与语言表达习惯候选，用于塑造当前 AI 角色。</p>
+            <button type="button" class="ui3-pill-btn primary" style="margin-top:12px" data-ui3-choose-target="self">选择此目标并进入下一步 →</button>
+          </div>
+          <div class="ui3-card-compact">
+            <span class="ui3-badge sage">任务模式 B · self_experience</span>
+            <h3 style="margin:10px 0 6px">让当前角色吸收新经历</h3>
+            <p class="ui3-sub">整理近期对话或新增经历，生成可核实的事件记忆、归纳记忆及待审核的长期学习证据。</p>
+            <button type="button" class="ui3-pill-btn primary" style="margin-top:12px" data-ui3-choose-target="self_experience">选择此目标并进入下一步 →</button>
+          </div>
+          <div class="ui3-card-compact">
+            <span class="ui3-badge indigo">任务模式 C · other</span>
+            <h3 style="margin:10px 0 6px">认识其他人（建立交谈对象模型）</h3>
+            <p class="ui3-sub">从对话记录中提炼角色对特定朋友/交谈对象的了解与关系印象，严格隔离，绝不误写入 AI 自身人格。</p>
+            <button type="button" class="ui3-pill-btn primary" style="margin-top:12px" data-ui3-choose-target="other">选择此目标并进入下一步 →</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ui3StudioStep2" class="ui3-subpanel">
+        <div class="ui3-grid-2">
+          <div class="ui3-card-compact">
+            <h3>上传聊天文件或粘贴对话记录</h3>
+            <p class="ui3-sub">支持 JSON、纯文本行 (`说话人: 内容` 或 `[时间] 说话人: 内容`) 等现有格式。导入他人聊天内容前请确认已获必要授权。</p>
+            <div style="display:flex;gap:10px;margin:12px 0;flex-wrap:wrap">
+              <label for="ui3StudioFileInput" class="ui3-pill-btn" style="cursor:pointer">📂 选择本地聊天文件</label>
+              <input id="ui3StudioFileInput" type="file" accept=".json,.txt,.log,.csv" hidden>
+              <label for="ui3StudioFormatSelect" class="sr-only">数据格式</label>
+              <select id="ui3StudioFormatSelect" class="ui3-pill-btn">
+                <option value="auto">自动识别格式 (auto)</option>
+                <option value="json">JSON 消息数组 (json)</option>
+                <option value="lines">按行文本记录 (lines)</option>
+              </select>
+              <button type="button" class="ui3-pill-btn primary" id="ui3StudioPreviewBtn">1. 检查格式并识别说话人</button>
+            </div>
+            <label for="ui3StudioRawText" class="sr-only">聊天记录原文</label>
+            <textarea id="ui3StudioRawText" rows="8" placeholder="在此粘贴聊天记录，或点击上方按钮选择文件。示例：&#10;甲: 周末想去植物园看红叶吗？&#10;乙: 好呀，我最喜欢安静的园林了，顺便带上相机。" style="width:100%"></textarea>
+          </div>
+          <div class="ui3-card-compact">
+            <h3>说话人确认与数据预览</h3>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0">
+              <div>
+                <label for="ui3StudioTargetMode" class="ui3-sub">学习目标归属</label>
+                <select id="ui3StudioTargetMode" style="width:100%;margin-top:4px">
+                  <option value="self">AI 自身人格与经历 (self)</option>
+                  <option value="other">其他人物模型 (other)</option>
+                </select>
+              </div>
+              <div>
+                <label for="ui3StudioSpeakerSelect" class="ui3-sub">选择要提炼的说话人</label>
+                <select id="ui3StudioSpeakerSelect" style="width:100%;margin-top:4px">
+                  <option value="">请先点击“检查格式并识别说话人”</option>
+                </select>
+              </div>
+              <div>
+                <label for="ui3StudioPersonInput" class="ui3-sub">关联人物标识 (person_id)</label>
+                <input id="ui3StudioPersonInput" value="web:owner" style="width:100%;margin-top:4px">
+              </div>
+              <div>
+                <label for="ui3StudioScopeInput" class="ui3-sub">适用情境范围 (scope)</label>
+                <input id="ui3StudioScopeInput" value="private:web:owner" style="width:100%;margin-top:4px">
+              </div>
+            </div>
+            <div id="ui3StudioPreviewSummary" style="margin-top:12px"></div>
+            <div style="margin-top:14px;display:flex;justify-content:flex-end">
+              <button type="button" class="ui3-pill-btn primary" data-ui3-step-goto="3">确认数据源，进入步骤 3 →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ui3StudioStep3" class="ui3-subpanel">
+        <div class="ui3-grid-2">
+          <div class="ui3-card-compact">
+            <h3>选择希望学习与提炼的维度</h3>
+            <p class="ui3-sub">明确区分直接入库项与必须经过人工或长期证据审核的候选项。</p>
+            <div id="ui3StudioDomainsBox" style="margin-top:12px"></div>
+            <div style="margin-top:16px;display:flex;gap:10px">
+              <button type="button" class="ui3-pill-btn" id="ui3SaveLearningPolicyBtn">保存学习与审核策略</button>
+              <button type="button" class="ui3-pill-btn primary" data-ui3-step-goto="4">进入步骤 4：执行蒸馏与学习 →</button>
+            </div>
+          </div>
+          <div class="ui3-card-compact">
+            <h3>学习安全边界与生效规则说明</h3>
+            <ul class="ui3-sub" style="padding-left:18px;line-height:1.9">
+              <li><strong>记忆与经历 (Memory)</strong>：带原文引用的具体经历可直接入库供检索，并支持随时校正或删除。</li>
+              <li><strong>稳定人格倾向与价值 (Traits &amp; Values)</strong>：默认生成<strong>待审核证据候选 (candidate_only)</strong>，只有积累足够跨事件证据并通过审核后才会晋升更新长期人格。</li>
+              <li><strong>语言表达习惯 (Pragmatics)</strong>：统计句长、省略号、反问与分句倾向，生成可审核的语言倾向候选。</li>
+              <li><strong>人际关系与他者认识 (Relationships &amp; Other)</strong>：更新对特定人物的熟悉度、信任度及交谈对象画像，绝不污染 AI 自身人格。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="ui3StudioStep4" class="ui3-subpanel">
+        <div class="ui3-grid-2">
+          <div class="ui3-card-compact">
+            <h3>启动真实蒸馏或后台学习任务</h3>
+            <p class="ui3-sub">所有进度直接读取后端真实任务状态，不播放虚假完成动画。</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0">
+              <button type="button" class="ui3-pill-btn primary" id="ui3StartDistillBtn">▶ 立即执行聊天记录蒸馏</button>
+              <button type="button" class="ui3-pill-btn" id="ui3CreateLearningJobBtn">＋ 建立历史学习批次任务</button>
+              <button type="button" class="ui3-pill-btn" id="ui3RunConsolidationBtn">整理待处理交互队列</button>
+            </div>
+            <div id="ui3StudioLiveProgressBox"></div>
+          </div>
+          <div class="ui3-card-compact">
+            <h3>历史学习任务列表与批次控制</h3>
+            <div id="ui3StudioJobsList" style="max-height:420px;overflow:auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ui3StudioStep5" class="ui3-subpanel">
+        <div class="ui3-grid-2">
+          <div class="ui3-card-compact">
+            <div class="ui3-card-head">
+              <div>
+                <h3>长期人格倾向候选审阅 (Trait Review)</h3>
+                <p class="ui3-sub">核对提炼出的构念变化、历史证据数量与冲突情况，确认后晋升至长期人格。</p>
+              </div>
+              <button type="button" class="ui3-pill-btn primary" id="ui3ApplyTraitReviewBtn">审核并应用合格人格候选</button>
+            </div>
+            <div id="ui3StudioTraitCandidatesBox"></div>
+          </div>
+          <div class="ui3-card-compact">
+            <div class="ui3-card-head">
+              <div>
+                <h3>语言表达习惯与经验形成候选审阅</h3>
+                <p class="ui3-sub">审阅从示范中归纳的分句、标点与回应充足度候选。</p>
+              </div>
+            </div>
+            <div id="ui3StudioPragmaticCandidatesBox"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ui3StudioStep6" class="ui3-subpanel">
+        <div id="ui3StudioOutcomeReportBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 连接与设置 (角色管理、模型配置中心、QQ 与主动联系、数据与研究工作台) -->
+  <div id="ui3PageSettings" class="ui3-section">
+    <div class="ui3-card-compact" style="margin-bottom:16px">
+      <div class="ui3-card-head" style="margin-bottom:0">
+        <div>
+          <span class="ui3-kicker">CONNECTIONS &amp; SETTINGS · 连接与设置</span>
+          <h2 style="font-size:16px">管理角色身份、双模型连接、QQ 与主动联系授权、数据备份及高级研究工作台</h2>
+        </div>
+        <div class="ui3-subtabs" style="margin-bottom:0;border:none;padding:0">
+          <button type="button" class="active" data-ui3-set-tab="ui3SettingsPersonaTab">一、角色管理</button>
+          <button type="button" data-ui3-set-tab="ui3SettingsModelsTab">二、模型配置中心</button>
+          <button type="button" data-ui3-set-tab="ui3SettingsQQTab">三、QQ 与主动联系</button>
+          <button type="button" data-ui3-set-tab="ui3SettingsDataTab">四、数据与高级研究工作台</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ui3SettingsPersonaTab" class="ui3-subpanel active">
+      <div id="ui3SettingsPersonaBox"></div>
+    </div>
+
+    <div id="ui3SettingsModelsTab" class="ui3-subpanel">
+      <div id="ui3SettingsModelsBox"></div>
+    </div>
+
+    <div id="ui3SettingsQQTab" class="ui3-subpanel">
+      <div id="ui3SettingsQQBox"></div>
+    </div>
+
+    <div id="ui3SettingsDataTab" class="ui3-subpanel">
+      <div id="ui3SettingsDataBox"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+
 <dialog id="personaDialog"><div class="dialog-head">
 <h2>创建一个独立人格</h2>
 <button data-close="personaDialog" type="button">×</button>
@@ -830,6 +1478,6 @@
 <label for="traitSeedField">特质、价值或习惯</label><select id="traitSeedField"></select><label for="traitSeedValue">主人设定值（0–1；留空恢复未知）</label><input id="traitSeedValue" type="number" min="0" max="1" step="0.01"><label for="traitSeedNote">设定说明</label><textarea id="traitSeedNote" rows="3" maxlength="1000"></textarea><p class="fine">保存为 owner_seed，不是正式量表得分。PANAS 表示“总体上/通常”，不写入此刻情绪。保存后下一轮生效，不重置记忆或训练权重。</p>
 <button class="primary" type="submit">保存长期设定</button>
 </form></dialog>
-<script defer src="/app.js?v=2.8.1"></script>
+<script defer src="/app.js?v=2.8.3-dev"></script>
 </body>
 </html>

@@ -18,7 +18,7 @@ from .connections import Presets, patch as preset_patch, check_routes
 from .psychology import parse_records, validate_profile, empty_profile, STATE_KEYS, TRAITS
 
 class Runtime:
-    def __init__(self,data_dir,root,host='127.0.0.1',port=8765,preview=False):
+    def __init__(self,data_dir,root,host='127.0.0.1',port=8765,preview=False,*,headless=False):
         from .data_guard import prepare_upgrade,complete_upgrade
         self.upgrade=prepare_upgrade(data_dir);self.startup_ready=False
         self.root=Path(root);self.subjects=Subjects(data_dir);self.contexts={};self.presets=Presets(data_dir);self.bridges_started=False
@@ -28,10 +28,12 @@ class Runtime:
         self.migrate_connections()
         self.store,self.config,self.engine,self.bridge=self.context(self.subjects.catalog['active'])
         self.jobs={};self.job_lock=threading.RLock();self.token=secrets.token_urlsafe(32)
+        from .scheduler import Scheduler
+        self.scheduler=Scheduler(self)
         self.reloading=False;self.host=host;self.port=port;self.preview=preview;self.http=None
-        self.build_id=hashlib.sha256(VERSION.encode()+b''.join((self.root/'web'/p).read_bytes() for p in ('index.html','app.js','style.css'))).hexdigest()
+        self.build_id=None if headless else hashlib.sha256(VERSION.encode()+b''.join((self.root/'web'/p).read_bytes() for p in ('index.html','app.js','style.css'))).hexdigest()
         # Migrate every identity before marking an upgrade complete, without starting QQ.
-        for item in self.subjects.catalog['items']:self.context(item['id'])
+        for item in self.subjects.available():self.context(item['id'])
         try:complete_upgrade(data_dir,self.upgrade)
         except Exception:
             for st,cfg,engine,bridge in self.contexts.values():engine.journal.close();st.close()
@@ -55,6 +57,7 @@ class Runtime:
             atomic_json(path,c)
         atomic_json(marker,{'version':1,'migrated_at':now(),'qq_owner':active})
     def context(self,identifier):
+        self.subjects.require_available(identifier)
         if identifier not in self.contexts:
             directory=self.subjects.directory(identifier)
             cfg=Config(directory);cfg.shared_root=self.subjects.root;st=Store(directory,create=False)
@@ -63,18 +66,21 @@ class Runtime:
             self.contexts[identifier]=(st,cfg,engine,QQBridge(engine))
         return self.contexts[identifier]
     def start_bridges(self):
-        configs={item['id']:Config(self.subjects.directory(item['id'])).get() for item in self.subjects.catalog['items']}
+        if self.preview:return
+        configs={item['id']:Config(self.subjects.directory(item['id'])).get() for item in self.subjects.available()}
         check_routes(configs)
         self.bridges_started=True
         for identifier in configs:
             bridge=self.context(identifier)[3]
             if not bridge.thread.is_alive() and not bridge.stop.is_set():bridge.start()
+        self.scheduler.start()
     def all_busy(self):
-        return any(ctx[3].busy or ctx[2].consolidation.status()['running'] or ctx[2].social.status()['running'] or ctx[2].memory_lifecycle.status()['running'] or ctx[2].learning.status()['running'] for ctx in self.contexts.values()) or any(j['status'] in ('queued','running') for j in self.jobs.values())
+        return any(ctx[3].busy or ctx[2].consolidation.status()['running'] or ctx[2].social.status()['running'] or ctx[2].memory_lifecycle.status()['running'] or ctx[2].learning.status()['running'] or bool(ctx[2].learning.experiences.thread and ctx[2].learning.experiences.thread.is_alive()) or bool(ctx[2].motive_generation.thread and ctx[2].motive_generation.thread.is_alive()) for ctx in self.contexts.values()) or any(j['status'] in ('queued','running') for j in self.jobs.values())
     def route_event(self,raw,headers,query,identifier=None):
         event=json.loads(raw)
         if not isinstance(event,dict):raise ValueError('QQ 事件应为对象')
-        ids=[identifier] if identifier else [item['id'] for item in self.subjects.catalog['items']]
+        if identifier:self.subjects.require_available(identifier)
+        ids=[identifier] if identifier else [item['id'] for item in self.subjects.available()]
         verified=[];matches=[]
         from .qq import parse_event
         for ident in ids:
@@ -106,7 +112,7 @@ class Runtime:
                 bindings[row['kind']]={'preset_id':row['id'],'name':row['name'],'copied_at':now()}
                 self.store.setmeta('connection_bindings',bindings)
             return {'config':result,'presets':self.presets.list()}
-        if op=='test':return self.presets.test(body['id'],self.config.get())
+        if op=='test':return self.presets.test(body['id'],self.config.get(),self.engine.journal,self.engine.profile()['id'])
         return {'presets':self.presets.mutate(body,self.config.get())}
 
     def state(self):
@@ -123,12 +129,14 @@ class Runtime:
                 'config':self.config.public(),'connection_presets':optional('presets',self.presets.list,[]),'connection_bindings':self.store.meta('connection_bindings') or {},'presets':PRESETS,'pmm_start_error':self.pmm_start_error,'sessions':self.store.sessions(),'model':optional('model',self.engine.model_info,{'mode':self.engine.mode(),'status':'本地模型信息读取失败','architecture':'暂不可用','metrics':{},'steps':None,'train_samples':None,'heldout_samples':None}),
                 'memory_count':len(self.store.memories()),'data_dir':str(self.store.directory),
                 'boundary_model':optional('boundaries',self.engine.boundaries.status,None),'cognition':optional('cognition',self.engine.cognition.status,None),'memory_lifecycle':optional('memory',self.engine.memory_lifecycle.status,None),'group_attention':optional('groups',self.engine.group_attention.status,None),'consolidation':optional('consolidation',self.engine.consolidation.status,None),'csrf':self.token,'reloading':self.reloading,'active_jobs':[j for j in self.jobs.values() if j['status'] in ('queued','running')],'profile':self.engine.profile(),
-                'psychology_registry':__import__('persona.registry',fromlist=['FIELDS']).FIELDS,'dyads':self.store.meta('pmm_dyads') or {},'expression':self.store.meta('pmm_expression'),'synthesis':self.store.meta('pmm_synthesis'),'activity':self.engine.activity(),'personas':self.subjects.catalog,'interlocutors':self.store.meta('pmm_interlocutors') or {}}
+                'psychology_registry':__import__('persona.registry',fromlist=['FIELDS']).FIELDS,'dyads':self.store.meta('pmm_dyads') or {},'expression':self.store.meta('pmm_expression'),'synthesis':self.store.meta('pmm_synthesis'),'activity':self.engine.activity(),'personas':self.subjects.catalog_view(),'interlocutors':self.store.meta('pmm_interlocutors') or {}}
         from .capabilities import report
         result['capabilities']=report(self.config.get(),result['model'])
         from .traits import DISPOSITION_REGISTRY,snapshot
         result['trait_snapshot']=snapshot(result['profile']);result['disposition_registry']=DISPOSITION_REGISTRY
         result['affect_state']=self.engine.affect_state()
+        from . import expression_drive as ed
+        result['expressive_drive']=optional('expressive_drive',lambda:ed.status_summary(self.store,result['profile']),None)
         from .affect import CATALOG,label_details
         result['emotion_catalog']=CATALOG;result['emotion_details']=label_details(self.store.meta('pmm_affect'))
         result['learning_center']=optional('learning',self.engine.learning.status,None)
@@ -138,24 +146,28 @@ class Runtime:
         result['pragmatics']=optional('pragmatics',lambda:pragmatic_status(self.store.meta('pmm_pragmatics')),None)
         from .joint_expression import timeline
         result['de_turns']=optional('de_turns',lambda:timeline(self.engine),None)
+        from .ui3_projection import build_ui3_overview
+        result['ui3_overview']=optional('ui3_overview',lambda:build_ui3_overview(self,result),None)
         result.update(component_errors=errors,data_status={'root':str(self.subjects.root.resolve()),'upgrade_kind':self.upgrade['kind'],'backup':self.upgrade.get('backup')});return result
     def task(self,kind,worker,sid=''):
         if self.reloading:raise ValueError('程序正在应用更新，请稍后重试')
         with self.job_lock:
             active=[j for j in self.jobs.values() if j['status'] in ('queued','running')]
             if any(not (kind=='chat' and j['kind']=='learning' or kind=='learning' and j['kind']=='chat') for j in active):raise ValueError('还有任务正在处理，请等待完成')
-            jid=uid();self.jobs[jid]={'id':jid,'kind':kind,'status':'queued','phase':'等待处理','session_id':sid,'created_at':now(),'started_at':now(),'persona_id':self.store.meta('identity')['id']}
+            task_store=self.store
+            jid=uid();self.jobs[jid]={'id':jid,'kind':kind,'status':'queued','phase':'等待处理','session_id':sid,'created_at':now(),'started_at':now(),'persona_id':task_store.meta('identity')['id']}
         def run():
             try:
                 self.jobs[jid]['status']='running'
                 result=worker(lambda phase:self.jobs[jid].update(phase=phase))
                 self.jobs[jid].update(status='done',result=result,phase='完成')
+                with task_store.lock,task_store.db:task_store.event('task_completed',{'job_id':jid,'kind':kind})
             except Exception as ex:
                 message=str(ex) if isinstance(ex,(ValueError,ProviderError)) else '处理失败；请查看终端错误类型'
                 from .support import exception_frames
                 diagnostic=exception_frames(ex)
                 if not isinstance(ex,(ValueError,ProviderError)):print('Task failed:',dumps(diagnostic),flush=True)
-                with self.store.lock,self.store.db:self.store.event('task_failed',{'exception_type':diagnostic['type'],'frames':diagnostic['frames'],'task':kind})
+                with task_store.lock,task_store.db:task_store.event('task_failed',{'job_id':jid,'exception_type':diagnostic['type'],'frames':diagnostic['frames'],'task':kind})
                 self.jobs[jid].update(status='error',error=message,diagnostics=getattr(ex,'details',{}))
             with self.job_lock:
                 old=[k for k,v in self.jobs.items() if v['status'] not in ('queued','running')]
@@ -170,7 +182,7 @@ class Runtime:
         if client_event_id is None:return self.task('chat',lambda progress:engine.turn(sid,text,progress=progress),sid)
         return self.task('chat',lambda progress:engine.turn(sid,text,progress=progress,turn_context={'sources':['web:'+sid+':'+client_event_id]}),sid)
     def ensure_idle(self):
-        if self.reloading or self.bridge.busy or self.engine.consolidation.status()['running'] or self.engine.social.status()['running'] or self.engine.memory_lifecycle.status()['running'] or self.engine.learning.status()['running'] or any(j['status'] in ('queued','running') for j in self.jobs.values()):raise ValueError('请等当前对话或蒸馏完成后再修改连接、权重或切换人格')
+        if self.reloading or self.bridge.busy or self.engine.consolidation.status()['running'] or self.engine.social.status()['running'] or self.engine.memory_lifecycle.status()['running'] or self.engine.learning.status()['running'] or bool(self.engine.learning.experiences.thread and self.engine.learning.experiences.thread.is_alive()) or bool(self.engine.motive_generation.thread and self.engine.motive_generation.thread.is_alive()) or any(j['status'] in ('queued','running') for j in self.jobs.values()):raise ValueError('请等当前对话或蒸馏完成后再修改连接、权重或切换人格')
     def pause_bridge(self):
         bridge=self.bridge
         if not bridge.lifecycle.acquire(blocking=False):raise ValueError('QQ 正在处理消息，请稍后再操作')
@@ -198,6 +210,31 @@ class Runtime:
             if 'social' in c:c['social']['enabled']=False;c['social']['recipients']=[]
             atomic_json(self.subjects.directory(identifier)/'config.json',c)
             return self.switch(identifier)
+    def archive_persona(self,body,restore=False):
+        with self.job_lock:
+            if body.get('expected_active')!=self.subjects.catalog['active']:raise ValueError('当前角色已变化，请重新打开角色管理')
+            if self.reloading or self.all_busy():raise ValueError('请等当前对话或后台整理结束后再管理回收站')
+            identifier=body.get('id');ctx=self.contexts.get(identifier)
+            if restore:
+                if ctx and ctx[3].thread.is_alive():raise ValueError('该角色的连接正在停止，请稍后再恢复')
+                configs={r['id']:Config(self.subjects.directory(r['id'])).get() for r in self.subjects.available()}
+                configs[identifier]=Config(self.subjects.directory(identifier)).get()
+                check_routes(configs)
+                result=self.subjects.set_archived(identifier,False)
+                if ctx:self.contexts[identifier]=(*ctx[:3],QQBridge(ctx[2]))
+                return result
+            if not ctx:return self.subjects.set_archived(identifier,True,body.get('confirm_name'))
+            bridge=ctx[3];engine=ctx[2]
+            if not bridge.lifecycle.acquire(blocking=False):raise ValueError('该角色正在处理消息，请稍后再删除')
+            try:
+                if not engine.lock.acquire(blocking=False):raise ValueError('该角色正在处理任务，请稍后再删除')
+                try:
+                    result=self.subjects.set_archived(identifier,True,body.get('confirm_name'))
+                    bridge.stop.set()
+                finally:engine.lock.release()
+            finally:bridge.lifecycle.release()
+            if bridge.thread.is_alive():bridge.thread.join(timeout=2)
+            return result
     def clone_persona(self,body):
         with self.job_lock:
             self.ensure_idle()
@@ -293,7 +330,7 @@ class Runtime:
                 if mode=='learned':candidate_config['pmm']['model']=LEARNED_ID
                 elif mode=='legacy' and candidate_config['pmm']['backend']=='local':candidate_config['pmm']['model']=MODEL_ID
                 if candidate_config==old:return self.config.public()
-                configs={item['id']:Config(self.subjects.directory(item['id'])).get() for item in self.subjects.catalog['items']}
+                configs={item['id']:Config(self.subjects.directory(item['id'])).get() for item in self.subjects.available()}
                 configs[self.store.meta('identity')['id']]=candidate_config;check_routes(configs)
                 candidate=create_pmm(candidate_config,self.engine.model.export(),self.store.meta('identity')['id'])
                 if mode!=old['pmm']['mode']:self.engine.save_weight_version('切换 PMM 模式前自动备份')
@@ -310,7 +347,12 @@ class Runtime:
     def test_connection(self,role):
         started=time.monotonic()
         try:
-            result=self.engine.test_pmm() if role=='pmm' else Provider(self.config.get()).test()
+            if role=='pmm':result=self.engine.test_pmm()
+            else:
+                from .token_ledger import bind_factory
+                client=bind_factory(Provider,self.engine.journal,self.engine.profile()['id'],'General')(self.config.get())
+                client.trace_context={'component_role':'General','task_name':'connection_test','trigger_reason':'explicit_connection_test'}
+                result=client.test()
             result['duration_ms']=round((time.monotonic()-started)*1000)
             with self.store.lock,self.store.db:self.store.event('connection_test',{'role':role,'ok':True,**result})
             return result
@@ -369,10 +411,11 @@ class Runtime:
         self.pmm_process=None
 
     def close(self):
+        self.scheduler.close()
         for ctx in self.contexts.values():ctx[3].stop.set()
         for ctx in self.contexts.values():
             if ctx[3].thread.is_alive():ctx[3].thread.join()
-            for thread in (ctx[2].consolidation.thread,ctx[2].social.thread,ctx[2].memory_lifecycle.thread,ctx[2].learning.thread):
+            for thread in (ctx[2].consolidation.thread,ctx[2].social.thread,ctx[2].memory_lifecycle.thread,ctx[2].learning.thread,ctx[2].learning.experiences.thread,ctx[2].motive_generation.thread):
                 if thread and thread.is_alive():thread.join()
         self.close_pmm()
         for ctx in self.contexts.values():ctx[2].journal.close();ctx[0].close()
@@ -381,6 +424,7 @@ class Runtime:
     def reload(self):
         if self.reloading:return {'ok':True}
         self.reloading=True
+        self.scheduler.stop.set()
         def drain():
             for ctx in self.contexts.values():ctx[3].stop.set()
             while True:
@@ -398,7 +442,7 @@ class Handler(BaseHTTPRequestHandler):
     def app(self):return self.server.app
     def host_ok(self):
         host=self.headers.get('Host','').split(':')[0].lower()
-        return host in ('127.0.0.1','localhost') or (self.app.preview and host=='terminal.local')
+        return host in ('127.0.0.1','localhost','terminal.local')
     def auth(self):
         try:
             c=http.cookies.SimpleCookie(self.headers.get('Cookie',''))
@@ -409,7 +453,7 @@ class Handler(BaseHTTPRequestHandler):
     def cookie(self):return f'{self.cookie_name}={self.app.token}; HttpOnly; SameSite=Strict; Path=/'
     def origin_ok(self):
         origin=self.headers.get('Origin')
-        return self.headers.get('Sec-Fetch-Site')!='cross-site' and (not origin or origin in (f'http://127.0.0.1:{self.app.port}',f'http://localhost:{self.app.port}',*(['http://terminal.local:4173'] if self.app.preview else [])))
+        return self.headers.get('Sec-Fetch-Site')!='cross-site' and (not origin or origin in (f'http://127.0.0.1:{self.app.port}',f'http://localhost:{self.app.port}',f'http://terminal.local:{self.app.port}',*(['http://terminal.local:4173'] if self.app.preview else [])))
     def failure(self,exc,status=500):
         from .support import exception_frames
         diagnostic={'request_id':getattr(self,'request_id',uid()),'method':self.command,'route':urllib.parse.urlsplit(self.path).path,**exception_frames(exc)}
@@ -427,7 +471,7 @@ class Handler(BaseHTTPRequestHandler):
         for k,v in (extra or {}).items():self.send_header(k,v)
         self.end_headers()
         try:self.wfile.write(raw)
-        except (BrokenPipeError,ConnectionResetError):pass
+        except (BrokenPipeError,ConnectionResetError,ConnectionAbortedError):pass
     def do_GET(self):
         self.request_id=uid()
         if not self.host_ok():return self.send({'error':'非法 Host'},403)
@@ -436,16 +480,56 @@ class Handler(BaseHTTPRequestHandler):
         if path=='/api/bootstrap':
             if not self.origin_ok():return self.send({'error':'来源不匹配','code':'ORIGIN_MISMATCH'},403)
             return self.send({'version':VERSION,'build_id':self.app.build_id,'csrf':self.app.token},extra={'Set-Cookie':self.cookie()})
-        if path in ('/','/app.js','/style.css','/favicon.svg'):
-            name='index.html' if path=='/' else path[1:];p=self.app.root/'web'/name
+        if path in ('/','/ui-shell','/ui-shell/','/ui-shell/index.html','/index.html') and qs.get('ui',['shell'])[0]!='legacy':
+            p=self.app.root/'ui-shell'/'index.html'
+            if p.exists():
+                raw=p.read_bytes().replace(b'__APP_BUILD__',self.app.build_id.encode())
+                return self.send(raw,ctype='text/html; charset=utf-8',extra={'Set-Cookie':self.cookie()})
+        if path.startswith(('/src/','/public/')):
+            ui_root=(self.app.root/'ui-shell').resolve()
+            target=(ui_root/path.lstrip('/')).resolve()
+            if str(target).startswith(str(ui_root)) and target.is_file():
+                ctype=mimetypes.guess_type(str(target))[0] or 'application/octet-stream'
+                if ctype.startswith('text/') or ctype in ('application/javascript','application/json'):ctype+='; charset=utf-8'
+                return self.send(target.read_bytes(),ctype=ctype)
+        if path in ('/','/legacy','/app.js','/style.css','/favicon.svg'):
+            name='index.html' if path in ('/','/legacy') else path[1:];p=self.app.root/'web'/name
             if not p.exists():return self.send({'error':'资源不存在'},404)
-            extra={'Set-Cookie':self.cookie()} if path=='/' else {}
-            raw=p.read_bytes().replace(b'__APP_BUILD__',self.app.build_id.encode()) if path=='/' else p.read_bytes()
-            ctype={'/':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/favicon.svg':'image/svg+xml'}[path]
+            extra={'Set-Cookie':self.cookie()} if path in ('/','/legacy') else {}
+            raw=p.read_bytes().replace(b'__APP_BUILD__',self.app.build_id.encode()) if path in ('/','/legacy') else p.read_bytes()
+            ctype={'/':'text/html; charset=utf-8','/legacy':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/favicon.svg':'image/svg+xml'}[path]
             return self.send(raw,ctype=ctype,extra=extra)
         if not self.auth():return self.send({'error':'请从程序首页打开管理界面'},401)
+        # Jobs retain their own persona and engine. Progress reads must remain
+        # available while another request waits for an export or a model call.
+        if path.startswith('/api/jobs/'):
+            job=self.app.jobs.get(path.rsplit('/',1)[-1])
+            return self.send(dict(job) if job else {'error':'任务不存在'},200 if job else 404)
         try:
             with self.app.job_lock:
+                if path=='/api/research/workspace':
+                    state=self.app.store.meta('pmm283_research_drive') or {}
+                    return self.send({'revision':state.get('revision',0),'sessions':self.app.store.sessions(),
+                        'motives':[m for row in state.get('streams',{}).values() for m in row.get('motives',{}).values()],
+                        'sampling':self.app.engine.affect_sampling.status()})
+                if path=='/api/notifications':
+                    from .notifications import page
+                    return self.send(page(self.app.store,qs.get('offset',['0'])[0],qs.get('limit',['50'])[0]))
+                if path=='/api/affect/samples':
+                    from .research_operations import samples
+                    return self.send(samples(self.app.store,qs.get('stream_key',[None])[0],qs.get('from',[None])[0],qs.get('to',[None])[0],qs.get('limit',['200'])[0],qs.get('offset',['0'])[0]))
+                if path=='/api/affect/sampling':return self.send(self.app.engine.affect_sampling.status())
+                if path=='/api/scheduler':
+                    return self.send(self.app.scheduler.status(self.app.store.meta('identity')['id']))
+                if path=='/api/pmm283/motives/history':
+                    from .motive_history import history
+                    return self.send(history(self.app.store,qs.get('scope',[None])[0],qs.get('person',[None])[0],
+                        qs.get('motive_id',[None])[0],qs.get('cursor',[None])[0],qs.get('limit',['50'])[0]))
+                if path=='/api/pmm283/expressive-drive':
+                    from . import expression_drive as ed
+                    scope=qs.get('scope',[None])[0]
+                    if scope:return self.send(self.app.engine.expressive_drive_state(scope,qs.get('person',[scope])[0],qs.get('session_id',[None])[0]))
+                    return self.send(ed.status_summary(self.app.store,self.app.engine.profile()))
                 if path=='/api/pmm281/status':
                     from .pmm_workspace import status
                     return self.send(status(self.app.engine))
@@ -461,6 +545,34 @@ class Handler(BaseHTTPRequestHandler):
                     from scripts.export_sources import build
                     result=build(self.app.root);key='source' if path=='/api/source' else 'index';name='HuaiAn_Dreamer_Source.md' if key=='source' else 'HuaiAn_Dreamer_Code_Index.md'
                     return self.send(result[key].encode(),ctype='text/plain; charset=utf-8',extra={'Content-Disposition':'attachment; filename='+name})
+                if path=='/api/pmm282/history':
+                    from .runtime_history import history
+                    return self.send(history(self.app.engine,qs.get('turn_id',[None])[0],int(qs.get('limit',['100'])[0]),
+                        int(qs.get('offset',['0'])[0]),qs.get('date_from',[None])[0],qs.get('date_to',[None])[0]))
+                if path=='/api/persona/views':
+                    service=self.app.engine.persona_views;profile=self.app.engine.profile()
+                    selected=qs.get('version_id',[None])[0]
+                    if selected:
+                        view=service.get(profile,selected)
+                        view={**view,'id':view['version_id'],'version':view['sequence']}
+                        return self.send({'view':view,'is_current':selected==service.current(profile)['version_id']})
+                    listing=service.list(profile)
+                    return self.send({'current_id':listing['current_version_id'],
+                        'versions':[{**v,'id':v['version_id'],'version':v['sequence']} for v in listing['items']]})
+                if path=='/api/token-ledger':
+                    if 'limit' in qs or 'offset' in qs or 'date_from' in qs or 'date_to' in qs:
+                        from .runtime_history import calls_page
+                        return self.send(calls_page(self.app.engine,qs.get('limit',['50'])[0],qs.get('offset',['0'])[0],
+                            qs.get('turn_id',[None])[0],qs.get('date_from',[None])[0],qs.get('date_to',[None])[0],
+                            {f:qs[f][0] for f in ('component_role','model','phase_id') if f in qs}))
+                    from .runtime_history import calls_view,summary_view
+                    rows=calls_view(self.app.engine,qs.get('turn_id',[None])[0])
+                    for field in ('component_role','model','phase_id'):
+                        if field in qs:rows=[r for r in rows if r.get(field)==qs[field][0]]
+                    return self.send({'schema':'token-ledger/2.8.2','calls':rows,'summary':summary_view(rows)})
+                if path=='/api/token-prices':
+                    from .token_prices import TokenPrices
+                    return self.send(TokenPrices(self.app.store).get())
                 if path in ('/api/execution','/api/execution/export'):
                     from .execution import public_trace,metrics
                     runs=self.app.engine.journal.recent(2000 if path.endswith('/export') else 60)
@@ -476,6 +588,9 @@ class Handler(BaseHTTPRequestHandler):
                 if path=='/api/learning/activities':return self.send(self.app.engine.learning.activities(int(qs.get('offset',['0'])[0])))
                 if path=='/api/social-graph':return self.send(self.app.engine.social_graph.query(qs.get('scope',[]),qs.get('person',[None])[0]))
                 if path=='/api/cognition':return self.send(self.app.engine.cognition.status())
+                if path=='/api/ui3/overview':
+                    from .ui3_projection import build_ui3_overview
+                    return self.send(build_ui3_overview(self.app))
                 if path=='/api/state':return self.send(self.app.state())
                 if path=='/api/messages':
                     offset=int(qs.get('offset',['0'])[0])
@@ -508,8 +623,6 @@ class Handler(BaseHTTPRequestHandler):
                     rows=self.app.store.rows('SELECT id,status,result,created_at FROM inbox ORDER BY created_at DESC LIMIT 60')
                     for r in rows:r['result']=json.loads(r['result'])
                     return self.send(rows)
-                if path.startswith('/api/jobs/'):
-                    j=self.app.jobs.get(path.rsplit('/',1)[-1]);return self.send(j or {'error':'任务不存在'},200 if j else 404)
                 if path=='/api/psychology/registry':
                     from .registry import REGISTRY,CONTRACT,FIELDS
                     return self.send({'registry':REGISTRY,'contract':CONTRACT,'fields':FIELDS})
@@ -528,7 +641,10 @@ class Handler(BaseHTTPRequestHandler):
                     from .affect import label_details
                     affect=self.app.engine.affect_state()
                     return self.send({'persona_id':self.app.store.meta('identity')['id'],'affect_state':affect,'emotion_details':label_details(affect)})
-                if path=='/api/persona/export':return self.send(dumps(self.app.subjects.export_pack(self.app.engine,qs.get('scope',['continuity'])[0])).encode(),extra={'Content-Disposition':'attachment; filename="persona_package.json"'})
+                if path=='/api/persona/export':
+                    if qs.get('persona_id',[self.app.subjects.catalog['active']])[0]!=self.app.subjects.catalog['active']:raise ValueError('当前角色已变化，请重新选择导出')
+                    self.app.ensure_idle()
+                    return self.send(dumps(self.app.subjects.export_pack(self.app.engine,qs.get('scope',['continuity'])[0])).encode(),extra={'Content-Disposition':'attachment; filename="persona_package.json"'})
                 if path=='/api/export':return self.send(dumps(self.app.snapshot()).encode(),extra={'Content-Disposition':'attachment; filename="persona_snapshot.json"'})
                 return self.send({'error':'接口不存在'},404)
         except Exception as ex:return self.failure(ex,400 if isinstance(ex,ValueError) else 500)
@@ -549,17 +665,36 @@ class Handler(BaseHTTPRequestHandler):
         if not self.auth() or not secrets.compare_digest(self.headers.get('X-CSRF-Token',''),self.app.token):return self.send({'error':'管理会话已过期，请重新连接后再次保存；本次未执行','code':'SESSION_EXPIRED'},403)
         if self.headers.get('X-App-Client-Version',VERSION)!=VERSION:return self.send({'error':'页面与后端版本不一致，请重新打开程序首页','code':'FRONTEND_VERSION_MISMATCH'},409)
         origin=self.headers.get('Origin')
-        if origin and origin not in (f'http://127.0.0.1:{self.app.port}',f'http://localhost:{self.app.port}',*(['http://terminal.local:4173'] if self.app.preview else [])):
+        if origin and origin not in (f'http://127.0.0.1:{self.app.port}',f'http://localhost:{self.app.port}',f'http://terminal.local:{self.app.port}',*(['http://terminal.local:4173'] if self.app.preview else [])):
             return self.send({'error':'来源不匹配'},403)
         try:
             body=json.loads(raw)
             if not isinstance(body,dict):raise ValueError('请求格式应为对象')
             app=self.app
             with app.job_lock:
+                if path=='/api/research/expressive-drive-compare':
+                    from .pmm_experiments import expressive_from_turn
+                    return self.send(expressive_from_turn(app.engine,body))
+                if path=='/api/research/export':
+                    if body.get('persona_id')!=app.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新后操作')
+                    from .research_export import export
+                    return self.send(export(app.engine,app.root,body))
+                if path in ('/api/notifications/read','/api/pmm283/motives/research','/api/affect/sampling/settings'):
+                    if body.get('persona_id')!=app.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新后操作')
+                    if path=='/api/notifications/read':
+                        from .notifications import mark_read
+                        return self.send(mark_read(app.store,body.get('ids')))
+                    if path=='/api/affect/sampling/settings':return self.send(app.engine.affect_sampling.configure(body))
+                    from .research_operations import edit_motive
+                    return self.send(edit_motive(app.engine,body))
+                if path=='/api/memory-reflection/settings':
+                    if body.get('persona_id')!=app.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新后操作')
+                    return self.send(app.engine.motive_generation.configure(body))
                 if path.startswith('/api/learning/'):
                     if body.get('persona_id')!=app.store.meta('identity')['id']:raise ValueError('主体已切换，请刷新后操作')
                     learning=app.engine.learning
                     if path=='/api/learning/policy':return self.send(learning.save_policy(body))
+                    if path=='/api/learning/experiences/control':return self.send(learning.experiences.control(body.get('action')))
                     if path=='/api/learning/preview':return self.send(learning.preview(body))
                     if path=='/api/learning/create':return self.send(learning.create(body))
                     if path=='/api/learning/run':return self.send(app.task('learning',lambda progress:learning.run(body.get('id'),progress)))
@@ -606,16 +741,33 @@ class Handler(BaseHTTPRequestHandler):
                     if path=='/api/pmm/core/import':return self.send(app.engine.register_core(body))
                     if path=='/api/pmm/core/activate':return self.send(app.engine.activate_core(body['id']))
                     if path=='/api/pmm/adapter/import':return self.send(app.engine.import_adapter(body))
+                if path=='/api/persona/views/delete':
+                    app.ensure_idle()
+                    service=app.engine.persona_views;profile=app.engine.profile()
+                    if body.get('subject_id') and body['subject_id']!=profile['id']:raise ValueError('角色已切换，请刷新人设版本列表')
+                    service.delete(profile,body.get('version_ids',[]));listing=service.list(profile)
+                    return self.send({'current_id':listing['current_version_id'],
+                        'versions':[{**v,'id':v['version_id'],'version':v['sequence']} for v in listing['items']]})
+                if path=='/api/token-prices':
+                    from .token_prices import TokenPrices
+                    if body.get('subject_id') and body['subject_id']!=app.engine.profile()['id']:raise ValueError('角色已切换，请刷新价格配置')
+                    return self.send(TokenPrices(app.store).set(body))
                 if path=='/api/persona/settings':
                     app.ensure_idle();return self.send(app.subjects.edit_character(app.engine,body))
                 if path=='/api/persona/new':return self.send(app.create_persona(body))
                 if path=='/api/persona/clone':return self.send(app.clone_persona(body))
                 if path=='/api/persona/import':return self.send(app.create_persona({'package':body}))
                 if path=='/api/persona/activate':return self.send(app.switch(body['id']))
+                if path=='/api/persona/delete':return self.send(app.archive_persona(body))
+                if path=='/api/persona/restore':return self.send(app.archive_persona(body,restore=True))
                 if path=='/api/boundaries/edit':return self.send(app.engine.boundaries.edit(body))
                 if path=='/api/boundaries/calibrate':return self.send(app.engine.boundaries.calibrate(body))
                 if path=='/api/boundary':return self.send(app.engine.boundary(body))
                 if path=='/api/config':return self.send(app.configure(body))
+                if path=='/api/pmm283/expressive-drive/advance':
+                    app.ensure_idle()
+                    scope=body.get('scope','private:web:owner')
+                    return self.send(app.engine.advance_expressive_drive_idle(scope,body.get('person'),body.get('session_id'),body.get('at'),body.get('commit',True) is True))
                 if path=='/api/social/preview':return self.send(app.task('social_preview',lambda progress:app.engine.social.evaluate(body['scope'],send=False)))
                 if path=='/api/social/unblock':return self.send(app.engine.social.unblock(body['scope']))
                 if path=='/api/connection-presets':return self.send(app.preset_action(body))

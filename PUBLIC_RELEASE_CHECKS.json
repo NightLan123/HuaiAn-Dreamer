@@ -1,0 +1,43 @@
+{
+  "release": "initial-source-20261127",
+  "date": "2026-11-27",
+  "checks": [
+    {
+      "name": "public_allowlist_and_sensitive_marker_scan",
+      "status": "PASS",
+      "findings": 0
+    },
+    {
+      "name": "syntax_only_no_application_execution",
+      "status": "PASS",
+      "files": {
+        "python": 102,
+        "javascript": 30,
+        "json": 4
+      }
+    },
+    {
+      "name": "frontend_static_resource_paths",
+      "status": "PASS",
+      "references": 51
+    },
+    {
+      "name": "static_markup_preserves_runtime_element_ids",
+      "status": "PASS"
+    },
+    {
+      "name": "local_python_import_paths",
+      "status": "PASS"
+    },
+    {
+      "name": "pmm_behavioral_source_matches_working_copy",
+      "status": "PASS",
+      "exception": "thinking.py: documentation link only"
+    },
+    {
+      "name": "application_browser_cloud_qq_training_behavior",
+      "status": "NOT RUN"
+    }
+  ],
+  "scope": "Packaging and static checks only; no claims of full functional acceptance."
+}

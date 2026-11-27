@@ -92,6 +92,8 @@ def inspect_root(root):
         validate_affect(row['meta'].get('pmm_affect'),row['id'])
         from .affect_runtime import validate_metadata as validate_affect_v2
         validate_affect_v2(row['meta'])
+        from .expression_drive import validate_metadata as validate_expression_drive
+        validate_expression_drive(row['meta'])
         validate_state(row['meta'].get('boundary_model'));validate_claims(row['meta'].get('claim_memory'))
         if (directory/'config.json').exists():
             from .common import Config

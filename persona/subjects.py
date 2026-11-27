@@ -27,11 +27,32 @@ class Subjects:
             st=Store(self.root);identity=st.meta('identity')['id'];p=st.meta('pmm_profile');st.close()
             self.catalog={'default':identity,'active':identity,'items':[{'id':identity,'name':p['name'] if p else '未央'}]};self.save()
     def save(self):atomic_json(self.path,self.catalog)
+    def available(self):return [r for r in self.catalog['items'] if not r.get('archived_at')]
+    def catalog_view(self):
+        return {**copy.deepcopy(self.catalog),'items':copy.deepcopy(self.available()),
+                'trash':copy.deepcopy([r for r in self.catalog['items'] if r.get('archived_at')])}
+    def require_available(self,identifier):
+        if identifier not in [r['id'] for r in self.available()]:raise ValueError('角色不存在或已移入回收站')
+    def set_archived(self,identifier,archived,confirm_name=None):
+        item=next((r for r in self.catalog['items'] if r['id']==identifier),None)
+        if not item:raise ValueError('角色不存在')
+        if archived:
+            if identifier==self.catalog['active']:raise ValueError('请先切换到另一位角色，再删除此角色')
+            if confirm_name!=item['name']:raise ValueError('角色名称已变化，请重新确认')
+            if item.get('archived_at'):raise ValueError('此角色已在回收站')
+        elif not item.get('archived_at'):raise ValueError('此角色不在回收站')
+        previous=copy.deepcopy(self.catalog)
+        if archived:item['archived_at']=now()
+        else:item.pop('archived_at',None)
+        try:self.save()
+        except Exception:self.catalog=previous;raise
+        return {'ok':True,'id':identifier,'archived':archived}
     def directory(self,identifier):
         if identifier not in [i['id'] for i in self.catalog['items']]:raise ValueError('没有这个人格')
         return self.root if identifier==self.catalog['default'] else self.root/'subjects'/identifier
     def active_store(self):return Store(self.directory(self.catalog['active']),create=False)
     def activate(self,identifier):
+        self.require_available(identifier)
         self.directory(identifier);self.catalog['active']=identifier;self.save()
     def create(self,name,seed='',pack=None,character=None):
         if not isinstance(name,str) or not 1<=len(name.strip())<=60:raise ValueError('名称应为 1–60 个字符')
@@ -91,6 +112,7 @@ class Subjects:
                         'before':{k:before.get(k) for k in ('name','seed','character')},'after':{k:p[k] for k in ('name','seed','character')}})
             except Exception:
                 self.catalog=old_catalog;self.save();raise
+            engine.persona_views.current(engine.profile())
             return {'ok':True,'changed':True,'profile':p,'checkpoint_id':backup['id']}
 
     def export_pack(self,engine,scope='continuity'):
@@ -134,6 +156,10 @@ class Subjects:
         with engine.lock:
             validated=validate_pack(pack);meta=validated[0]
             if meta['identity']['id']!=engine.profile()['id']:raise ValueError('请选择当前主体的人格包；其他人格请使用载入人格包')
+            # Restoring authored source is a new present state. Keep the live
+            # JSON audit history (including deletions), then compile a new
+            # current version if the restored source differs.
+            meta['pmm_persona_views']=engine.store.meta('pmm_persona_views')
             candidate=create_pmm(engine.config.get(),meta['pmm_checkpoint'],engine.profile()['id'])
             meta['pmm_checkpoint']=candidate.export()
             self.save_revision(engine,'应用人格包前自动备份')
@@ -143,7 +169,9 @@ class Subjects:
                 if item['id']==meta['identity']['id']:item['name']=meta['pmm_profile']['name']
             try:
                 self.save()
-                with engine.store.lock,engine.store.db:apply_pack(engine.store,validated)
+                with engine.store.lock,engine.store.db:
+                    apply_pack(engine.store,validated)
+                    engine.persona_views.current(engine.profile())
             except Exception:
                 self.catalog=old_catalog;self.save();raise
             engine.model=candidate

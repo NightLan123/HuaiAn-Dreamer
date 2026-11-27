@@ -1,6 +1,6 @@
 """Text-model protocol adapters. Keys stay on the Python side, never in URLs/logs."""
 from __future__ import annotations
-import copy, json, urllib.request, urllib.error, urllib.parse, ipaddress, re, time
+import copy, hashlib, json, urllib.request, urllib.error, urllib.parse, ipaddress, re, time
 
 PROTOCOLS = ('ollama', 'chat_completions', 'responses', 'anthropic', 'gemini', 'azure_chat')
 AUTH_MODES = ('auto', 'bearer', 'x-api-key', 'api-key', 'x-goog-api-key', 'none')
@@ -31,6 +31,10 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         raise ProviderError('接口发生重定向，请填写最终接口地址')
 
 
+def quota_notice(text):
+    return isinstance(text,str) and text.strip().casefold().rstrip('.') == "you have reached today's chat limit"
+
+
 def request_json(url, payload=None, token='', timeout=120, headers=None, max_bytes=4_000_000):
     validate_url(url, allow_query=True)
     h = {'Content-Type':'application/json','Accept':'application/json'}
@@ -42,6 +46,8 @@ def request_json(url, payload=None, token='', timeout=120, headers=None, max_byt
         with urllib.request.build_opener(NoRedirect).open(req, timeout=timeout) as res:
             data = res.read(max_bytes+1)
             if len(data)>max_bytes: raise ProviderError('模型响应超过大小限制')
+            if len(data)<=200 and quota_notice(data.decode('utf8',errors='replace')):
+                raise ProviderError('模型服务的本日额度已耗尽',{'code':'SERVICE_QUOTA','http_status':res.status})
             result=json.loads(data,parse_constant=lambda _:(_ for _ in ()).throw(ValueError('nonfinite')))
             if not isinstance(result,dict): raise ProviderError('接口响应应为 JSON 对象')
             if result.get('error'): raise ProviderError('模型服务返回错误；请检查模型、额度和请求参数',remote_error(result,200))
@@ -61,11 +67,34 @@ def request_json(url, payload=None, token='', timeout=120, headers=None, max_byt
 
 
 def parse_object(text):
+    original=str(text)
     text=str(text).strip()
-    if text.startswith('```'): text=text.split('\n',1)[-1].rsplit('```',1)[0].strip()
-    try: obj=json.loads(text, parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
-    except (json.JSONDecodeError,ValueError): raise ProviderError('模型没有返回合法 JSON 对象；可开启 JSON 修复或更换模型') from None
-    if not isinstance(obj,dict): raise ProviderError('模型返回格式应为 JSON 对象')
+    text=text.removeprefix('\ufeff').strip()
+    # Only presentation labels have no bearing on the result. A free-form
+    # explanation might retract the object and must go through correction.
+    text=re.sub(r'^(?:以下是\s*JSON(?:\s*(?:对象|结果))?|JSON(?:\s*(?:对象|结果))?|here is (?:the |your )?JSON(?: object)?)\s*[：:]\s*(?=[{`])','',text,flags=re.I)
+    text=re.sub(r'(?<=[}`])\s+(?:以上(?:即)?为\s*JSON(?:\s*(?:对象|结果|输出))?|end of JSON)[.。]?\Z','',text,flags=re.I)
+    wrapper=re.fullmatch(r'```(?:json)?\s*(\{.*\})\s*```',text,re.IGNORECASE|re.DOTALL)
+    if wrapper:text=wrapper.group(1)
+    diagnostic={'chars':len(original),'body_sha256':hashlib.sha256(original.encode('utf8')).hexdigest()}
+    def unique_fields(pairs):
+        obj={}
+        for key,value in pairs:
+            if key in obj:
+                raise ProviderError('模型 JSON 的字段重复',{'json_diagnostic':{**diagnostic,'kind':'duplicate_key'}})
+            obj[key]=value
+        return obj
+    try: obj=json.loads(text, object_pairs_hook=unique_fields, parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
+    except json.JSONDecodeError as error:
+        diagnostic.update(kind='syntax_error',offset=error.pos,line=error.lineno,column=error.colno,
+            reason='extra_data' if error.msg=='Extra data' else 'invalid_syntax')
+        raise ProviderError('模型返回的 JSON 语法无效',{'json_diagnostic':diagnostic}) from None
+    except ValueError:
+        diagnostic.update(kind='nonfinite')
+        raise ProviderError('模型 JSON 包含非有限数值',{'json_diagnostic':diagnostic}) from None
+    if not isinstance(obj,dict):
+        diagnostic.update(kind='root_not_object',root_type=type(obj).__name__)
+        raise ProviderError('模型返回格式应为 JSON 对象',{'json_diagnostic':diagnostic})
     return obj
 
 
@@ -126,6 +155,12 @@ def media_messages(messages, protocol):
 
 class Provider:
     def __init__(self,config): self.config=copy.deepcopy(config);self.calls=[];self.stage='';self.thinking_capabilities=None
+    def request_timeout(self):
+        timeout=self.config.get('timeout',120);deadline=getattr(self,'request_deadline',None)
+        if deadline is None:return timeout
+        remaining=deadline-time.monotonic()
+        if remaining<=0:raise TimeoutError('Model request budget exhausted')
+        return min(timeout,remaining)
     def headers(self):
         c=self.config;mode=c.get('auth_mode','auto');p=c['provider']
         if mode=='auto':mode={'anthropic':'x-api-key','gemini':'x-goog-api-key','azure_chat':'api-key'}.get(p,'bearer')
@@ -162,6 +197,12 @@ class Provider:
         call={'protocol':self.config['provider'],'model':self.config.get('model',''),'structured':structured,
               'stage':self.stage or 'model_request','status':'preparing','started_at':time.time(),'call_id':__import__('uuid').uuid4().hex,**getattr(self,'trace_context',{})}
         self.calls.append(call)
+        from . import token_ledger as ledger
+        accounting=ledger.start_record(call,messages)
+        if not accounting.get('persona_id'):accounting['persona_id']=getattr(self,'ledger_identity',None)
+        if accounting['component_role']=='unassigned':accounting['component_role']=getattr(self,'ledger_role','unassigned')
+        sink=getattr(self,'ledger_sink',None)
+        call['token_ledger']=accounting;ledger.save(accounting,sink)
         try:
             result=self._execute(messages,structured,call)
             call.update(status='ok',output_chars=len(result));return result
@@ -171,7 +212,9 @@ class Provider:
             detail={'call':copy.deepcopy(call)}
             detail['call']['duration_ms']=round((time.monotonic()-started)*1000)
             raise ProviderError(str(ex),detail) from None
-        finally:call['duration_ms']=round((time.monotonic()-started)*1000);call['ended_at']=time.time()
+        finally:
+            call['duration_ms']=round((time.monotonic()-started)*1000);call['ended_at']=time.time()
+            ledger.finish_record(accounting,call,sink)
 
     def _execute(self,messages,structured,call):
         c=self.config;proto=c['provider'];model=c.get('model','').strip()
@@ -213,14 +256,23 @@ class Provider:
         if proto=='ollama' and c.get('thinking_mode') in ('off','on','low','high'):
             show_url=endpoint(c['base_url'],'api/show','')
             if self.thinking_capabilities is None:
-                meta=request_json(show_url,{'model':model},timeout=c.get('timeout',120),headers=self.headers())
+                meta=request_json(show_url,{'model':model},timeout=self.request_timeout(),headers=self.headers())
                 self.thinking_capabilities=meta.get('thinking',{}).get('values') if isinstance(meta.get('thinking'),dict) else None
             controls=self.thinking_capabilities
             if not isinstance(controls,list):raise ProviderError('Ollama 未返回此模型的思考能力；请使用服务默认或官方附加参数')
             c={**c,'_thinking_values':controls}
         payload,thinking=apply_thinking(payload,c)
+        if '_repair_output_limit' in c:
+            cap=c['_repair_output_limit']
+            if proto=='ollama':payload['options']['num_predict']=cap
+            elif proto=='responses':payload['max_output_tokens']=cap
+            elif proto=='anthropic':payload['max_tokens']=cap
+            elif proto in ('chat_completions','azure_chat'):
+                for key in ('max_tokens','max_completion_tokens'):
+                    if key in payload:payload[key]=cap
+            else:payload['generationConfig']['maxOutputTokens']=cap
         call.update(thinking=thinking,request_options=safe_options(payload),endpoint=urllib.parse.urlsplit(self._url()).path,status='requesting')
-        r=request_json(self._url(),payload,timeout=c.get('timeout',120),headers=self.headers())
+        r=request_json(self._url(),payload,timeout=self.request_timeout(),headers=self.headers())
         call['http_status']=200
         try:call.update(response_meta(r,proto))
         except (TypeError,AttributeError,IndexError):raise ProviderError('模型响应结构与所选接口协议不符') from None
@@ -266,22 +318,44 @@ class Provider:
         except (IndexError,TypeError,AttributeError,KeyError):raise ProviderError('模型响应结构与所选接口协议不符') from None
         if not isinstance(result,str) or not result.strip():
             fail('REASONING_ONLY' if call.get('reasoning_chars') else 'EMPTY_RESPONSE','模型只返回了 reasoning/thinking，缺少最终正文；请关闭或降低思考、提高输出上限' if call.get('reasoning_chars') else '模型返回了空文本；请检查模型、输出上限及协议')
+        if structured and quota_notice(result):
+            fail('SERVICE_QUOTA','模型服务的本日额度已耗尽')
         return result.strip()
+    def _parse_structured(self,result):
+        try:return parse_object(result)
+        except ProviderError as ex:
+            if self.calls:
+                self.calls[-1]['format_status']='invalid_json'
+                self.calls[-1]['json_diagnostic']=copy.deepcopy(ex.details.get('json_diagnostic',{}))
+            if self.calls and self.calls[-1].get('token_ledger'):
+                from . import token_ledger
+                self.calls[-1]['token_ledger']['response_disposition']='rejected'
+                token_ledger.save(self.calls[-1]['token_ledger'],getattr(self,'ledger_sink',None))
+            error=ProviderError(str(ex),{'code':'INVALID_JSON','json_diagnostic':copy.deepcopy(ex.details.get('json_diagnostic',{})),'calls':copy.deepcopy(self.calls)})
+            # Only the caller repairing this response may see the transient text.
+            error.invalid_output=result
+            raise error from None
     def complete(self,messages,structured=False,controller=False):
         # controller is accepted for v0.2 callers only, never selects a hidden third model.
         result=self._request(messages,structured)
         if not structured:return result
-        try:return parse_object(result)
-        except ProviderError as ex:
-            if self.calls:self.calls[-1]['format_status']='invalid_json'
-            if not self.config.get('json_repair',False):raise ProviderError(str(ex),{'code':'INVALID_JSON','calls':copy.deepcopy(self.calls)}) from None
+        try:return self._parse_structured(result)
+        except ProviderError:
+            if not self.config.get('json_repair',False):raise
         # One explicit repair request to the same model; no model substitution or state write.
         retry=[*messages,{'role':'assistant','content':result[:24000]},
                {'role':'user','content':'Your previous output was not a valid JSON object. Return the requested complete JSON object only, using double quotes and finite numbers.'}]
-        try:return parse_object(self._request(retry,True))
+        trace=getattr(self,'trace_context',{})
+        self.trace_context={**trace,'parent_call_id':self.calls[-1]['call_id'],
+            'attempt':trace.get('attempt',0)+1,'retry_reason':'invalid_json'}
+        try:
+            value=self._parse_structured(self._request(retry,True))
+            self.calls[-1]['format_status']='valid_json_after_repair'
+            return value
         except ProviderError as ex:
-            if not ex.details:ex.details={'calls':copy.deepcopy(self.calls)}
+            ex.details.setdefault('calls',copy.deepcopy(self.calls))
             raise
+        finally:self.trace_context=trace
     def models(self):
         r=request_json(self._url('models'),timeout=20,headers=self.headers());p=self.config['provider']
         if p=='gemini':return [x['name'].removeprefix('models/') for x in r.get('models',[]) if 'generateContent' in x.get('supportedGenerationMethods',[])]

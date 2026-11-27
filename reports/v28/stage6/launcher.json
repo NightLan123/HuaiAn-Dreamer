@@ -1,1 +1,0 @@
-{"platform": "linux", "unicode_and_spaces_directory": true, "environment_check": true, "real_supervised_http_start": true, "page_brand": true, "version": "2.8", "diagnostic_endpoint": true, "startup_log": true, "real_model_calls": 0, "windows_native_execution": false}

@@ -5,6 +5,7 @@ import math, re
 ENUMS = {'enabled', 'disabled', 'adaptive', 'none', 'low', 'medium', 'high', 'max', 'minimal', 'xhigh', 'json_object', 'text', 'json_schema', 'application/json', 'LOW', 'HIGH'}
 OPTION_KEYS = {'max_tokens', 'max_completion_tokens', 'max_output_tokens', 'temperature', 'top_p', 'stream', 'store', 'thinking', 'reasoning', 'reasoning_effort', 'enable_thinking', 'think', 'response_format', 'format', 'text', 'generationConfig', 'options', 'output_config', 'type', 'effort', 'budget_tokens', 'thinkingConfig', 'thinkingBudget', 'thinkingLevel', 'maxOutputTokens', 'responseMimeType', 'num_predict', 'includeThoughts'}
 ERROR_CODES = {'invalid_request_error', 'invalid_request', 'invalid_argument', 'unsupported_parameter', 'unsupported_value', 'invalid_value', 'model_not_found', 'authentication_error', 'permission_error', 'rate_limit_error', 'rate_limit_exceeded', 'insufficient_quota', 'context_length_exceeded', 'server_error', 'overloaded_error', 'not_found_error', 'bad_request'}
+OPTION_KEYS.update({'seed','num_ctx'})
 KNOWN_PARAMS = OPTION_KEYS | {'model', 'messages', 'stream_options', 'tool_choice', 'tools', 'input', 'contents', 'system', 'authorization', 'api_key'}
 
 

@@ -7,12 +7,52 @@ from __future__ import annotations
 import copy, json, time
 from .registry import digest
 from .pmm_contracts import (TurnContext, ComponentResult, ReasonerAssessment,
-    TraitInference, EmotionSnapshot, RelationshipSnapshot, PMMDecision, result,
-    construct_blocks, BLOCK_CONTRACT)
+    TraitInference, EmotionSnapshot, RelationshipSnapshot, ExpressiveDriveSnapshot,
+    PMMDecision, result, construct_blocks, BLOCK_CONTRACT)
 from . import affect as af, traits as tr, relationships as dy
 from .api_pmm import APIPMM
 from .registry_pmm import RegistryPMM
 from .psychology import ACTIONS
+
+def appraisal_use(node):
+    """Describe the adopted A result independently of the last model attempt."""
+    payload = node.get('payload') if isinstance(node.get('payload'),dict) else {}
+    packet = payload.get('appraisal_packet') if isinstance(payload.get('appraisal_packet'),dict) else {}
+    mask = packet.get('mask')
+    known = sum(v is True for v in mask.values()) if isinstance(mask, dict) else None
+    failed = payload.get('reappraisal_failure') or payload.get('error') or {}
+    if not isinstance(failed,dict): failed = {}
+    if node.get('status') == 'failed':
+        source, attempt = 'local_fallback', 'failed_before_request' if payload.get('request_count')==0 else 'failed'
+    elif node.get('executed') is False or node.get('status') == 'disabled':
+        source, attempt = 'local_only', 'skipped'
+    elif payload.get('reappraisal_failure'):
+        source = ('retained_previous_valid_evidence' if known else 'no_grounded_appraisal') if known is not None else 'unrecorded'
+        attempt = 'failed'
+    elif node.get('status') == 'ok':
+        source = ('current_evidence' if known else 'no_grounded_appraisal') if known is not None else 'unrecorded'
+        attempt = 'succeeded'
+    else:
+        source, attempt = 'unrecorded', 'unrecorded'
+    return {'source': source, 'last_attempt': attempt, 'known_dimensions': known,'request_count':payload.get('request_count'),
+            'dimension_count': len(mask) if isinstance(mask, dict) else None,
+            'failure_code': failed.get('failure_code') or failed.get('error_type'),
+            'failure_category': failed.get('failure_category'),
+            'contract_issues': copy.deepcopy(failed.get('contract_issues', []))}
+
+def evaluation_history(run,trace=None):
+    trace=trace or (run.get('cognitive_snapshot') or {}).get('pmm28') or {}
+    nodes=trace.get('components') or {}
+    reasoner=nodes.get('reasoner')
+    evaluation=run.get('reasoner_evaluation')
+    if evaluation is None and trace.get('mode')=='full' and isinstance(reasoner,dict):
+        evaluation=appraisal_use(reasoner)
+    negotiation=run.get('negotiation_result')
+    if negotiation is None and isinstance(nodes.get('negotiation'),dict):
+        node=nodes['negotiation']
+        negotiation={k:node[k] for k in ('executed','status','reason','elapsed_ms','attempts','policy','trigger_reason',
+                     'failure_code','failure_category','contract_path','contract_reason','contract_issues') if k in node}
+    return {'reasoner_evaluation':evaluation,'negotiation_result':negotiation}
 
 class ExistingMemoryEvidence:
     version = 'existing-scoped-memory/2.8'
@@ -100,9 +140,39 @@ class ExistingRelationship:
                        'model_of_other': 'separate_existing_interlocutor_profile'},
                       execution='existing_relationship_cognition', kind='inference_not_fact')
 
+class ExpressiveDriveAdapter:
+    version = 'expressive-drive/2.8.3'
+    def __init__(self, engine): self.engine = engine
+    def evaluate(self, ctx, *, profile, understanding, event, affect, relationship, reasoner, neural, session_id=None, environment=None):
+        from . import expression_drive as ed
+        base = self.engine.store.meta(ed.KEY)
+        if base is None:
+            base = ed.migrate(self.engine.store)
+        expected_rev = base['revision']
+        packet = reasoner['payload'].get('appraisal_packet') if reasoner.get('status') == 'ok' else None
+        # If Cognition.assess already evaluated a prospective draft for the exact same source_event_ids,
+        # revise that draft in-place with full PMM understanding & reasoner_packet rather than double-jumping.
+        src_ids = [str(x).strip() for x in (event.get('source_event_ids') or []) if str(x).strip()]
+        skey = ed.stream_key(profile['id'], event.get('scope', ctx.scope), event.get('person', ctx.person_id))
+        stream_row = (base.get('streams') or {}).get(skey) or {}
+        eval_map = stream_row.get('evaluated_source_ids') or {}
+        prospective_already_ran = bool(src_ids) and all(sid in eval_map for sid in src_ids) and (
+            not (environment or {}).get('is_duplicate_turn_replay')
+        )
+        draft_state, res = ed.evaluate_event(
+            base, profile, {**event, 'session_id': session_id or event.get('session_id', ctx.scope)},
+            ctx.timestamp, understanding=understanding, affect_view=affect['payload'],
+            relation=relationship['payload']['dyad'], reasoner_packet=packet,
+            neural_payload=neural.get('payload'), environment=environment,
+            revise_draft=prospective_already_ran
+        )
+        snap = result(ExpressiveDriveSnapshot, ctx, self.version, res,
+                      execution='personality_emotion_appraisal_drive_dynamics', kind='transaction_draft')
+        return draft_state, expected_rev, snap
+
 class CoordinatedDecision:
     version = 'calibration-first-arbitration/2.8'
-    def decide(self, ctx, *, reasoner, neural, mode):
+    def decide(self, ctx, *, reasoner, neural, mode, expressive_drive=None):
         api = reasoner['payload'].get('action_probabilities', {})
         net = neural['payload'].get('action_probabilities', {})
         a = max(api, key=api.get) if api else None
@@ -121,12 +191,25 @@ class CoordinatedDecision:
             else:
                 reason='validated_neural_condition_with_grounded_api_agreement'
                 terms={k:.2*(net.get(k,0)-1/len(ACTIONS)) for k in ACTIONS}
+        ed_summary = None
+        if isinstance(expressive_drive, dict) and isinstance(expressive_drive.get('payload'), dict):
+            edp = expressive_drive['payload']
+            ed_summary = {
+                'activation': edp.get('activation'),
+                'urgency': edp.get('urgency'),
+                'persistence': edp.get('persistence'),
+                'expressive_intent': edp.get('expressive_intent'),
+                'policy_score_terms': copy.deepcopy(edp.get('policy_score_terms', {})),
+                'active_motive_id': edp.get('active_motive_id'),
+                'status': edp.get('status'),
+            }
         return result(PMMDecision, ctx, self.version,
                       {'api_preference': a, 'neural_preference': n, 'disagreement': bool(a and n and a != n),
                        'arbitration': reason,'known_constructs':coverage,
                        'score_terms': terms, 'formal_contribution': any(abs(v)>0 for v in terms.values()),
                        'api_evidence':reasoner['payload'].get('evidence_quote'),
                        'neural_release_gate':neural['payload'].get('release_gate'),
+                       'expressive_drive_summary': ed_summary,
                        'uncertainty':{'api':'uncalibrated_hypothesis','neural':neural['payload'].get('calibration')},
                        'rule': 'check_source_then_calibration_then_conflict; never_average_predictions'})
 
@@ -137,13 +220,15 @@ class PMMCoordinator:
         self.memory = ExistingMemoryEvidence(); self.reasoner = InternalAPIReasoner(engine)
         from .trait_dynamics import NeuralDynamicsPort
         self.neural = NeuralDynamicsPort(engine); self.affect = ExistingAffect()
-        self.relationship = ExistingRelationship(); self.decision = CoordinatedDecision()
+        self.relationship = ExistingRelationship()
+        self.expressive_drive = ExpressiveDriveAdapter(engine)
+        self.decision = CoordinatedDecision()
         from .trait_estimator import LongTermEstimator
         from .pmm_trainer import Learning
         self.estimator=LongTermEstimator();self.learning=Learning(engine)
 
-    def run_full(self, *, turn_id,event,at,profile,understanding,relation,memories,affect_base,decoded):
-        """Single official 2.8.1 path. No Legacy forward is run for comparison."""
+    def run_full(self, *, turn_id,event,at,profile,understanding,relation,memories,affect_base,decoded,environment=None):
+        """Single official 2.8.1+ path. No Legacy forward is run for comparison."""
         from . import affect_runtime as ar
         from .affect_response import appraisal_packet,label_readout
         started=time.monotonic();ctx=TurnContext(subject_id=profile['id'],scope=event['scope'],event_id=event['id'],timestamp=at,
@@ -157,9 +242,19 @@ class PMMCoordinator:
             packet['reappraisal_candidate']={'event_facts_sha256':digest(packet['event_facts']),'checks':decoded['reappraisal_checks']}
         reasoner=result(ReasonerAssessment,ctx,'event-reasoner-A/2.8.1',{'appraisal':copy.deepcopy(decoded['state']),
             'action_probabilities':decoded['action_probabilities'],'evidence_quote':decoded.get('appraisal_evidence'),'appraisal_packet':packet,
-            'facts':decoded.get('facts',[]),'uncertainties':decoded.get('uncertainties',[]),'error':failed},
+            'facts':decoded.get('facts',[]),'uncertainties':decoded.get('uncertainties',[]),'error':failed,
+            'request_count':decoded.get('reasoner_request_count'),
+            'evaluation_evidence':copy.deepcopy(decoded.get('evaluation_evidence')),
+            'reappraisal_failure':copy.deepcopy(decoded.get('reappraisal_failure')),
+            'optional_field_warnings':copy.deepcopy(decoded.get('optional_field_warnings',[]))},
             status='failed' if failed else 'ok',execution='same_turn_A_request',kind='appraisal_hypothesis_not_fact')
         components['reasoner']=reasoner
+        if decoded.get('a_skipped_reason'):
+            reasoner.update(status='disabled',executed=False,reason=decoded['a_skipped_reason'],execution='local_only_no_A_request')
+        elif failed and decoded.get('reasoner_request_count')==0:
+            reasoner.update(executed=False,execution='failed_before_request')
+        usage = appraisal_use(reasoner)
+        reasoner['payload'].update(evaluation_status=usage['source'], evaluation_use=usage)
         def emotion():
             model=ar.model_for(self.engine.store);base=self.engine.store.meta(ar.KEY)
             state,res=ar.draft(base,model,profile,event,at,packet,relation,
@@ -180,24 +275,39 @@ class PMMCoordinator:
         view['trajectory'][-1]['emotion']=copy.deepcopy(view['emotion'])
         layer['dynamics_v2']=copy.deepcopy(emotion_result)
         affect['payload'].update(state=view,trace=layer,dynamics_v2=emotion_result)
-        decision=call('decision',lambda:self.decision.decide(ctx,reasoner=reasoner,neural=neural,mode='active'))
+        drive_draft,expected_drive_rev,exp_drive=call('expressive_drive',lambda:self.expressive_drive.evaluate(
+            ctx,profile=profile,understanding=understanding,event=event,affect=affect,relationship=relationship,
+            reasoner=reasoner,neural=neural,session_id=event.get('session_id'),environment=environment))
+        components['expressive_drive']=exp_drive
+        decision=call('decision',lambda:self.decision.decide(ctx,reasoner=reasoner,neural=neural,mode='active',expressive_drive=exp_drive))
         if decision['payload']['arbitration'].endswith('legacy_fallback'):decision['payload']['arbitration']='no_neural_probability_bonus:'+decision['payload']['arbitration'].removesuffix('_legacy_fallback')
         components['decision']=decision
         for name,node in components.items():
-            node['elapsed_ms']=timings.get(name,decoded.get('reasoner_elapsed_ms',0.));node['applied_to']={'memory':['A','neural','B','expression'],'reasoner':['appraisal','decision'],
-                'affect':['neural','B','expression'],'relationship':['neural','B','decision'],'neural':['decision'] if node.get('payload',{}).get('formal_eligible') else ['candidate_diagnostics','labels'],
+            node['elapsed_ms']=timings.get(name,decoded.get('reasoner_elapsed_ms',0.));node['applied_to']={'memory':['A','neural','B','expression'],'reasoner':['appraisal','expressive_drive','decision'],
+                'affect':['neural','expressive_drive','B','expression'],'relationship':['neural','expressive_drive','B','decision'],'neural':['expressive_drive','decision'] if node.get('payload',{}).get('formal_eligible') else ['expressive_drive','candidate_diagnostics','labels'],
+                'expressive_drive':['decision','B','policy','expression'],
                 'decision':['policy']}[name]
+        if usage['source'] in ('local_only', 'local_fallback'):
+            reasoner['applied_to'] = []
         from .pmm_contracts import TraitUpdateProposal
         longterm=self.estimator.estimate(ctx) if self.engine.config.get()['pmm28']['long_term_mode']!='disabled' else result(TraitUpdateProposal,ctx,self.estimator.version,{'reason':'disabled'},status='disabled',executed=False)
         longterm['payload']['stable_trait_version_read']=profile['trait_profile']['version']
+        longterm['payload']['purpose']='independent_measurement_estimator_not_experience_scheduler'
+        learning=getattr(getattr(self.engine,'learning',None),'experiences',None)
+        if learning:
+            state=learning.state();job=state.get('job') or {}
+            longterm['payload']['experience_learning']={'scheduler':'after_committed_memory_threshold',
+                'last_job_id':job.get('id'),'status':job.get('status','waiting'),
+                'consumed_events':len(state['consumed']),'trait_version':profile['trait_profile']['version']}
         return {**ctx.json(),'version':'pmm-coordinator/2.8.1','mode':'full','session_id':event.get('session_id'),
             'components':components,'long_term':longterm,'elapsed_ms':round((time.monotonic()-started)*1000,3),'external_sends':0,'formal_state_writes':0,
-            'execution_order':['memory','reasoner','affect','relationship','neural','labels','decision'],
-            'dependencies':[['memory','reasoner'],['reasoner','affect'],['affect','neural'],['relationship','neural'],['memory','neural'],['neural','decision']],
-            '_emotion_draft':emotion_draft,'_expected_emotion_revision':self.engine.store.meta(ar.KEY)['revision']}
+            'execution_order':['memory','reasoner','affect','relationship','neural','labels','expressive_drive','decision'],
+            'dependencies':[['memory','reasoner'],['reasoner','affect'],['affect','neural'],['relationship','neural'],['memory','neural'],['affect','expressive_drive'],['neural','expressive_drive'],['relationship','expressive_drive'],['reasoner','expressive_drive'],['expressive_drive','decision'],['neural','decision']],
+            '_emotion_draft':emotion_draft,'_expected_emotion_revision':self.engine.store.meta(ar.KEY)['revision'],
+            '_drive_draft':drive_draft,'_expected_drive_revision':expected_drive_rev}
 
     def run(self, *, turn_id, event, at, profile, understanding, relation, memories,
-            affect_base, activity, vector, legacy_decoded, mode):
+            affect_base, activity, vector, legacy_decoded, mode, environment=None):
         ctx = TurnContext(subject_id=profile['id'], scope=event['scope'], event_id=event['id'],
                           turn_id=turn_id, person_id=event['person'], text=event['text'], timestamp=at,
                           prior_revision=profile['revision'], evidence_refs=tuple(event.get('source_event_ids', [])))
@@ -215,7 +325,12 @@ class PMMCoordinator:
         relationship = self.relationship.evaluate(ctx, profile=profile, understanding=understanding, relation=relation)
         neural = self.neural.predict(ctx, vector=vector, blocks=blocks, reasoner=reasoner, affect=affect,
             relationship=relationship, memory=memory, understanding=understanding)
-        decision = self.decision.decide(ctx, reasoner=reasoner, neural=neural, mode=mode)
+        _, _, exp_drive = self.expressive_drive.evaluate(
+            ctx, profile=profile, understanding=understanding, event=event,
+            affect=affect, relationship=relationship, reasoner=reasoner, neural=neural,
+            session_id=event.get('session_id'), environment=environment
+        )
+        decision = self.decision.decide(ctx, reasoner=reasoner, neural=neural, mode=mode, expressive_drive=exp_drive)
         if self.engine.config.get()['pmm28']['long_term_mode']=='disabled':
             from .pmm_contracts import TraitUpdateProposal
             long_term=result(TraitUpdateProposal,ctx,self.estimator.version,{'reason':'long_term_estimation_disabled'},status='disabled',executed=False)
@@ -226,7 +341,7 @@ class PMMCoordinator:
         long_term['payload']['stable_trait_version_read']=profile['trait_profile']['version']
         return {**ctx.json(), 'version': self.version, 'mode': mode, 'construct_contract': BLOCK_CONTRACT,
                 'components': {'memory': memory, 'reasoner': reasoner, 'affect': affect, 'relationship': relationship,
-                               'neural': neural, 'decision': decision},
+                               'neural': neural, 'expressive_drive': exp_drive, 'decision': decision},
                 'long_term': long_term,
                 'elapsed_ms': round((time.monotonic()-started)*1000, 3), 'external_sends': 0, 'formal_state_writes': 0}
 
@@ -255,13 +370,16 @@ class PMMCoordinator:
         """Attach the existing ACK/transaction receipt; never emit another send."""
         if not trace:return
         st=self.engine.store;profile=self.engine.profile();affect=st.meta('pmm_affect') or {}
+        from . import expression_drive as ed
+        drive_meta=st.meta(ed.KEY) or {}
         trace['commit_receipt']={'kind':'qq_acknowledged_prefix' if partial else 'qq_acknowledged' if receipts else 'local_transaction',
             'acknowledged_messages':[r.get('message_id') for r in receipts if r.get('message_id') is not None],
             'profile_revision':profile['revision'],'trait_version':profile['trait_profile']['version'],
             'affect_revision':affect.get('emotion',{}).get('state_revision'),
+            'expressive_drive_revision':drive_meta.get('revision'),
             'stable_trait_updates':0,'partial':partial}
         trace['formal_state_writes']=int(trace.get('mode')=='full' and 'affect' in trace.get('components',{}) or trace.get('mode')=='active' and trace.get('components',{}).get('reasoner',{}).get('status')=='ok')
-        trace['formal_state_write_meaning']='emotion_and_mood_draft_committed_via_original_transaction; not_a_stable_trait_write'
+        trace['formal_state_write_meaning']='emotion_mood_and_expressive_drive_draft_committed_via_original_transaction; not_a_stable_trait_write'
 
     def review_samples(self,body):
         """Owner-reviewed external annotations join the existing source index."""
@@ -382,6 +500,12 @@ class PMMCoordinator:
         out = []
         for row in rows:
             trace = json.loads(row['payload']).get('pmm28')
-            if trace and (scope is None or trace.get('scope') == scope): out.append(trace)
+            if trace and (scope is None or trace.get('scope') == scope):
+                reasoner=(trace.get('components') or {}).get('reasoner') or {}
+                if trace.get('mode')=='full' and isinstance(reasoner.get('payload'),dict):
+                    use=appraisal_use(reasoner)
+                    reasoner['payload'].update(evaluation_use=use,evaluation_status=use['source'])
+                    if use['source'] in ('local_only','local_fallback'):reasoner['applied_to']=[]
+                out.append(trace)
             if len(out) >= limit: break
         return out

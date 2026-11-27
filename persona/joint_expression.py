@@ -11,10 +11,10 @@ from .expression_plan import number
 SCHEMA='de-expression/1'
 AXES=('valence','arousal','dominance','stress','engagement')
 
-def conditions(language,affect,traits,event,act,*,use_d=True,use_e=True):
+def conditions(language,affect,traits,event,act,*,use_d=True,use_e=True,expressive_drive=None):
     """use_d/use_e support controlled offline ablations; live callers use both."""
     e=affect['emotion'];m=affect['mood'];s=language or {};d=s.get('text_style',{})
-    return {'schema':SCHEMA,'source_event':{'id':event['id'],'original_ids':list(event.get('source_event_ids') or [event['id']]),
+    out={'schema':SCHEMA,'source_event':{'id':event['id'],'original_ids':list(event.get('source_event_ids') or [event['id']]),
         'scope':event['scope'],'person':event['person'],'quote':event['text'][:300]},'situation':{'prior_speech_act':act},
         'stable_trait':{'version':traits['trait_version'],'digest':traits['trait_digest'],'known_dispositions':{
             k:{'estimate':v['estimate'],'source_type':v['source_type']} for k,v in traits['affective_disposition'].items() if v['estimate'] is not None}},
@@ -26,6 +26,10 @@ def conditions(language,affect,traits,event,act,*,use_d=True,use_e=True):
             'categorical_activations':{k:v for k,v in e['categorical_activations'].items() if v is not None}},
         'mood':None if not use_e else {'as_of':m['updated_at'],'baseline_ref':m['baseline_ref'],'source_type':m['source_type'],**{k:m.get(k) for k in ('valence','arousal','dominance')}},
         'calibrated':False}
+    out['stable_trait']['operative_personality']=copy.deepcopy(traits.get('operative_personality') or {})
+    if use_e and isinstance(expressive_drive,dict):
+        out['expressive_drive']={k:copy.deepcopy(expressive_drive[k]) for k in ('activation','urgency','persistence','expressive_intent','state_revision','active_motive_id','status') if k in expressive_drive}
+    return out
 
 def values(language):
     if not language:return {}
@@ -36,7 +40,7 @@ def values(language):
 
 def refine(plan,c,expression,decision,proposal=None,text=None):
     """Apply auditable terms after model appraisal/boundary selection, before realization."""
-    out=copy.deepcopy(plan);d=c['long_term_language'];e=c['emotion'];m=c['mood'];trait=c['stable_trait'];s=c['source_event']
+    out=copy.deepcopy(plan);d=c['long_term_language'];e=c['emotion'];m=c['mood'];trait=c['stable_trait'];s=c['source_event'];ed=c.get('expressive_drive')
     act=out['previous_act'];action=decision['action'];initial=out['candidate_strategy'];p=proposal or {}
     grounded=bool(isinstance(p.get('evidence_quote'),str) and p['evidence_quote'].strip() and p['evidence_quote'] in (text or s['quote']))
     split_basis=grounded and isinstance(p.get('split_reason'),str) and bool(p['split_reason'].strip())
@@ -50,6 +54,16 @@ def refine(plan,c,expression,decision,proposal=None,text=None):
     def add(k,group,field,delta):
         if k in terms and abs(delta)>1e-10:terms[k].append({'channel':group,'field':field,'delta':round(delta,6)})
     if room:
+        # Role tendency affects how much to develop a permissible response,
+        # not whether to fabricate a question, split a bubble or ignore a task.
+        personality=trait.get('operative_personality') or {}
+        def tendency(key):
+            r=personality.get(key) or {};v=r.get('estimate');unc=r.get('posterior_uncertainty')
+            return (v-.5)*2*(1-unc) if type(v) in (int,float) and type(unc) in (int,float) else 0.
+        sociability=tendency('hexaco.x.sociability');communion=tendency('social.communion')
+        add('RESPOND_AND_YIELD','P','sociability',.12*sociability)
+        add('MINIMAL_REPLY','P','sociability',-.12*sociability)
+        add('RESPOND_AND_YIELD','P','communion',.08*communion)
         for k,v in evidence.items():
             # Both proxies derive from the same short demonstration. Use the more
             # specific acknowledgement measure once; a short burst may also yield.
@@ -60,12 +74,24 @@ def refine(plan,c,expression,decision,proposal=None,text=None):
                 add('RESPOND_AND_YIELD','D',k,.34*delta);add('CASUAL_BURST','D',k,.34*delta);add('OPTIONAL_EXPANSION','D',k,-.15*delta)
             elif k=='topic_progression_tendency' and split_basis:add('OPTIONAL_EXPANSION','D',k,.56*delta)
             elif k=='ellipsis_and_understatement':add('MINIMAL_REPLY','D',k,.35*delta)
+            elif k=='question_initiation_propency' and out['allow_follow_up_question'] and out.get('follow_up_need'):
+                add('OPTIONAL_EXPANSION','D',k,.12*delta)
             elif k=='question_initiation_propensity' and out['allow_follow_up_question'] and out.get('follow_up_need'):
                 add('OPTIONAL_EXPANSION','D',k,.12*delta)
         # Short-term state can favour yielding in an actual demanding exchange;
         # it never creates a split purpose or an ungrounded clarification.
         if act=='complaint' and e and e['stress'] is not None:
             add('RESPOND_AND_YIELD','E','stress_in_complaint',max(0,e['stress']-.25)*.15)
+        if isinstance(ed,dict):
+            ed_intent=ed.get('expressive_intent')
+            ed_act=float(ed.get('activation',.45));ed_urg=float(ed.get('urgency',.40))
+            if ed_intent in ('BACKCHANNEL','DEFER','LISTEN','CLOSE'):
+                add('MINIMAL_REPLY','ED','expressive_intent:'+ed_intent,max(.04,.16*(1.-ed_urg)))
+            elif ed_intent=='TAKE_TURN' and ed_act>=.65 and allowed_burst:
+                add('OPTIONAL_EXPANSION','ED','high_expressive_drive_take_turn',.14*(ed_act-.5))
+            elif ed_intent in ('TAKE_TURN','INITIATE','CONTINUE'):
+                add('RESPOND_AND_YIELD','ED','expressive_activation',.14*(ed_act-.5))
+                add('MINIMAL_REPLY','ED','expressive_activation',-.14*(ed_act-.5))
     scores=[{'strategy':k,'base':v,'terms':terms[k],'score':round(v+sum(t['delta'] for t in terms[k]),6)} for k,v in candidates.items()]
     selected=max(scores,key=lambda r:r['score'])['strategy']
     if not any(terms.values()):selected=initial  # No new evidence: preserve the existing planner.
@@ -87,16 +113,22 @@ def refine(plan,c,expression,decision,proposal=None,text=None):
     def usage(name,status,basis):uses.append({'condition':name,'status':status,'basis':basis})
     d_read=[{'strategy':r['strategy'],'field':t['field'],'delta':t['delta']} for r in scores for t in r['terms'] if t['channel']=='D']
     e_read=[{'strategy':r['strategy'],'field':t['field'],'delta':t['delta']} for r in scores for t in r['terms'] if t['channel']=='E']
+    ed_read=[{'strategy':r['strategy'],'field':t['field'],'delta':t['delta']} for r in scores for t in r['terms'] if t['channel']=='ED']
     usage('long_term_language','scored' if d_read else 'read' if d else 'recorded_only',d_read or ('没有适用的独立示范或已审核倾向，或冻结行动不允许调整策略' if d else '消融：此通道未提供'))
     used_e=e is not None and action!='silence' and (v is not None or a is not None or bool(e_read))
     usage('emotion','scored' if used_e else 'read' if e else 'recorded_only',{'strategy_terms':e_read,'tone_terms':{k:x for k,x in tone_terms.items() if k!='mood_valence'},'expression_intensity':expr_intensity} if used_e else '未修改候选或外显强度')
     usage('mood','scored' if tone_terms.get('mood_valence') else 'read' if m else 'recorded_only',{'tone_delta':tone_terms.get('mood_valence')} if m else '消融：未提供心境')
-    usage('stable_trait','read','以版本及来源传入；事件评价与调节的具体计算见情绪页，无法由一次模型调用归因')
+    if ed is not None:
+        usage('expressive_drive','scored' if ed_read else 'read',{'strategy_terms':ed_read,'intent':ed.get('expressive_intent'),'activation':ed.get('activation'),'urgency':ed.get('urgency'),'persistence':ed.get('persistence')})
+    p_read=[{'strategy':r['strategy'],'field':t['field'],'delta':t['delta']} for r in scores for t in r['terms'] if t['channel']=='P']
+    usage('stable_trait','scored' if p_read else 'read',p_read or '本轮没有适用的已提供人格条件项，或行动约束不允许策略调整')
     usage('situation','scored' if room else 'read',{'speech_act':act,'grounded_split_purpose':bool(split_basis),'frozen_action':action,'gate':decision.get('gate')})
     usage('observed_ai','recorded_only','只记录实际行为；未将生成内容作为本轮策略学习目标')
     out['person_id']=s['person'];out['joint_decision']={'schema':SCHEMA,'event':copy.deepcopy(s),'language_version':d['version'] if d else None,
         'trait_version':trait['version'],'trait_digest':trait['digest'],'emotion_revision':e['revision'] if e else None,'emotion_as_of':e['as_of'] if e else None,
-        'mood_as_of':m['as_of'] if m else None,'usage':uses,'scores':scores,'strategy_before':initial,'strategy_after':selected,
+        'mood_as_of':m['as_of'] if m else None,'expressive_drive_revision':ed.get('state_revision') if ed else None,
+        'expressive_drive_intent':ed.get('expressive_intent') if ed else None,
+        'usage':uses,'scores':scores,'strategy_before':initial,'strategy_after':selected,
         'language_evidence':evidence,'source_event_ids':d['source_event_ids'] if d else [],
         'tone':tone,'tone_terms':tone_terms,'expression_intensity':expr_intensity,'grounded_split_purpose':bool(split_basis),
         'frozen_action':action,'boundary_gate':decision.get('gate'),'calibrated':False,'neural_head':'not_trained',

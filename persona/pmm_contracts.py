@@ -77,6 +77,7 @@ class ReasonerAssessment(ComponentResult): pass
 class TraitInference(ComponentResult): pass
 class EmotionSnapshot(ComponentResult): pass
 class RelationshipSnapshot(ComponentResult): pass
+class ExpressiveDriveSnapshot(ComponentResult): pass
 class PMMDecision(ComponentResult): pass
 class LongitudinalSample(ComponentResult): pass
 class TraitUpdateProposal(ComponentResult): pass
@@ -141,6 +142,10 @@ class MemoryEvidencePort(Protocol):
     def retrieve(self, ctx, **inputs): ...
 @runtime_checkable
 class RelationshipPort(Protocol):
+    version: str
+    def evaluate(self, ctx, **inputs): ...
+@runtime_checkable
+class ExpressiveDrivePort(Protocol):
     version: str
     def evaluate(self, ctx, **inputs): ...
 @runtime_checkable

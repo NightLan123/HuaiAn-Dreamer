@@ -5,7 +5,7 @@ from pathlib import Path
 def main():
     parser=argparse.ArgumentParser(description='Persona Dialogue 第二模型：独立 PMM HTTP 服务')
     parser.add_argument('--host',default='127.0.0.1');parser.add_argument('--port',type=int,default=8766)
-    parser.add_argument('--token-file',type=Path,default=Path.home()/'.persona_dialogue'/'pmm_service.key')
+    parser.add_argument('--token-file',type=Path,default=Path(__file__).resolve().parent/'.local-home'/'pmm_service.key')
     parser.add_argument('--parent-stdin',action='store_true',help=argparse.SUPPRESS)
     args=parser.parse_args();key=os.environ.get('PERSONA_PMM_API_KEY','')
     if not key:

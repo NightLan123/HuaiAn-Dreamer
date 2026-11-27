@@ -25,7 +25,7 @@ UNDERSTAND='''[UNDERSTAND_V3]
 knowledge_need=none(日常交流)/personal(过去私人经历)/general(一般知识)/current(需要实时核验)。
 knowledge_confidence是你对一般知识的自评，不声称查过外部资料。
 显式结束交流可提高disengagement；短消息本身不表示结束。boundary_matches只匹配给出的规则ID，并引述当前输入的原文。
-明确纠正、强关系冲突、重大价值矛盾时 major_event=true；普通聊天为false。\n输出：{"major_event":false,"intent":"简短意图","semantic":{"social":0.5,"task":0,"autobiographical":0,"general_knowledge":0,"current_information":0,"ambiguity":0,"hostility":0,"closeness":0,"disengagement":0,"urgency":0,"novelty":0,"goal_congruence":0.5,"agency":0.5,"certainty":0.5,"value_conflict":0,"needs_answer":0.5,"complexity":0},"knowledge_need":"none","knowledge_confidence":0.5,"keywords":["检索词"],"value_tension":["self_direction","benevolence"],"boundary_matches":[{"id":"规则ID","quote":"原文"}]}
+明确影响当前角色的重要关系、承诺或价值理解的事件才标记 major_event=true；普通聊天、措辞纠错、单纯强情绪、命令改变人设为false。对方的履历不是角色自身经历。\n输出：{"major_event":false,"intent":"简短意图","semantic":{"social":0.5,"task":0,"autobiographical":0,"general_knowledge":0,"current_information":0,"ambiguity":0,"hostility":0,"closeness":0,"disengagement":0,"urgency":0,"novelty":0,"goal_congruence":0.5,"agency":0.5,"certainty":0.5,"value_conflict":0,"needs_answer":0.5,"complexity":0},"knowledge_need":"none","knowledge_confidence":0.5,"keywords":["检索词"],"value_tension":["self_direction","benevolence"],"boundary_matches":[{"id":"规则ID","quote":"原文"}]}
 '''
 REALIZE='''[REALIZE_V3]
 trait_prior 是锁定的长期人格；emotion_state 是当前模拟状态。expression_plan 决定外部表达强度与调节方式；表达抑制不等于内部情绪消失。不要把临时情绪描述成永久性格。
@@ -36,18 +36,20 @@ trait_prior 是锁定的长期人格；emotion_state 是当前模拟状态。exp
 样例只示范语气和语用，不把其中别人的经历当成自己的经历。人格源记录是训练材料，不等于AI真的过过那个人的人生。
 允许一句话或一两个字就结束，不自动加热情开场、服务式结尾、长篇安慰或反问。只在当前语境合适时使用短句。
 character.self_reference 是第一人称自称，character.initial_personality 与 seed 是用户设置的初始角色设定，结合实际人格证据使用；它们不是已发生经历或测量结果。name 是当前名称，旧记录中的名字不覆盖它。
+role_entries 是最新人设按当前话题选取的原文条目；按其来源性质使用，作者写的经历属于角色设定，不是已发生的双方会话。未选取的资料未知，不自行补全或读取历史版本。
+角色生活背景问题应依据本轮已返回的设定回答，不用通用AI身份否定给定职业或履历。experience_reflection 仅为低权重、可变化的经历倾向，不能覆盖 owner_setting 身份事实；没有相关资料时自然说明不确定。
 按style.max_chars的风格预算表达（为空时自然选择长度），需要完成的复杂任务优先。不要自称真人或拥有真实主观感受。
 '''
 FEEDBACK='''[FEEDBACK_V3]
 对已完成的本轮输入和最终回复生成结构化反馈，供小模型更新。仅输出JSON，不输出思维链。
-self_observations的证据只能引用self_record（AI实际回复）；interlocutor的证据只能引用user_record（对方原话）。
+self_observations 固定返回空对象；本轮回复及其校验结果不生成自身人设、信念、行为模式或长期人格修改建议。人设变化由独立的重大经历记忆整理负责。interlocutor 的证据只能引用 user_record（对方原话）。
 不要将对方人格写入AI人格，不把AI生成的陈述当成外部事实。没有证据时相应列表为空。
 完整心理观察使用 construct_updates（feature_id,estimate,confidence,evidence）；只用 construct_registry 已注册ID，未知不填。self_observations中的生成话语不作为长期性格真值。self_event_updates只描述AI对此真实输入的当时情绪/评价/调节，证据引用user_record。relationship_updates使用field/estimate/quote，field为trust、affiliation、humor_tolerance、action_preference、empathy_need、directness、boundary_sensitivity、information_density、shared_jokes、preferred_addressing或conflict_history；quote只能来自当前用户原话，不从自述推断疾病。旧版观察只限提供的traits/values键。所有evidence含record_id和逐字quote。单轮只给低置信度假设，不诊断疾病。
 memory_ops的evidence_quote只能来自当前用户输入；更改目标必须是给出的记忆ID。不要写入AI编出来的事实。
 action_compliant 检查最终回复是否符合程序决定的行动，尤其不得把不知道写成编造事实、把拒绝写成答应。输出布尔值。
 self_appraisal 是AI在此交互后的模拟情绪状态，valence -1..1，其余0..1；不是对方情绪。
 输出：{"action_compliant":true,"self_appraisal":{"valence":0,"arousal":0.25,"stress":0.15,"engagement":0.65},
-"self_observations":{"observations":[],"patterns":[]},
+"self_observations":{},
 "interlocutor":{"observations":[],"beliefs":[],"patterns":[],"examples":[]},
 "interlocutor_emotion":{"valence":0,"arousal":0.5,"stress":0.2,"engagement":0.5,"quote":"用户原话"},
 "memory_ops":[{"op":"ADD","kind":"preference","content":"对方自述……","evidence_quote":"原话","confidence":0.6,"importance":0.5}],
@@ -131,6 +133,8 @@ class Engine(MemoryOperations,PMMVersions):
         af.migrate(store)
         from .affect_runtime import migrate as migrate_affect_v2
         migrate_affect_v2(store)
+        from .expression_drive import migrate as migrate_expression_drive
+        migrate_expression_drive(store)
         pg.validate(store.meta('pmm_pragmatics'))
         with store.lock,store.db:
             store.setmeta('pmm_pragmatics',pg.rebuild(store.meta('pmm_pragmatics'),self.profile()['source_records']))
@@ -154,8 +158,18 @@ class Engine(MemoryOperations,PMMVersions):
         from .formation import Formation
         self.people=People(self);self.formation=Formation(self)
         self.learning=learn.Learning(self)
+        from .motive_generation import MotiveGeneration
+        self.motive_generation=MotiveGeneration(self)
+        from .research_operations import AffectSampling
+        self.affect_sampling=AffectSampling(self)
         from .execution import ExecutionJournal
         self.journal=ExecutionJournal(self.store.directory)
+        from .token_ledger import bind_factory
+        self.provider_factory=bind_factory(self.provider_factory,self.journal,p['id'],'General')
+        self.pmm_provider_factory=bind_factory(self.pmm_provider_factory,self.journal,p['id'],'PMM-A')
+        from .persona_views import PersonaViews
+        self.persona_views=PersonaViews(self.store)
+        self.persona_views.current(self.profile())
         if not defer_recovery:self.recover_delivered()
     def profile(self):return ensure_profile(self.store.meta('pmm_profile'))
     def input_vector(self,*args):
@@ -177,6 +191,27 @@ class Engine(MemoryOperations,PMMVersions):
             event={'id':'read','text':'read','scope':scope,'person':person,'session_id':session_id or scope}
             return af.compatibility(current_view(self.store,self.profile(),event,now()))
         return af.compatibility(self.affect_state())
+    def expressive_drive_state(self,scope='private:web:owner',person='web:owner',session_id=None):
+        """Pure read of ExpressiveDrive without advancing time or sampling."""
+        from .expression_drive import read_current
+        return read_current(self.store,self.profile(),scope,person,session_id)
+    def advance_expressive_drive_idle(self,scope,person=None,session_id=None,at=None,commit=True):
+        """Advance and re-evaluate ExpressiveDrive over real time when no new message arrived."""
+        from . import expression_drive as ed
+        with self.lock:
+            profile=self.profile()
+            session_rows=self.store.rows('SELECT * FROM sessions WHERE scope=? ORDER BY created_at DESC LIMIT 1',(scope,))
+            session=session_rows[0] if session_rows else None
+            person_id=person or (session['person'] if session else ('qq:'+scope.rsplit(':',1)[-1] if ':qq:' in scope else 'web:owner'))
+            sid=session_id or (session['id'] if session else scope)
+            hist=self.store.history(sid,16) if session else []
+            records=[{'id':r['id'],'text':r['content'][:1200],'turn_id':r.get('turn_id'),'created_at':r.get('created_at')} for r in hist if r['role']=='user']
+            dyads=self.store.meta('pmm_dyads') or {}
+            relation=dy.policy_relation(dyads.get(dy.key(person_id,scope),dy.empty(person_id,scope)))
+            act_view=self.activity(scope,person_id,sid)
+            _,evaluation=ed.evaluate_proactive(self.store,profile,scope,person=person_id,session_id=sid,at=at,
+                affect_view=act_view,relation=relation,recent_records=records,session_history=hist,commit=commit)
+            return evaluation
     def edit_disposition(self,body):
         with self.lock:
             profile=tr.edit_disposition(self.profile(),body)
@@ -186,6 +221,16 @@ class Engine(MemoryOperations,PMMVersions):
                 self.store.event('trait_disposition_edited',{'feature_id':body.get('feature_id'),'trait_version':profile['trait_profile']['version']})
             return {'ok':True,'trait_profile':profile['trait_profile']}
     def review_traits(self,apply=False):
+        if not apply:
+            # Read committed inputs together; a page read must not wait for the
+            # conversation's network calls. Promotion still holds the engine lock.
+            with self.store.lock:
+                before=self.profile();rule=learn.policy(self)['domains']['self']
+            strength=rule['strength'] if rule['enabled'] else 0.
+            _,report=tr.review(before,False,strength=strength)
+            _,experiential=tr.review(before,False,strength=strength,experience_only=True)
+            report['candidates'].extend({**row,'development_source':'experienced_role_development'} for row in experiential['candidates'])
+            return report
         with self.lock:
             if apply and self.config.get()['pmm28']['mode']=='active':raise ValueError('Active 模式只接受新 Estimator 审核提案；旧规则晋升仅供 Legacy/Shadow')
             before=self.profile();rule=learn.policy(self)['domains']['self'];profile,report=tr.review(before,apply,strength=rule['strength'] if rule['enabled'] else 0.)
@@ -314,37 +359,45 @@ class Engine(MemoryOperations,PMMVersions):
                 t=time.monotonic()
                 return {'total_ms':round((t-started)*1000),'stages':stages+[{'phase':current,'started_at':run['started_at']+(phase_started-started),'ended_at':now(),'duration_ms':round((t-phase_started)*1000),'status':'completed'}],
                         'general_api_ms':sum(x.get('duration_ms',0) for x in getattr(telemetry['clients'][0],'calls',[]) if isinstance(x,dict)) if telemetry['clients'] else 0,
-                        'pmm_api_ms':sum(x.get('duration_ms',0) for x in getattr(telemetry['clients'][1],'calls',[]) if isinstance(x,dict)) if len(telemetry['clients'])>1 else 0}
+                        'pmm_api_ms':sum(x.get('duration_ms',0) for client in telemetry['clients'][1:] for x in getattr(client,'calls',[]) if isinstance(x,dict))}
             telemetry['timing']=timing
+            from . import token_ledger
+            ledger_context=token_ledger.begin(self.journal,run)
             try:
                 result=self._turn(sid,text,mark,person_override,telemetry)
-                run.update(status='INTERRUPTED_AFTER_ACK' if result.get('trace',{}).get('partial_delivery') else 'COMPLETED',ended_at=now(),memory_commit_status='PREFIX_COMMITTED' if result.get('trace',{}).get('partial_delivery') else 'COMMITTED',stages=timing()['stages'],calls=run.get('prospective_calls',[])+[r for client in telemetry['clients'] for r in getattr(client,'calls',[])])
-                if run.get('delivery_status')=='ACKNOWLEDGED':run['delivery_status']='COMMITTED';run.setdefault('timing',{}).update(total_ms=timing()['total_ms']);self.journal.save(run)
+                durations=timing()
+                run.setdefault('timing',{}).update({k:v for k,v in durations.items() if k!='stages'})
+                run.update(status='INTERRUPTED_AFTER_ACK' if result.get('trace',{}).get('partial_delivery') else 'COMPLETED',ended_at=now(),memory_commit_status='PREFIX_COMMITTED' if result.get('trace',{}).get('partial_delivery') else 'COMMITTED',stages=durations['stages'],calls=run.get('prospective_calls',[])+[r for client in telemetry['clients'] for r in getattr(client,'calls',[])])
+                if run.get('delivery_status')=='ACKNOWLEDGED':run['delivery_status']='COMMITTED'
                 self.journal.save(run)
                 return result
             except Exception as ex:
                 from .support import exception_frames
                 diagnostic=exception_frames(ex)
+                durations=timing()
+                run.setdefault('timing',{}).update({k:v for k,v in durations.items() if k!='stages'})
                 saved=self.journal.get(run['turn_id']) or {}
                 if saved.get('memory_commit_status')=='PREFIX_COMMITTED':
                     run.update(memory_commit_status='PREFIX_COMMITTED',learning_status=saved.get('learning_status'))
-                run.update(status='POSTPROCESS_FAILED' if run.get('delivery_status')=='ACKNOWLEDGED' else getattr(ex,'code','FAILED'),ended_at=now(),error={'exception_type':diagnostic['type'],'frames':diagnostic['frames'],'details':getattr(ex,'details',{})},stages=timing()['stages'],calls=run.get('prospective_calls',[])+[r for client in telemetry['clients'] for r in getattr(client,'calls',[])])
+                run.update(status='POSTPROCESS_FAILED' if run.get('delivery_status')=='ACKNOWLEDGED' else getattr(ex,'code','FAILED'),ended_at=now(),error={'exception_type':diagnostic['type'],'frames':diagnostic['frames'],'details':getattr(ex,'details',{})},stages=durations['stages'],calls=run.get('prospective_calls',[])+[r for client in telemetry['clients'] for r in getattr(client,'calls',[])])
                 run['stages'][-1]['status']='failed'
                 self.journal.save(run)
-                report={'turn_id':run['turn_id'],'trace_id':run['trace_id'],'decision_id':run.get('decision_id'),'decision_revision':run.get('decision_revision'),'selected_action':run.get('selected_action'),'execution_status':run['status'],'validation':run['validation'],'session_id':sid,'phase':current,'timing':timing(),'exception_type':diagnostic['type'],'frames':diagnostic['frames'],'error':str(ex) if isinstance(ex,(ProviderError,ValueError)) else '内部处理异常，请查看诊断记录',
+                report={'turn_id':run['turn_id'],'trace_id':run['trace_id'],'decision_id':run.get('decision_id'),'decision_revision':run.get('decision_revision'),'selected_action':run.get('selected_action'),'execution_status':run['status'],'validation':run['validation'],'session_id':sid,'phase':current,'timing':durations,'exception_type':diagnostic['type'],'frames':diagnostic['frames'],'error':str(ex) if isinstance(ex,(ProviderError,ValueError)) else '内部处理异常，请查看诊断记录',
                         'general_calls':getattr(telemetry['clients'][0],'calls',[]) if telemetry['clients'] else [],
-                        'pmm_calls':getattr(telemetry['clients'][1],'calls',[]) if len(telemetry['clients'])>1 else [],
+                        'pmm_calls':[call for client in telemetry['clients'][1:] for call in getattr(client,'calls',[])],
                         'diagnostics':getattr(ex,'details',{})}
                 with self.store.lock,self.store.db:self.store.event('turn_failed',report)
                 if isinstance(ex,ProviderError):ex.details=report
                 raise
+            finally:token_ledger.end(ledger_context)
 
     def _turn(self,sid,text,progress,person_override,telemetry):
-        text=str(text).strip()
+        raw_input=str(text);text=raw_input.strip()
         if not text or len(text)>16000:raise ValueError('消息长度应为 1–16000 字符')
         with self.lock:
             run=telemetry['execution'];c=self.config.get();provider=self.provider_factory(c);full=c['pmm281']['mode']=='full'
             emotion_v2_draft=None;expected_emotion_revision=None;negotiator=None
+            drive_v2_draft=None;expected_drive_revision=None;drive_result=None
             internal_config=copy.deepcopy(c)
             if c['pmm28']['mode']!='legacy' and not full:
                 internal_config['pmm']['api']['timeout']=min(c['pmm']['api']['timeout'],c['pmm28']['reasoner_timeout'])
@@ -357,27 +410,50 @@ class Engine(MemoryOperations,PMMVersions):
             except Exception as ex:
                 from .api_pmm import recoverable_internal_failure
                 if not recoverable_internal_failure(c['pmm28']['mode'],ex):raise
-                pmm28_api_failure={'error_type':type(ex).__name__,'reason':'internal_provider_initialization_failed'}
+                from .pmm_connections import failure
+                pmm28_api_failure={'error_type':type(ex).__name__,'reason':'internal_provider_initialization_failed',**failure(ex)}
             session=self.store.get_session(sid)
+            reasoner_client=pmm_api.provider if pmm_api else None
             telemetry['clients']=[provider]+([pmm_api.provider] if pmm_api else [])
-            for client in telemetry['clients']:client.trace_context={k:run[k] for k in ('turn_id','trace_id','session_id','persona_id')}
+            for index,client in enumerate(telemetry['clients']):
+                client.trace_context={**{k:run[k] for k in ('turn_id','trace_id','session_id','persona_id')},'component_role':'General' if index==0 else 'PMM-A'}
             person=person_override or session['person'];session={**session,'person':person,'direct_interaction':telemetry['turn_context'].get('direct_interaction',True)};p=self.profile();before=self.store.meta('state')
             from .psychology import context_profile
             prompt_profile=context_profile(p,session['scope'])
+            persona_view=self.persona_views.scoped_views(p,session['scope'])
+            from . import role_context
+            role_context.bind(persona_view,role_context.retrieve(persona_view['generator_view'],text))
+            run['role_retrieval']=[copy.deepcopy(persona_view['generator_view']['role_context'])]
+            run['persona_version_id']=persona_view['version_id']
+            for client in telemetry['clients']:client.trace_context.update(persona_view_revision=persona_view['version_id'])
             affect_base=af.migrate(self.store);trait_snapshot=tr.snapshot(p);activity=af.compatibility(affect_base);dyads=self.store.meta('pmm_dyads') or {};dyad=dyads.get(dy.key(person,session['scope']),dy.empty(person,session['scope']));relation=dy.policy_relation(dyad);other_key=self.other_key(session['scope'],person)
             if full:
                 from .affect_runtime import current_view
                 affect_base=current_view(self.store,p,{'id':'read','text':text,'scope':session['scope'],'person':person,'session_id':sid},run['started_at']);activity=af.compatibility(affect_base)
             others=self.store.meta('pmm_interlocutors');other=ensure_profile(others.get(other_key,empty_profile(other_key,person)), 'model_of_other')
             for field in other['psychology']['features'].values():field['scope']='model_of_other'
-            history=bounded_history(self.store.history(sid,24))
+            history_rows=self.store.history(sid,24);history=bounded_history(history_rows)
             progress('1 / 6 · 大模型理解消息')
             from .boundaries import cues
             from .validation import validated_call
             boundary_context=self.boundaries.context(session['scope'],person);boundary_states=boundary_context['states']
             def understand(value):
                 result=validate_understanding(value);result['boundary_cues']=cues(result,boundary_states,text);return result
-            u=validated_call(provider,[{'role':'system','content':UNDERSTAND},{'role':'user','content':dumps({'current_input':text,'history':history[-6:],'trait_prior':trait_snapshot,'relationship_schema':relation,'identity_context':self.people.context(session['scope'],person),'boundaries':profile_condition(prompt_profile)['boundaries'],'boundary_states':boundary_states,'visual_observation':telemetry.get('media')})}],understand,run['validation'])
+            from . import event_router
+            entry_light=full and event_router.preflight(text,telemetry.get('media'))=='L1'
+            entry_context={'current_input':text,'history':history[-2:] if entry_light else history[-6:],
+                'trait_prior':{'trait_version':trait_snapshot['trait_version']} if full else trait_snapshot,
+                'relationship_schema':{'interactions':relation.get('interactions',0)} if entry_light else relation,
+                'identity_context':self.people.context(session['scope'],person),'boundaries':profile_condition(prompt_profile)['boundaries'],
+                'boundary_states':boundary_states,'visual_observation':telemetry.get('media')}
+            from .prompt_compiler import runtime_persona
+            entry_role=runtime_persona(persona_view['generator_view'],query=text,purpose='understanding')
+            entry_ids=set(persona_view['generator_view']['role_context']['entry_ids'])
+            entry_context['role_identity']={'name':entry_role.get('name'),'version_id':persona_view['version_id'],
+                'relevant_facts':[r for r in entry_role.get('role_entries',[]) if r['id'] in entry_ids],
+                'instruction':'以当前角色为被称呼者理解输入；未提供的履历未知，不默认无业或以通用AI身份替代角色。'}
+            u=validated_call(provider,[{'role':'system','content':UNDERSTAND+'\n可附 events:[{kind,summary,quote}] 表示多个事件；quote必须逐字来自当前输入。无需额外模型调用。'},
+                {'role':'user','content':dumps(entry_context)}],understand,run['validation'])
             withdrawal=u.get('contact_withdrawal',{})
             if ':qq:' in session['scope'] and isinstance(withdrawal,dict) and withdrawal.get('stop') is True and withdrawal.get('quote') and withdrawal['quote'] in text:
                 self.social.withdraw(session['scope'],person,withdrawal['quote'])
@@ -387,6 +463,12 @@ class Engine(MemoryOperations,PMMVersions):
             if appraisal:
                 u['cognitive_appraisal']=appraisal
                 for cue,field in (('uncertainty','ambiguity'),('conflict','value_conflict'),('consequence','urgency')):u['semantic'][field]=max(u['semantic'].get(field,0),appraisal[cue])
+            event_packet=event_router.packet(raw_input,u,run,session,history_rows[-6:],telemetry.get('media'))
+            cognitive_route=event_router.route(event_packet,prompt_profile.get('boundaries',[]),force_b=full and c['pmm281']['b_policy']=='always')
+            run.update(event_packet=event_packet,cognitive_route=cognitive_route);self.journal.save(run)
+            u['event_packet']=event_packet
+            for client in telemetry['clients']:client.trace_context.update(route_level=cognitive_route['level'])
+            if full and not cognitive_route['call_A']:pmm_api=None
             decision_conditions=deval.conditions(p,u,relation)
             u['decision_conditions']=decision_conditions
             u['relational_appraisal']=decision_conditions['appraisal']
@@ -394,7 +476,20 @@ class Engine(MemoryOperations,PMMVersions):
             critical=u.get('major_event') or max(u['semantic'].get(k,0) for k in ('value_conflict','hostility','urgency','complexity','ambiguity'))>=.6
             fast=fast and not critical and len(self.store.meta('consolidation_queue') or [])<2000
             progress('2 / 6 · PMM 检索并解码人格条件')
-            memories=self.retrieve(text,session['scope'],c['retrieval_k'],u)
+            retrieval_cache={};retrieval_log=[]
+            def retrieve_once(query,scope,k,understanding):
+                # Cache lifetime is exactly this locked turn. Inbound writes invalidate
+                # the key as well as changed source/ranking/context inputs.
+                signature=digest([p['id'],scope,str(query),k,understanding,self.store.db.total_changes,
+                                  persona_view['version_id'],self.config.get()['memory']])
+                began=time.monotonic();hit=signature in retrieval_cache
+                if not hit:retrieval_cache[signature]=self.retrieve(query,scope,k,understanding)
+                result=copy.deepcopy(retrieval_cache[signature])
+                retrieval_log.append({'query_digest':digest(str(query)),'cache_hit':hit,'hit_count':len(result),
+                    'duration_ms':round((time.monotonic()-began)*1000,3),'model_calls':0})
+                run['local_retrieval']=copy.deepcopy(retrieval_log)
+                return result
+            memories=retrieve_once(text,session['scope'],c['retrieval_k'],u) if not full or cognitive_route['retrieval']['enabled'] else []
             media_condition={'visual_observation':telemetry.get('media')}
             event={'id':('input:'+digest([session['scope'],run['input_event_ids']])) if run.get('input_event_ids') else run['turn_id'],
                    'source_event_ids':run.get('input_event_ids',[]),'text':text,'scope':session['scope'],'person':person,'session_id':sid}
@@ -407,15 +502,16 @@ class Engine(MemoryOperations,PMMVersions):
             def language_for(act):
                 if act not in language_by_act:language_by_act[act]=pg.for_planner(language_state,session['scope'],act)
                 return language_by_act[act]
-            def de_for(act):return joint.conditions(language_for(act),affect_draft,trait_snapshot,event,act)
+            def de_for(act):return joint.conditions(language_for(act),affect_draft,trait_snapshot,event,act,expressive_drive=drive_result if full else None)
             x=self.input_vector(text,u,p,activity['emotion'],relation,{**activity,'typed_affect':affect_draft});codes=self.store.meta('pmm_memory_codes') or {}
             api_budget=c['pmm']['api']['timeout'] if full else c['pmm28']['reasoner_timeout']
             pmm28_deadline=time.monotonic()+api_budget
             if pmm_api and c['pmm28']['mode']!='legacy':
                 from .api_pmm import BudgetedProvider
                 pmm_api.provider=BudgetedProvider(pmm_api.provider,api_budget)
+            last_valid_reasoning=None
             def decode_conditions(current):
-                nonlocal pmm_api,pmm28_api_failure
+                nonlocal pmm_api,pmm28_api_failure,last_valid_reasoning
                 if pmm_api:
                     try:
                         if c['pmm28']['mode']!='legacy':
@@ -423,8 +519,12 @@ class Engine(MemoryOperations,PMMVersions):
                             if remaining<=0:raise TimeoutError('PMM inference budget exhausted')
                             pmm_api.provider.config['timeout']=min(pmm_api.provider.config['timeout'],remaining)
                         started=time.monotonic()
-                        prepared,projected=pmm_api.prepare(text,u,prompt_profile,activity,relation,memory_context(current),fast=fast,media=media_condition,boundary_context=boundary_context,validation_records=run['validation'],pragmatic_context=language_for(xp.speech_act(text)),joint_context=de_for(xp.speech_act(text)))
+                        prepared,projected=pmm_api.prepare(text,u,prompt_profile,activity,relation,memory_context(current),fast=fast,media=media_condition,boundary_context=boundary_context,validation_records=run['validation'],pragmatic_context=language_for(xp.speech_act(text)),joint_context=de_for(xp.speech_act(text)),**({'persona_view':persona_view['generator_view']} if full else {}))
                         prepared['reasoner_elapsed_ms']=round((time.monotonic()-started)*1000,3)
+                        prepared['evaluation_evidence']={'memory_ids':[m['id'] for m in current],
+                            'role_version_id':persona_view['version_id'],'role_entry_ids':list(persona_view['generator_view']['role_context']['entry_ids'])}
+                        if not full or any(v is not None for v in prepared.get('appraisal_checks',{}).values()):
+                            last_valid_reasoning=copy.deepcopy((prepared,projected))
                         return prepared,projected
                     except Exception as ex:
                         from .api_pmm import recoverable_internal_failure
@@ -432,7 +532,12 @@ class Engine(MemoryOperations,PMMVersions):
                         from .pmm_connections import failure
                         pmm28_api_failure={'error_type':type(ex).__name__,'reason':'internal_api_unavailable_or_invalid','elapsed_ms':round((time.monotonic()-started)*1000,3) if 'started' in locals() else 0.,**failure(ex)}
                         pmm_api=None
-                if pmm28_api_failure:
+                        if last_valid_reasoning is not None:
+                            retained,projected=copy.deepcopy(last_valid_reasoning)
+                            retained.update(reappraisal_failure=copy.deepcopy(pmm28_api_failure),
+                                evaluation_status='retained_previous_valid_evidence')
+                            return retained,projected
+                if pmm28_api_failure or (full and not cognitive_route['call_A']):
                     from .registry_pmm import RegistryPMM
                     fallback=RegistryPMM(self.model.export(),p['id'])
                     value=fallback.decode(x,[self.input_vector(m['content'],codes.get(m['id'],{})) for m in current])
@@ -441,16 +546,44 @@ class Engine(MemoryOperations,PMMVersions):
                     value['influence']=0.;value['pmm28_api_failure']=pmm28_api_failure;value['reasoner_elapsed_ms']=pmm28_api_failure.get('elapsed_ms',0.)
                 return value,[]
             decoded,views=decode_conditions(memories);rounds=[];retrieval_rounds=[];seen_queries=set()
+            if full and not cognitive_route['call_A']:
+                decoded.update(a_skipped_reason='L1_local_event_no_deep_appraisal',appraisal_checks={},appraisal_evidence=None)
+            elif full and pmm_api is None and not pmm28_api_failure:
+                decoded['a_skipped_reason']='configured_local_model'
             for retrieval_index in range(c['max_retrieval_rounds'] if pmm_api else 0):
+                if not pmm_api:break
                 queries=[q for q in decoded.get('retrieval_queries',[]) if q not in seen_queries]
-                if not queries:break
+                before_role=set(persona_view['generator_view']['role_context']['entry_ids'])
+                requested_role=role_context.retrieve(persona_view['generator_view'],text,decoded.get('role_request'))
+                role_context.bind(persona_view,requested_role)
+                role_changed=set(requested_role['entry_ids'])!=before_role
+                run['role_retrieval'].append(copy.deepcopy(requested_role))
+                if not queries and not role_changed:break
+                event_router.upgrade(cognitive_route,'A_requested_additional_evidence');self.journal.save(run)
+                for client in telemetry['clients']:client.trace_context.update(route_level=cognitive_route['level'])
                 seen_queries.update(queries)
+                evidence_before=hashlib.sha256(dumps(sorted((m['id'],m.get('content'),m.get('evidence')) for m in memories)).encode()).hexdigest()
                 merged={m['id']:m for m in memories}
                 for query in queries:
-                    for m in self.retrieve(query,session['scope'],c['retrieval_k'],u):merged[m['id']]=m
+                    for m in retrieve_once(query,session['scope'],c['retrieval_k'],u):merged[m['id']]=m
                 memories=sorted(merged.values(),key=lambda m:m['score'],reverse=True)[:c['retrieval_k']*2]
-                retrieval_rounds.append({'round':retrieval_index+1,'query_count':len(queries),'memory_count':len(memories)})
+                evidence_after=hashlib.sha256(dumps(sorted((m['id'],m.get('content'),m.get('evidence')) for m in memories)).encode()).hexdigest()
+                changed=evidence_before!=evidence_after
+                reinvoke=changed or role_changed or not full
+                retrieval_rounds.append({'round':retrieval_index+1,'query_count':len(queries),'memory_count':len(memories),
+                    'additional_evidence_found':changed,'role_evidence_added':role_changed,'A_reinvoked':reinvoke})
+                if not reinvoke:break
+                if full:
+                    previous_calls=pmm_api.provider.calls
+                    pmm_api.provider.trace_context.update(trigger_reason='A_reappraisal_after_new_scoped_evidence',
+                        parent_call_id=previous_calls[-1].get('call_id') if previous_calls else None)
                 decoded,views=decode_conditions(memories)
+            # A's final request must still reach B/generation even when its call
+            # budget is exhausted. Do not pretend A evaluated those new facts.
+            final_role=role_context.retrieve(persona_view['generator_view'],text,decoded.get('role_request'))
+            evaluated_ids=set(decoded.get('evaluation_evidence',{}).get('role_entry_ids',[]))
+            final_role['evaluated_by_A']=decoded.get('mode')=='api' and set(final_role['entry_ids']).issubset(evaluated_ids)
+            role_context.bind(persona_view,final_role);run['role_retrieval'].append(copy.deepcopy(final_role))
             run['retrieval_rounds']=retrieval_rounds
             if decoded.get('layered_affect') and not full:
                 applied_affect_proposal=copy.deepcopy(decoded['layered_affect'])
@@ -469,17 +602,32 @@ class Engine(MemoryOperations,PMMVersions):
             layer_trace['appraisal_id']=layer_trace['appraisal']['id']
             run['trait_affect']={k:layer_trace[k] for k in ('trait_version','emotion_revision','appraisal_id','provider_contract')}
 
+            drive_env={'turn_complete':(u.get('cognitive_appraisal') or {}).get('turn_complete',0.85),
+                'addressed':session.get('direct_interaction',True),'scope':session['scope'],'prior_speech_act':xp.speech_act(text)}
             pmm28_trace=None
+            if full:decoded['reasoner_request_count']=len(getattr(reasoner_client,'calls',[]))
             if c['pmm28']['mode']!='legacy':
                 from .pmm_coordinator import PMMCoordinator
                 try:
                     if full:
-                        pmm28_trace=PMMCoordinator(self).run_full(turn_id=run['turn_id'],event=event,at=affect_at,profile=p,understanding=u,relation=relation,memories=memories,affect_base=affect_base,decoded=decoded)
+                        pmm28_trace=PMMCoordinator(self).run_full(turn_id=run['turn_id'],event=event,at=affect_at,profile=p,understanding=u,relation=relation,memories=memories,affect_base=affect_base,decoded=decoded,environment=drive_env)
+                        run['reasoner_evaluation']=copy.deepcopy(pmm28_trace['components']['reasoner']['payload']['evaluation_use'])
+                        decoded['evaluation_status']=run['reasoner_evaluation']['source']
                         emotion_v2_draft=pmm28_trace.pop('_emotion_draft');expected_emotion_revision=pmm28_trace.pop('_expected_emotion_revision')
-                    else:pmm28_trace=PMMCoordinator(self).run(turn_id=run['turn_id'],event=event,at=affect_at,profile=p,understanding=u,relation=relation,memories=memories,affect_base=affect_base,activity=activity,vector=x,legacy_decoded=decoded,mode=c['pmm28']['mode'])
+                        drive_v2_draft=pmm28_trace.pop('_drive_draft',None);expected_drive_revision=pmm28_trace.pop('_expected_drive_revision',None)
+                        drive_result=(pmm28_trace.get('components',{}).get('expressive_drive') or {}).get('payload')
+                    else:
+                        pmm28_trace=PMMCoordinator(self).run(turn_id=run['turn_id'],event=event,at=affect_at,profile=p,understanding=u,relation=relation,memories=memories,affect_base=affect_base,activity=activity,vector=x,legacy_decoded=decoded,mode=c['pmm28']['mode'],environment=drive_env)
+                        drive_result=(pmm28_trace.get('components',{}).get('expressive_drive') or {}).get('payload')
                 except Exception as ex:
                     pmm28_trace={'turn_id':run['turn_id'],'event_id':event['id'],'scope':session['scope'],'subject_id':p['id'],'mode':c['pmm28']['mode'],'status':'failed','error_type':type(ex).__name__,'fallback':'legacy','external_sends':0,'formal_state_writes':0}
                     if full:
+                        if not run.get('reasoner_evaluation'):
+                            run['reasoner_evaluation']={'source':'adoption_unrecorded','last_attempt':
+                                'skipped' if decoded.get('a_skipped_reason') else 'failed' if pmm28_api_failure else 'succeeded',
+                                'known_dimensions':None,'request_count':decoded.get('reasoner_request_count'),
+                                'coordinator_status':'failed','failure_type':type(ex).__name__}
+                            decoded['evaluation_status']='adoption_unrecorded'
                         affect_draft,layer_trace=af.evaluate(affect_base,trait_snapshot,u,event,relation,memories,at=affect_at)
                         activity=af.compatibility(affect_draft);decoded['state']=copy.deepcopy(activity['emotion'])
                         from .support import exception_frames
@@ -487,6 +635,9 @@ class Engine(MemoryOperations,PMMVersions):
 
             if c['pmm28']['mode']=='active' and pmm28_trace and 'components' in pmm28_trace:
                 co=pmm28_trace['components'];u['pmm28_decision']={'schema':'coordinated-policy/2.8',**co['decision']['payload']}
+                if full and drive_result:
+                    u['expressive_drive_policy']=copy.deepcopy(drive_result)
+                    run['expressive_drive']={k:copy.deepcopy(drive_result[k]) for k in ('activation','urgency','persistence','expressive_intent','active_motive_id','status','delta_seconds','pending_motives_count','turn_taking_influence','policy_score_terms') if k in drive_result}
                 if full:
                     from .pmm_connections import receipt
                     co['reasoner']['connection']=receipt(c,'A')
@@ -497,18 +648,29 @@ class Engine(MemoryOperations,PMMVersions):
                     x=self.input_vector(text,u,p,activity['emotion'],relation,{**activity,'typed_affect':affect_draft})
 
             boundary_rows=self.boundaries.estimate(boundary_states,u['boundary_cues'],decoded,text,activity,relation,p,session['scope'],person)
+            decision_conditions=deval.with_affect(decision_conditions,activity,u)
+            u['decision_conditions']=decision_conditions
             if boundary_rows:u['semantic']['value_conflict']=max(u['semantic'].get('value_conflict',0),max((r['activation']*r['uncertainty'] for r in boundary_rows if r.get('activation') is not None and r.get('uncertainty') is not None),default=0))
             decoded['boundary_state']=boundary_rows
             trigger_config={**c,'deliberation':{**c['deliberation'],'enabled':True,'mode':'auto'}} if full else c
             deliberation=dl.trigger(trigger_config,u,decoded,relation)
+            if full and cognitive_route['level']=='L1' and not cognitive_route['force_B']:
+                deliberation.update(activated=False,reason='L1_no_internal_discussion_needed')
+            elif full and cognitive_route['deepen_B']:
+                deliberation.update(activated=True,reason='route_requires_internal_discussion')
             if full and c['pmm281']['b_policy']=='always':deliberation.update(activated=True,reason='configured_every_turn')
-            views=dl.views(p,u,decoded,deliberation,c['deliberation']['max_perspectives'])
+            # Full mode negotiates concrete situational proposals below. The
+            # single legacy view remains only an action-storage compatibility row.
+            views=dl.views(p,u,decoded,{'activated':False} if full else deliberation,c['deliberation']['max_perspectives'])
             multi=deliberation['activated'] and len(views)>1
             deliberation['multi_view']=multi
             b_needed=full and deliberation['activated']
             max_rounds=c['deliberation']['max_rounds'] if multi or b_needed else 1
+            if full:
+                run['negotiation_result']={'policy':c['pmm281']['b_policy'],'trigger_reason':deliberation['reason'],
+                                          'status':'not_started' if b_needed else 'disabled','executed':False,'attempts':0}
             if full and pmm28_trace and 'components' in pmm28_trace:
-                pmm28_trace['components']['negotiation']={'executed':False,'status':'disabled','role':'B','reason':'on_demand_no_conflict_or_risk','elapsed_ms':0,'applied_to':[]}
+                pmm28_trace['components']['negotiation']={**run['negotiation_result'],'role':'B','reason':deliberation['reason'],'elapsed_ms':0,'applied_to':[]}
             def late_internal_failure(stage,ex):
                 nonlocal pmm_api
                 pmm_api=None;decoded['influence']=0.
@@ -517,6 +679,7 @@ class Engine(MemoryOperations,PMMVersions):
                 if u.get('pmm28_decision'):
                     u['pmm28_decision'].update(formal_contribution=False,score_terms={k:0. for k in u['pmm28_decision']['score_terms']},arbitration='internal_api_late_failure_legacy_fallback')
                     pmm28_trace['components']['decision']['payload'].update(u['pmm28_decision'])
+            proposal_discussion=None;proposal_rounds=[]
             for i in range(max_rounds):
                 progress('3 / 6 · 内部倾向协商' if multi else '3 / 6 · PMM 单路径决策')
                 context={'input':text,'understanding':u,'self':profile_condition(prompt_profile),'emotion':activity,'interlocutor':profile_condition(other),
@@ -529,6 +692,7 @@ class Engine(MemoryOperations,PMMVersions):
                 if full and pmm28_trace and 'components' in pmm28_trace:
                     context['pmm_neural']=pmm28_trace['components']['neural']['payload']
                     context['emotion_dynamics']=pmm28_trace['components']['affect']['payload']['dynamics_v2']
+                    if drive_result:context['expressive_drive']=drive_result
                 context['recent_history']=history[-8:]
                 context['pragmatic_style']=language_for(context['interaction_state']['prior_speech_act'])
                 context['de_conditions']=de_for(context['interaction_state']['prior_speech_act'])
@@ -540,20 +704,41 @@ class Engine(MemoryOperations,PMMVersions):
                 try:
                     if full:
                         from .pmm_event_reasoner import initial_assessment
+                        from . import deliberation_v282 as proposals
+                        context.update(turn_id=run['turn_id'],persona_id=p['id'],event_packet=event_packet,persona_view=persona_view['generator_view'])
+                        local_proposals=proposals.build(context,prompt_profile)
+                        proposal_discussion=proposals.resolve(local_proposals)
+                        proposal_discussion.update(b_called=False,b_status='not_called',skip_reason=deliberation['reason'])
                         a=initial_assessment(decoded,views)
                         if b_needed:
                             b_started=time.monotonic()
+                            before_calls=len(negotiator.provider.calls) if negotiator else 0
                             try:
                                 if negotiator is None:
                                     from .pmm_negotiator import Negotiator
-                                    negotiator=Negotiator(c,self.pmm_provider_factory);negotiator.provider.trace_context=copy.deepcopy(provider.trace_context);telemetry['clients'].append(negotiator.provider)
-                                a,b_review,b_trace=negotiator.assess(context,views,run['validation'])
+                                    negotiator=Negotiator(c,self.pmm_provider_factory);negotiator.provider.trace_context={**copy.deepcopy(provider.trace_context),'component_role':'PMM-B'};negotiator.provider.stage=provider.stage;telemetry['clients'].append(negotiator.provider)
+                                proposal_discussion,b_trace=negotiator.discuss(local_proposals,run['validation'],
+                                    previous=proposal_rounds[-1] if proposal_rounds else None)
+                                run.setdefault('discussion_requests',[]).append(copy.deepcopy(b_trace['input_summary']['request_compilation']))
                             except Exception as ex:
                                 from .pmm_connections import failure
                                 b_trace={'status':'failed','executed':True,'role':'B','error_type':type(ex).__name__,**failure(ex),'elapsed_ms':round((time.monotonic()-b_started)*1000,3),'reason':'negotiation_unavailable_initial_candidates_retained','applied_to':[]};b_needed=False
+                                proposal_discussion.update(b_called=True,b_status='failed',b_error_type=type(ex).__name__,discussion_mode='local_fallback')
                             from .pmm_connections import receipt
                             b_trace['connection']=receipt(c,'B')
+                            b_trace.update(policy=c['pmm281']['b_policy'],trigger_reason=deliberation['reason'],
+                                           attempts=len(negotiator.provider.calls)-before_calls if negotiator else 0)
+                            if b_trace['status']=='failed' and not b_trace['attempts']:
+                                b_trace['executed']=False;proposal_discussion['b_called']=False
+                            outcome=run['negotiation_result']
+                            outcome['attempts']+=b_trace['attempts']
+                            outcome['elapsed_ms']=round(outcome.get('elapsed_ms',0)+b_trace['elapsed_ms'],3)
+                            outcome.update({key:copy.deepcopy(b_trace[key]) for key in
+                                ('status','executed','failure_code','failure_category','contract_path','contract_reason','contract_issues') if key in b_trace})
                             if pmm28_trace and 'components' in pmm28_trace:pmm28_trace['components']['negotiation']=b_trace
+                        proposal_rounds.append({'index':i+1,**copy.deepcopy(proposal_discussion)})
+                        proposal_discussion['rounds']=copy.deepcopy(proposal_rounds)
+                        run['deliberation']=copy.deepcopy(proposal_discussion);self.journal.save(run)
                     else:a=validated_call(evaluator,assessment_messages,lambda value:dl.validate_assessment(value,views),run['validation'],initial=initial)
                 except Exception as ex:
                     from .api_pmm import recoverable_internal_failure
@@ -579,19 +764,50 @@ class Engine(MemoryOperations,PMMVersions):
                 u['supported_memory_evidence']=review['supported_memory_evidence']
                 if multi:deliberation['rounds'].append({'index':i+1,'candidates':copy.deepcopy(context['projections']),'assessment':a,'pmm_review':review})
                 deliberation['unresolved_conflict']=review['unresolved_conflict']
+                if full and proposal_discussion:
+                    deliberation['unresolved_conflict']=proposal_discussion.get('unresolved_disagreement',False)
+                    review['retrieval_queries']=proposal_discussion.get('retrieval_queries',[])
                 queries=review['retrieval_queries']
                 if not queries or i>=max_rounds-1:break
+                event_router.upgrade(cognitive_route,'B_requested_additional_evidence');self.journal.save(run)
+                for client in telemetry['clients']:client.trace_context.update(route_level=cognitive_route['level'])
+                previous_evidence=digest(sorted((m['id'],m.get('revision'),m.get('content'),m.get('evidence')) for m in memories))
                 merged={m['id']:m for m in memories}
                 for query in queries:
-                    for m in self.retrieve(query,session['scope'],c['retrieval_k'],u):merged[m['id']]=m
+                    for m in retrieve_once(query,session['scope'],c['retrieval_k'],u):merged[m['id']]=m
                 memories=sorted(merged.values(),key=lambda m:m['score'],reverse=True)[:c['retrieval_k']*2]
+                current_evidence=digest(sorted((m['id'],m.get('revision'),m.get('content'),m.get('evidence')) for m in memories))
+                if full and current_evidence==previous_evidence:
+                    run.setdefault('discussion_stops',[]).append({'round':i+1,'reason':'no_new_scoped_evidence','additional_model_calls':0})
+                    self.journal.save(run);break
                 # B can retrieve more evidence for its next bounded review. A's
                 # accepted appraisal remains fixed after the event jump.
                 if not full:decoded,_=decode_conditions(memories)
                 decoded['state']=copy.deepcopy(activity['emotion']);decoded['typed_runtime']=True
+            if full and proposal_discussion:
+                task=proposal_discussion.get('task',{})
+                u['supported_memory_evidence']=proposals.supporting_memory_evidence(proposal_discussion)
+                effective=task.get('knowledge_need_effective')
+                if effective and effective!=u.get('knowledge_need'):
+                    u['knowledge_need_original']=u.get('knowledge_need');u['knowledge_need']=effective
+                    u['knowledge_need_correction']=task.get('knowledge_need_correction_reason')
+            if full and proposal_discussion and proposal_discussion.get('b_status')=='completed':
+                utilities={}
+                for proposal in proposal_discussion['proposals']:
+                    score=proposal_discussion.get('scores',{}).get(proposal['id'])
+                    if score is not None and proposal.get('eligibility',{}).get('eligible'):
+                        action=proposal['compat_action'];utilities[action]=max(utilities.get(action,0.),score)
+                u['proposal_action_assessment']={'source':'validated_B_proposals','utilities':utilities,
+                    'rule':'best_feasible_content_per_action; replaces_A_assessment; local_conditions_retained'}
             decision=choose(u,prompt_profile,views,a['views'],decoded,memories,text)
+            if full and proposal_discussion and decision.get('gate')=='missing_evidence' and u.get('knowledge_need')=='personal':
+                original_records=proposals.supporting_conversation_evidence(proposal_discussion)
+                selected=proposal_discussion['selected_proposal']
+                if original_records and selected.get('compat_action')=='reply' and u.get('semantic',{}).get('ambiguity',1)<.65 and not any(g.get('required') for g in selected.get('information_gaps',[])):
+                    decision.update(action='reply',gate='grounded_conversation',reason='引用当前会话已确认的原始发言；发言存在不等同于所述外部事实已证实')
+                    decision['knowledge'].update(grounded_history=True,supporting_history_ids=[row['id'] for row in original_records])
             if pmm28_trace and 'components' in pmm28_trace and not full:
-                no_co={k:v for k,v in u.items() if k!='pmm28_decision'}
+                no_co={k:v for k,v in u.items() if k not in ('pmm28_decision','expressive_drive_policy')}
                 baseline=choose(no_co,prompt_profile,views,a['views'],decoded,memories,text)
                 pmm28_trace['policy_comparison']={'without_new_conditions':baseline,'with_new_conditions':copy.deepcopy(decision),'action_changed':baseline['action']!=decision['action'],'scope':'fixed_same_turn_policy_conditions_not_live_LLM_counterfactual'}
             cognitive=telemetry['turn_context'].get('cognitive_decision',{})
@@ -599,10 +815,18 @@ class Engine(MemoryOperations,PMMVersions):
             decision['cognitive_id']=cognitive.get('cognitive_id')
             if (telemetry.get('media') or {}).get('status')=='IMAGE_UNAVAILABLE' and (text=='[收到图片或引用图片]' or (telemetry.get('media') or {}).get('requires_unavailable_reply')):decision.update(action='unknown',gate='image_unavailable',reason='图片没有读取成功，不能推断内容')
             decision['reason']=decision['reason'].replace('同一人格三个倾向的加权效用','PMM 多倾向综合效用' if multi else 'PMM 单路径综合效用')
-            if multi and deliberation['unresolved_conflict'] and c['deliberation']['return_unresolved_conflict'] and decision['gate']=='weighted_policy':
-                ranked=sorted(decision['scores'].values(),reverse=True)
-                if ranked[0]-ranked[1]<.08:decision.update(action='clarify',reason='候选行动仍有未解决分歧，需要澄清',gate='unresolved_conflict')
             decision=self.boundaries.policy(decision,boundary_rows,u,self.claims.recent(session['scope']))
+            if full and proposal_discussion:
+                proposal_discussion=proposals.resolve(proposal_discussion,decision=decision)
+                selected=proposal_discussion['selected_proposal']
+                if decision['gate']=='ambiguity':
+                    decision.update(action=selected.get('compat_action','reply'),gate='proposal_policy',reason=proposal_discussion['selection_reason'])
+                decision['selection_contract']='psychological_action_then_compatible_content/1'
+                decision.update(selected_proposal_id=proposal_discussion['selected_proposal_id'],
+                    response_policy=copy.deepcopy(selected),proposal_support=copy.deepcopy(proposal_discussion['support']))
+                deliberation.update(multi_view=len(proposal_discussion['perspectives'])>1,
+                    unresolved_conflict=proposal_discussion.get('unresolved_disagreement',False))
+                run['deliberation']=copy.deepcopy(proposal_discussion);self.journal.save(run)
             controlled_inputs=deval.capture(prompt_profile,u,relation,affect_base,applied_affect_proposal,event,affect_at,views,a,decoded,memories,decision,digest(self.model.export()))
             layer_trace['person_relational_appraisal']=decision_conditions['appraisal']
             run['condition_read_receipt']={k:decision_conditions[k] for k in ('schema','trait_version','trait_digest','relationship_version','relationship_digest','source_use')}
@@ -611,6 +835,13 @@ class Engine(MemoryOperations,PMMVersions):
             run['action_state']={'decline':'REFUSE','silence':'NO_ACTION'}.get(decision['action'],decision['action'].upper())
             for client in telemetry['clients']:client.trace_context.update(decision_id=decision['decision_id'],decision_revision=1)
             run.update(decision_id=decision['decision_id'],decision_revision=1,selected_action=decision['action'],schema_version='execution/1');self.journal.save(run)
+            # Independent journal survives candidate rejection and persona rollback.
+            # Raw cognitive content stays private; support exports expose summaries.
+            run['cognitive_snapshot']={'understanding':copy.deepcopy(u),'decision':copy.deepcopy(decision),
+                'retrieved_evidence':memory_context(memories),
+                'projections':copy.deepcopy(views),'assessment':copy.deepcopy(a),'rounds':copy.deepcopy(rounds),
+                'deliberation':copy.deepcopy(deliberation),'pmm28':copy.deepcopy(pmm28_trace)}
+            self.journal.save(run)
             deferred=fast and not multi and decision['action'] in ('reply','silence') and c['deliberation']['mode']!='always'
             deferred=deferred or ':qq:' in session['scope']
             style=style_condition(prompt_profile,text,u,decoded)
@@ -618,16 +849,30 @@ class Engine(MemoryOperations,PMMVersions):
             expression_plan=af.expression_plan(trait_snapshot,affect_draft,decision,{'scope':session['scope'],'person_id':person})
             if full and layer_trace.get('dynamics_v2'):
                 expression_plan.update(intensity=layer_trace['dynamics_v2']['expression_plan']['intensity'],affect_model_version=layer_trace['dynamics_v2']['affect_model_version'],regulation_v2=layer_trace['dynamics_v2']['regulation'])
+            if full and drive_result:
+                expression_plan['expressive_drive']={k:copy.deepcopy(drive_result[k]) for k in ('activation','urgency','persistence','expressive_intent','active_motive_id','status') if k in drive_result}
             style['expression_plan']=expression_plan
             proposal=a.get('interaction_plan') if isinstance(a.get('interaction_plan'),dict) else {};claimed=proposal.get('previous_act');quote=proposal.get('evidence_quote')
             final_act=claimed if claimed in xp.ACTS and isinstance(quote,str) and quote.strip() and quote in text else context['interaction_state']['prior_speech_act']
             interaction_plan=xp.decide_expression(text,u,decision,{**telemetry['turn_context'],'scope':session['scope'],'execution_turn_id':run['turn_id']},relation,
-                trait_snapshot['trait_version'],affect_draft['emotion']['state_revision'],language_for(final_act),proposal)
+                trait_snapshot['trait_version'],affect_draft['emotion']['state_revision'],language_for(final_act),proposal,expressive_drive=drive_result if full else None)
             de_inputs=de_for(interaction_plan['previous_act'])
             interaction_plan=joint.refine(interaction_plan,de_inputs,expression_plan,decision,proposal,text)
             interaction_plan['joint_decision']['event_change']=joint.event_change(layer_trace)
+            interaction_plan['interaction_kind']='backchannel' if decision['action']=='reply' and (drive_result or {}).get('expressive_intent')=='BACKCHANNEL' and interaction_plan.get('candidate_strategy')=='MINIMAL_REPLY' else 'final_reply'
             expression_plan['delivery_tone']=interaction_plan['joint_decision']['tone']
             expression_plan.update(sentence_segmentation='interaction_plan',interaction_plan_id=interaction_plan['plan_id'])
+            if drive_v2_draft is not None and drive_result is not None:
+                from . import expression_drive as ed
+                drive_v2_draft,drive_result=ed.enrich_motive_from_planning(
+                    drive_v2_draft,drive_result,session['scope'],person,
+                    deliberation=proposal_discussion,decision=decision,interaction_plan=interaction_plan,at=affect_at,phase='planning'
+                )
+                if full:
+                    u['expressive_drive_policy']=copy.deepcopy(drive_result)
+                    decision['expressive_drive']={k:copy.deepcopy(drive_result[k]) for k in ('activation','urgency','persistence','expressive_intent','active_motive_id','status','intended_expression') if k in drive_result}
+                    interaction_plan['expressive_drive']=copy.deepcopy(decision['expressive_drive'])
+                    expression_plan['expressive_drive']=copy.deepcopy(decision['expressive_drive'])
             run['interaction_plan']=interaction_plan
             if interaction_plan['sufficiency_target']=='complete':style['max_chars']=None
             progress('4 / 6 · 按行动与个人风格生成')
@@ -636,56 +881,120 @@ class Engine(MemoryOperations,PMMVersions):
             if c['pmm28']['mode']=='active' and u.get('pmm28_decision'):conditions['coordinated_pmm']=u['pmm28_decision']
             conditions['interaction_plan']=interaction_plan
             conditions['de_conditions']=de_inputs
+            if full and proposal_discussion:
+                conditions['response_policy']=proposal_discussion['selected_proposal']
+                conditions['shared_subject_state']=proposal_discussion['shared_state']
+            generation_history=history
+            if full:
+                from .prompt_compiler import generator
+                conditions,generation_history,compilation=generator(conditions,persona_view,decision.get('response_policy'),history,query=text)
+                run['prompt_compilation']=compilation;self.journal.save(run)
+            from .prompt_compiler import runtime_persona
+            inspection_persona=runtime_persona(persona_view['checker_view'],decision.get('response_policy'),query=text,purpose='checker')
             expression_started=time.monotonic();reply='';reply_parts=[];style_retry=False;expression_protocol='no_action';expression_check={}
             def parse_expression(raw):
                 parts,protocol=xp.parse_message_parts(raw,interaction_plan)
                 parts,check=xp.trim_excess(parts,interaction_plan)
                 return '\n'.join(parts),parts,protocol,check
             if decision['action']!='silence':
-                messages=[{'role':'system','content':REALIZE+'\n条件：'+dumps(conditions)},*history,{'role':'user','content':text}]
+                messages=[{'role':'system','content':REALIZE+'\n条件：'+dumps(conditions)},*generation_history,{'role':'user','content':raw_input}]
                 reply,reply_parts,expression_protocol,expression_check=parse_expression(provider.complete(messages))
-                if style['max_chars'] and len(reply)>style['max_chars']:
-                    style_retry=True;reply,reply_parts,expression_protocol,expression_check=parse_expression(provider.complete([*messages,{'role':'assistant','content':reply},{'role':'user','content':f'请保留决定的行动和信息，把上一条改写到 {style["max_chars"]} 个字符内，符合提供的原始风格。只输出最终回复。'}]))
-                if len(reply)>20000:raise ProviderError('回复过长，本轮未保存')
             expression_elapsed=round((time.monotonic()-expression_started)*1000,3)
             run.update(candidate_status='GENERATED',candidate_chars=len(reply),candidate_digest=hashlib.sha256(reply.encode()).hexdigest());self.journal.save(run)
             if decision['action']!='silence':
-                from .validation import ACTION_CHECK_PROMPT,candidate_check,validated_call,safe_check,ValidationFailure
-                progress('4 / 6 · 检查已冻结行动与候选回复')
+                from .validation import ACTION_CHECK_PROMPT,candidate_check,safe_check,inspect_candidate
+                progress('4 / 6 · 本地检查候选与事实约束')
+                def inspection_failure(code):
+                    ex=ProviderError('候选未发送：'+code,{'code':code,'schema_version':'candidate-inspection/2.8.2'})
+                    ex.code=code
+                    return ex
                 for regeneration in range(2):
                     run.update(regenerations=regeneration,candidate_chars=len(reply),candidate_digest=hashlib.sha256(reply.encode()).hexdigest())
-                    check_context={'decision_id':decision['decision_id'],'decision_revision':1,'expected_action':decision['action'],'candidate':reply,'evidence_context':memory_context(memories),'actual_tool_receipts':[],'boundary_policy':decision.get('boundary'),'boundary_context':boundary_context,'claim_memory':self.claims.recent(session['scope']),'input':text,'knowledge':decision['knowledge'],'hard_constraints':[b for b in profile_condition(prompt_profile)['boundaries'] if b.get('enabled') and b.get('hard')]}
-                    check_context.update(interaction_plan=interaction_plan,expression_check=expression_check)
-                    def validate_candidate(value):
-                        result=candidate_check(value,decision,reply)
-                        result['pragmatic_check']=xp.pragmatic_check(value.get('pragmatic_check'),reply)
-                        return result
-                    checked=validated_call(provider,[{'role':'system','content':ACTION_CHECK_PROMPT+xp.CHECK_INSTRUCTION},{'role':'user','content':dumps(check_context)}],validate_candidate,run['validation'])
-                    run['candidate_check']=safe_check(checked);self.journal.save(run)
-                    pragmatic=checked['pragmatic_check'];drop=pragmatic.get('drop_suffix_from')
-                    pragmatic_ok=pragmatic.get('sufficient',True) and not any(pragmatic.get(k,False) for k in ('unnecessary_followup','premature_progression','redundant_question'))
-                    if checked['compliant'] and pragmatic_ok and expression_check.get('status')!='needs_repair':break
+                    review_context,role_review=role_context.candidate_review(persona_view['checker_view'],text,reply)
+                    role_context.bind(persona_view,review_context)
+                    inspection_persona=runtime_persona(persona_view['checker_view'],decision.get('response_policy'),query=text+'\n'+reply,purpose='checker')
+                    check_context={'decision_id':decision['decision_id'],'decision_revision':1,'expected_action':decision['action'],'candidate':reply,'evidence_context':memory_context(memories),'actual_tool_receipts':[],'boundary_policy':decision.get('boundary'),'boundary_context':boundary_context,'claim_memory':self.claims.recent(session['scope']),'input':text,'knowledge':decision['knowledge'],'hard_constraints':[copy.deepcopy(b) for b in prompt_profile.get('boundaries',[]) if b.get('enabled') and b.get('hard')]}
+                    check_context.update(interaction_plan=interaction_plan,expression_check=expression_check,role_review=role_review)
+                    check_context.update(persona=copy.deepcopy(inspection_persona),response_policy=decision.get('response_policy'))
+                    check_context['media_status']=(telemetry.get('media') or {}).get('status')
+                    local=inspect_candidate(decision,reply,check_context)
+                    if regeneration and run.get('candidate_archive') and reply==run['candidate_archive'][-1].get('text') and (run.get('candidate_inspection') or {}).get('disposition')=='REPAIR_CANDIDATE':
+                        local.update(compliant=False,disposition='REPAIR_CANDIDATE',checker_required=False,trigger_reason='unchanged_previously_verified_violation')
+                    checked={**local,'decision_id':decision['decision_id'],'decision_revision':1,
+                        'expected_action':decision['action'],'detected_action':decision['action'],
+                        'spans':[],'pragmatic_check':{'status':'local_only','source_type':'engineering_check_uncalibrated'}}
+                    run.setdefault('candidate_archive',[]).append({'attempt':regeneration,'text':reply,'parts':copy.deepcopy(reply_parts)})
+                    self.journal.save(run)
+                    # Local hard checks always run. Semantic inspection is anomaly-triggered,
+                    # never an extra mandatory classification of every ordinary answer.
+                    if local.get('checker_required'):
+                        relevant=[b for b in check_context['hard_constraints'] if decision.get('gate')=='hard_boundary' or any(str(k).strip() and str(k).lower() in text.lower() for k in b.get('keywords',[]))]
+                        checker_context={k:check_context[k] for k in ('decision_id','decision_revision','expected_action','candidate','actual_tool_receipts','boundary_policy','input','knowledge')}
+                        checker_context['hard_constraints']=relevant
+                        checker_context['persona']=copy.deepcopy(inspection_persona)
+                        checker_context['role_review']=copy.deepcopy(role_review)
+                        checker_context['response_policy']=decision.get('response_policy')
+                        checker_context['boundary_requirements']=conditions.get('boundary_requirements',{})
+                        checker_context['persona_view_revision']=persona_view['version_id']
+                        checker_context['trigger_reason']=local.get('trigger_reason')
+                        checker_context['suspected_issues']=local.get('suspected_issues',[])
+                        original_config=getattr(provider,'config',None)
+                        try:
+                            if isinstance(original_config,dict):provider.config={**original_config,'json_repair':False}
+                            result=provider.complete([{'role':'system','content':ACTION_CHECK_PROMPT},{'role':'user','content':dumps(checker_context)}],structured=True)
+                            semantic=candidate_check(result,decision,reply,check_context)
+                            checked.update(semantic,local_checks=local['local_checks'])
+                            checked['role_consistency']={**role_review,'status':('passed' if role_review['evidence_status']=='available' else 'reviewed_without_matching_facts') if role_review['required'] and semantic.get('compliant') and result.get('compliant') else ('repair_required' if semantic.get('disposition')=='REPAIR_CANDIDATE' else 'unresolved') if role_review['required'] else 'not_required'}
+                        except (ProviderError,TimeoutError,ConnectionError,ValueError,TypeError,KeyError) as ex:
+                            hard=local.get('hard_review_required',True)
+                            checked.update(compliant=not hard,disposition='CHECKER_UNAVAILABLE' if hard else 'SEND_WITH_NOTE',checker_status='unavailable',
+                                failure_code='CHECKER_UNAVAILABLE',checker_error=type(ex).__name__)
+                            checked['role_consistency']={**role_review,'status':'unavailable' if role_review['required'] else 'not_required'}
+                        finally:
+                            if isinstance(original_config,dict):provider.config=original_config
+                    if style['max_chars'] and len(reply)>style['max_chars']:
+                        checked.setdefault('suspected_issues',[]).append({'type':'STYLE_LENGTH','severity':'low','verifiability':'style_preference'})
+                        if checked.get('disposition')=='SEND':checked['disposition']='SEND_WITH_NOTE'
+                    run['candidate_inspection']=safe_check(checked)
+                    from . import token_ledger
+                    provider_calls=getattr(provider,'calls',[])
+                    for transport_call in reversed(provider_calls if isinstance(provider_calls,list) else []):
+                        if not isinstance(transport_call,dict):continue
+                        account=transport_call.get('token_ledger')
+                        if account and account.get('task_name') in ('reply_generation','candidate_repair'):
+                            account['response_disposition']=('repaired' if regeneration else 'accepted') if checked.get('compliant') else 'rejected'
+                            token_ledger.save(account,self.journal);break
+                    run.setdefault('inspections',[]).append(copy.deepcopy(run['candidate_inspection']))
+                    run['candidate_check']=run['candidate_inspection'];self.journal.save(run)
+                    if checked.get('compliant') and checked['disposition'] in ('SEND','SEND_WITH_NOTE'):break
+                    if checked['disposition'] in ('CHECKER_UNAVAILABLE','HOLD_HARD_CONSTRAINT'):
+                        run['candidate_status']=checked['disposition'];self.journal.save(run)
+                        raise inspection_failure(checked['disposition'])
                     if regeneration:
-                        if checked['compliant']:
-                            raise ValidationFailure(xp.SCHEMA,'pragmatic_check',[{'path':'/candidate/pragmatic_check','expected':'sufficient local response without unnecessary progression','actual_type':'object','reason':'MINIMAL_RESPONSE_VIOLATION'}],expected_action=decision['action'])
-                        raise ValidationFailure('candidate-action-check/1','candidate_check',[{'path':'/candidate','expected':decision['action'],'actual_type':'string','reason':checked['failure_code']}],expected_action=decision['action'],detected_action=checked['detected_action'],evidence_spans=safe_check(checked)['spans'])
-                    progress('4 / 6 · 修复候选表达（最多一次）')
-                    if drop is not None and checked['compliant']:
-                        # Only remove the cited suffix; validate the frozen action again.
-                        end=drop;kept=[]
-                        for part in reply_parts:
-                            if end<=0:break
-                            kept.append(part[:end].rstrip());end-=len(part)+1
-                        reply_parts=[p for p in kept if p];reply='\n'.join(reply_parts)
-                        expression_check={'status':'model_suffix_trimmed','source_type':'model_inference_uncalibrated'}
-                    else:
-                        reply,reply_parts,expression_protocol,expression_check=parse_expression(provider.complete([*messages,{'role':'assistant','content':reply},{'role':'user','content':'[CANDIDATE_REPAIR_V221] 保持冻结行动 '+decision['action']+'，修正检查指出的不一致；当前回应充分即停止。错误：'+dumps(checked)+'；本地检查：'+dumps(expression_check)+'。只输出实际回复。'}]))
-                    if not isinstance(reply,str) or not reply.strip() or len(reply)>20000:raise ValueError('修复后的回复无效')
+                        run['candidate_status']='CANDIDATE_REPAIR_REQUIRED';self.journal.save(run)
+                        raise inspection_failure('CANDIDATE_REPAIR_REQUIRED')
+                    progress('4 / 6 · 局部修复已证实问题（最多一次）')
+                    # The repair receives only the current task, candidate and relevant
+                    # facts. It never appends to the potentially 64k main request.
+                    repair_conditions={'self':runtime_persona(persona_view['generator_view'],decision.get('response_policy'),query=text,purpose='generator'),'persona_view_revision':persona_view['version_id'],
+                        'decision':decision,'style':style,'interaction_plan':interaction_plan,
+                        'response_policy':decision.get('response_policy'),'boundary_requirements':conditions.get('boundary_requirements',{})}
+                    repair_task={'input':text,'candidate':reply,'inspection':checked,'hard_constraints':check_context['hard_constraints'],'actual_tool_receipts':[]}
+                    reply,reply_parts,expression_protocol,expression_check=parse_expression(provider.complete([
+                        {'role':'system','content':REALIZE+'\n条件：'+dumps(repair_conditions)},
+                        {'role':'user','content':'[CANDIDATE_REPAIR_V221] 修正已证实的问题，完成原任务；可以同时回答和反问。只输出实际回复。\n'+dumps(repair_task)}]))
                 run.update(candidate_status='VALIDATED',candidate_chars=len(reply),candidate_digest=hashlib.sha256(reply.encode()).hexdigest());self.journal.save(run)
             else:run['candidate_status']='NO_ACTION'
             interaction_plan['realization']={'protocol':expression_protocol,'generated_bubbles':len(reply_parts),'check':expression_check,
                 'pragmatic_check':checked['pragmatic_check'] if reply else {'status':'no_action'}}
             if interaction_plan.get('layout_decision'):interaction_plan['layout_decision']['bubbles']=len(reply_parts)
+            if drive_v2_draft is not None and drive_result is not None:
+                from . import expression_drive as ed
+                drive_v2_draft,drive_result=ed.enrich_motive_from_planning(
+                    drive_v2_draft,drive_result,session['scope'],person,
+                    deliberation=proposal_discussion,decision=decision,interaction_plan=interaction_plan,
+                    generated_parts=reply_parts,at=now(),phase='generated'
+                )
             run['interaction_plan']=interaction_plan
             turn_id=run['turn_id'];ts=now();user_record={'id':turn_id+':u','speaker':person,'text':text,'context':history[-1]['content'] if history else '', 'source':'observed','batch_id':turn_id,'event_id':turn_id,'scope':session['scope'],'timestamp':ts}
             self_record={'id':turn_id+':a','speaker':p['id'],'text':reply,'context':text,'source':'generated','batch_id':turn_id,'event_id':turn_id,'scope':session['scope'],'timestamp':ts}
@@ -696,7 +1005,11 @@ class Engine(MemoryOperations,PMMVersions):
             else:
                 try:
                     feedback_provider=pmm_api.provider if pmm_api else provider
-                    feedback=feedback_provider.complete([{'role':'system','content':FEEDBACK},{'role':'user','content':dumps({'user_record':user_record,'self_record':self_record,'prior_interactions':self.formation.interactions(session['scope'],person),'disposition_registry':tr.DISPOSITION_REGISTRY,'previous_emotion':activity,'decision':decision,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS,'memories':memory_context(memories),'boundary_feedback':u.get('boundary_feedback',{}),'boundary_states':boundary_states,'claim_memory':self.claims.recent(session['scope'])})}],structured=True)
+                    feedback_context={'user_record':user_record,'self_record':self_record,'prior_interactions':self.formation.interactions(session['scope'],person),'disposition_registry':tr.DISPOSITION_REGISTRY,'previous_emotion':activity,'decision':decision,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS,'memories':memory_context(memories),'boundary_feedback':u.get('boundary_feedback',{}),'boundary_states':boundary_states,'claim_memory':self.claims.recent(session['scope'])}
+                    if full:
+                        from .prompt_compiler import feedback as compile_feedback
+                        feedback_context=compile_feedback(feedback_context)
+                    feedback=feedback_provider.complete([{'role':'system','content':FEEDBACK},{'role':'user','content':dumps(feedback_context)}],structured=True)
                     feedback=validate_feedback(feedback)
                     target={k:clamp(feedback['self_appraisal'][k],-1 if k=='valence' else 0,1) for k in STATE_KEYS}
                     self_report,self_gate=learn.live_report(self,'self',feedback.get('self_observations',{}),session)
@@ -751,24 +1064,81 @@ class Engine(MemoryOperations,PMMVersions):
             dyads[dy.key(person,session['scope'])]=updated_dyad
             memory_log=[];codes=self.store.meta('pmm_memory_codes') or {}
             if telemetry.get('precommit') and decision['action']!='silence':telemetry['precommit']()
-            trace={'turn_id':turn_id,'session_id':sid,'identity_id':p['id'],'model':c['model'],'llm_protocol':c['provider'],'pmm_mode':self.mode(),'pmm_backend':'api' if pmm_api else self.model.backend,'pmm_model':c['pmm']['api']['model'] if pmm_api else self.model.info()['model_id'],'pmm_before_sha256':digest(self.model.export()),'pmm_after_sha256':digest(candidate.export()),'api_calls':getattr(provider,'calls',[]),'pmm_api_calls':getattr(pmm_api.provider,'calls',[]) if pmm_api else [],'scope':session['scope'],'person':person,
-                   'turn_context':telemetry['turn_context'],'timing':telemetry['timing'](),'visual_observation':telemetry.get('media') if decision['action'] not in ('silence','decline','unknown') else [],'consolidation_deferred':deferred,'critical_event':bool(critical),'deliberation':deliberation,'registry_contract':CONTRACT,'relationship_update':dyad_report,'understanding':u,'decision':decision,'projections':views,'rounds':rounds,'decoded':decoded,'style':style,
+            drive_pre_outcome_draft=copy.deepcopy(drive_v2_draft) if drive_v2_draft is not None else None
+            emotion_pre_feedback_draft=copy.deepcopy(emotion_v2_draft) if emotion_v2_draft is not None else None
+            if drive_v2_draft is not None and drive_result is not None:
+                from . import expression_drive as ed, affect_runtime as ar
+                has_def_step=bool(interaction_plan.get('deferred_user_reply_steps')) or drive_result.get('expressive_intent')=='DEFER'
+                outcome_kind='delivered_full' if (decision['action']!='silence' and reply) else 'policy_silence'
+                cog_id=(telemetry.get('turn_context') or {}).get('cognitive_decision',{}).get('cognitive_id')
+                drive_v2_draft,updated_motive=ed.apply_delivery_outcome(
+                    drive_v2_draft,session['scope'],person,outcome_kind,
+                    at=ts,reason=decision.get('reason',''),delivered_parts=len(reply_parts),
+                    planned_parts=len(reply_parts),has_deferred_step=has_def_step,interaction_kind=interaction_plan.get('interaction_kind','final_reply'),
+                    deferred_steps=interaction_plan.get('deferred_user_reply_steps'),
+                    turn_id=turn_id,source_message_ids=run.get('input_event_ids') or [event['id']],
+                    persisted_user_ids=[turn_id+':u'],
+                    persisted_assistant_ids=[turn_id+':a:'+str(i) for i in range(len(reply_parts))] if (decision['action']!='silence' and reply) else [],
+                    cognitive_event_id=cog_id,pmm_event_id=event['id'],user_text=text
+                )
+                ed_feedback=ed.feedback_to_emotion_appraisal(
+                    drive_result,outcome_kind,understanding=u,relation=relation,
+                    feedback_id=f"efb:{event['id']}:{outcome_kind}"
+                )
+                ar_fb_res=None
+                if emotion_v2_draft is not None:
+                    ar_model=ar.model_for(self.store)
+                    emotion_v2_draft,ar_fb_res=ar.apply_expression_feedback(
+                        emotion_v2_draft,ar_model,newp,event,ts,ed_feedback,relation=relation,standalone=False
+                    )
+                    if ar_fb_res and ar_fb_res.get('updated') and pmm28_trace and 'components' in pmm28_trace and 'affect' in pmm28_trace['components']:
+                        dyn=pmm28_trace['components']['affect']['payload'].get('dynamics_v2')
+                        if isinstance(dyn,dict):
+                            dyn.setdefault('pre_expression_fast_state_latent',copy.deepcopy(dyn.get('fast_state_latent')))
+                            dyn.setdefault('pre_expression_slow_mood_latent',copy.deepcopy(dyn.get('slow_mood_latent')))
+                            dyn.setdefault('pre_expression_affect_observed',copy.deepcopy(dyn.get('affect_observed')))
+                            dyn.setdefault('pre_expression_mood_observed',copy.deepcopy(dyn.get('mood_observed')))
+                            dyn['fast_state_latent']=copy.deepcopy(ar_fb_res['fast_state_latent'])
+                            dyn['slow_mood_latent']=copy.deepcopy(ar_fb_res['slow_mood_latent'])
+                            dyn['post_expression_affect_observed']=copy.deepcopy(ar_fb_res['affect_observed'])
+                            dyn['post_expression_mood_observed']=copy.deepcopy(ar_fb_res['mood_observed'])
+                            dyn['expression_feedback']=copy.deepcopy(ar_fb_res)
+                            dyn['expressive_drive_feedback']=copy.deepcopy(ar_fb_res)
+                        if full:
+                            affect_draft['emotion'].update(ar_fb_res['affect_observed'])
+                            affect_draft['mood'].update(ar_fb_res['mood_observed'])
+                            if affect_draft.get('appraisals'):
+                                affect_draft['appraisals'][-1]['post_expression_feedback']=copy.deepcopy(ar_fb_res)
+                drive_result={**drive_result,'post_execution_outcome':outcome_kind,
+                              'status':updated_motive['status'] if updated_motive else drive_result.get('status'),
+                              'active_motive':updated_motive or drive_result.get('active_motive'),
+                              'intended_expression':(updated_motive or {}).get('intended_expression',drive_result.get('intended_expression')),
+                              'emotion_feedback':ar_fb_res or ed_feedback}
+                if pmm28_trace and 'components' in pmm28_trace and 'expressive_drive' in pmm28_trace['components']:
+                    pmm28_trace['components']['expressive_drive']['payload']=copy.deepcopy(drive_result)
+                run['expressive_drive']=copy.deepcopy(drive_result)
+            trace={'turn_id':turn_id,'session_id':sid,'identity_id':p['id'],'model':c['model'],'llm_protocol':c['provider'],'pmm_mode':self.mode(),'pmm_backend':'api' if decoded.get('mode')=='api' else self.model.backend,'pmm_model':c['pmm']['api']['model'] if decoded.get('mode')=='api' else self.model.info()['model_id'],'pmm_before_sha256':digest(self.model.export()),'pmm_after_sha256':digest(candidate.export()),'api_calls':getattr(provider,'calls',[]),'pmm_api_calls':[call for client in telemetry['clients'][1:] for call in getattr(client,'calls',[])],'scope':session['scope'],'person':person,
+                   'turn_context':telemetry['turn_context'],'timing':telemetry['timing'](),'event_packet':event_packet,'cognitive_route':cognitive_route,'persona_version_id':persona_view['version_id'],'proposal_discussion':proposal_discussion,'visual_observation':telemetry.get('media') if decision['action'] not in ('silence','decline','unknown') else [],'consolidation_deferred':deferred,'critical_event':bool(critical),'deliberation':deliberation,'registry_contract':CONTRACT,'relationship_update':dyad_report,'understanding':u,'decision':decision,'projections':views,'rounds':rounds,'decoded':decoded,'style':style,
                    'style_actual':style_vector(reply),'style_retry':style_retry,'style_over_budget':bool(style['max_chars'] and len(reply)>style['max_chars']),
                    'retrieved':memories,'memory_changes':memory_log,'before':before,'after':nextstate,'activity':newactivity,'trait_affect':{**layer_trace,'expression_plan':expression_plan,'turn_id':turn_id,'provider_usage':[r for client in telemetry['clients'] for r in getattr(client,'calls',[])]},
+                   'expressive_drive':copy.deepcopy(drive_result),
                    'decision_inputs':controlled_inputs,'decision_conditions':decision_conditions,'feedback':feedback,'training_x':x.tolist(),'training_target':target,'reply':reply,'reply_parts':reply_parts,'interaction_plan':interaction_plan,'warning':warning,
                    'interlocutor_key':other_key,'self_revision':newp['revision'],'interlocutor_revision':newother['revision']}
             if pmm28_trace:
                 pmm28_trace['official_decision']={'action':decision['action'],'gate':decision['gate']}
+                pmm28_trace['role_retrieval']=copy.deepcopy(run.get('role_retrieval',[]))
+                pmm28_trace['role_consistency']=copy.deepcopy((run.get('candidate_inspection') or {}).get('role_consistency',{'status':'not_run'}))
+                pmm28_trace['persona_version_id']=persona_view['version_id']
                 if full and 'components' in pmm28_trace:
                     nodes=pmm28_trace['components'];called=decision['action']!='silence'
-                    nodes['expression']={'outside_pmm':True,'executed':called,'status':'ok' if called else 'disabled','reason':None if called else 'policy_silence','elapsed_ms':expression_elapsed if called else 0.,'model_versions':{'General LLM':c['model']},'input_summary':{'regulation':expression_plan.get('regulation_v2',{}).get('strategy')},'output_summary':{'characters':len(reply),'parts':len(reply_parts)},'applied_to':['candidate_reply'] if called else []}
+                    nodes['expression']={'outside_pmm':True,'executed':called,'status':'ok' if called else 'disabled','reason':None if called else 'policy_silence','elapsed_ms':expression_elapsed if called else 0.,'model_versions':{'General LLM':c['model']},'input_summary':{'regulation':expression_plan.get('regulation_v2',{}).get('strategy'),'expressive_intent':(drive_result or {}).get('expressive_intent')},'output_summary':{'characters':len(reply),'parts':len(reply_parts)},'applied_to':['candidate_reply'] if called else []}
                     for key,node in nodes.items():
                         if not nodes['negotiation'].get('executed') or nodes['negotiation'].get('status')=='failed':node['applied_to']=[x for x in node.get('applied_to',[]) if x!='B']
                         if not called:node['applied_to']=[x for x in node.get('applied_to',[]) if x!='expression']
                         if node.get('status')=='failed':node['applied_to']=[]
                     nodes['decision']['payload']['official_action']=decision['action'];nodes['decision']['payload']['official_gate']=decision['gate']
                     pmm28_trace['execution_order']+=['negotiation','policy','expression']
-                    pmm28_trace['dependencies'] += [['affect','negotiation'],['neural','negotiation'],['relationship','negotiation'],['memory','negotiation'],['negotiation','policy'],['decision','policy'],['affect','expression'],['policy','expression']]
+                    pmm28_trace['dependencies'] += [['affect','negotiation'],['neural','negotiation'],['relationship','negotiation'],['memory','negotiation'],['expressive_drive','negotiation'],['negotiation','policy'],['decision','policy'],['expressive_drive','policy'],['affect','expression'],['expressive_drive','expression'],['policy','expression']]
                     blocked={k for k,n in nodes.items() if not n.get('executed') or n.get('status')=='failed'}
                     pmm28_trace['dependencies']=[pair for pair in pmm28_trace['dependencies'] if not blocked.intersection(pair)]
                 trace['pmm28']=pmm28_trace
@@ -777,9 +1147,15 @@ class Engine(MemoryOperations,PMMVersions):
                 affect_draft=archive_view(self.store.meta('pmm_affect'),affect_draft)
             meta=dict([('state',nextstate),('pmm_profile',newp),('pmm_affect',affect_draft),('pmm_interlocutors',others),('pmm_memory_codes',codes),('pmm_checkpoint',candidate.export()),('pmm_training_records',pending),('pmm_expression',expression),('pmm_dyads',dyads)])
             if emotion_v2_draft is not None:meta['pmm281_affect']=emotion_v2_draft
+            if drive_v2_draft is not None:meta['pmm283_expression_drive']=drive_v2_draft
             plan={'format':'turn-commit/1','turn_id':turn_id,'session':session,'text':text,'reply':reply,'at':ts,'expected_turn_count':before['turn_count'],'expected_profile_revision':p['revision'],'history_empty':not history,'metadata':meta,'relation':relation,'feedback':feedback,'memories':memories,'understanding':u,'user_record':user_record,'self_record':self_record,'trace':trace,'deferred':deferred,'critical':bool(critical),'training_x':x.tolist(),'turn_context':telemetry['turn_context'],'boundary_rows':boundary_rows}
             plan.update(reply_parts=reply_parts,interaction_plan=interaction_plan)
-            if emotion_v2_draft is not None:plan['expected_emotion_revision']=expected_emotion_revision
+            if emotion_v2_draft is not None:
+                plan['expected_emotion_revision']=expected_emotion_revision
+                plan['emotion_pre_feedback_draft']=emotion_pre_feedback_draft
+            if drive_v2_draft is not None:
+                plan['expected_drive_revision']=expected_drive_revision
+                plan['drive_pre_outcome_draft']=drive_pre_outcome_draft
             plan['learning_audit']={'self_before':p,'other_before':other,'gates':{d:learn.permission(self,d,session['scope'],person,observed_only=not session['direct_interaction']) for d in learn.DOMAINS}}
             with self.store.lock:
                 if telemetry.get('valid') and not telemetry['valid']():
@@ -828,9 +1204,47 @@ class Engine(MemoryOperations,PMMVersions):
             existing=st.rows('SELECT payload FROM events WHERE id=?',(turn_id+':partial',))
             affect=st.meta('pmm_affect')
             if not existing and st.meta('state')['turn_count']==plan['expected_turn_count']:
+                if 'pmm283_expression_drive' in plan['metadata']:
+                    from . import expression_drive as ed, affect_runtime as ar
+                    if st.meta(ed.KEY)['revision']!=plan.get('expected_drive_revision'):raise ValueError('表达欲提交版本冲突')
+                    base_drive=plan.get('drive_pre_outcome_draft') or plan['metadata']['pmm283_expression_drive']
+                    all_planned=plan.get('reply_parts',[])
+                    unsent_suffix=all_planned[len(parts):] if len(all_planned)>len(parts) else []
+                    partial_drive,partial_motive=ed.apply_delivery_outcome(
+                        base_drive,plan['session']['scope'],plan['session']['person'],'delivered_partial',
+                        at=now(),reason='partial_delivery_interrupted',delivered_parts=len(parts),
+                        planned_parts=len(all_planned),unsent_parts=unsent_suffix,
+                        deferred_steps=(plan.get('interaction_plan') or {}).get('deferred_user_reply_steps'),
+                        turn_id=turn_id,source_message_ids=(plan.get('turn_context') or {}).get('sources') or [turn_id],
+                        persisted_user_ids=[turn_id+':u'],
+                        persisted_assistant_ids=[turn_id+':a:'+str(i) for i in range(len(parts))],
+                        user_text=plan.get('text','')
+                    )
+                    st.setmeta(ed.KEY,partial_drive)
+                    if isinstance(trace.get('expressive_drive'),dict):
+                        trace['expressive_drive'].update(
+                            post_execution_outcome='delivered_partial',
+                            status=partial_motive['status'] if partial_motive else 'partially_satisfied',
+                            active_motive=partial_motive,
+                            intended_expression=(partial_motive or {}).get('intended_expression')
+                        )
                 if 'pmm281_affect' in plan['metadata']:
+                    from . import expression_drive as ed, affect_runtime as ar
                     if st.meta('pmm281_affect')['revision']!=plan['expected_emotion_revision']:raise ValueError('情绪提交版本冲突')
-                    st.setmeta('pmm281_affect',plan['metadata']['pmm281_affect'])
+                    emo_base=plan.get('emotion_pre_feedback_draft') or plan['metadata']['pmm281_affect']
+                    if isinstance(trace.get('expressive_drive'),dict):
+                        ed_fb_part=ed.feedback_to_emotion_appraisal(
+                            trace['expressive_drive'],'delivered_partial',
+                            understanding=plan.get('understanding'),relation=plan.get('relation'),
+                            feedback_id=f"efb:{turn_id}:delivered_partial"
+                        )
+                        ar_model=ar.model_for(st)
+                        ev_obj={'id':trace['expressive_drive'].get('event_id',turn_id),'text':plan['text'],'scope':plan['session']['scope'],'person':plan['session']['person'],'session_id':plan['session']['id']}
+                        emo_base,ar_fb_part=ar.apply_expression_feedback(
+                            emo_base,ar_model,plan['metadata']['pmm_profile'],ev_obj,now(),ed_fb_part,relation=plan.get('relation'),standalone=False
+                        )
+                        trace['expressive_drive']['emotion_feedback']=ar_fb_part
+                    st.setmeta('pmm281_affect',emo_base)
                 affect=plan['metadata'].get('pmm_affect') or affect;nextstate=copy.deepcopy(plan['metadata']['state']);st.setmeta('state',nextstate)
             expression=(trace.get('trait_affect') or {}).get('expression_plan')
             if affect and expression:
@@ -841,7 +1255,9 @@ class Engine(MemoryOperations,PMMVersions):
             memory_gate=learn.permission(self,'memory',plan['session']['scope'],plan['session']['person'])
             if memory_gate['allowed'] and memory_gate['mode']=='automatic':
                 if ep:st.db.execute('UPDATE memories SET content=?,updated_at=? WHERE id=? AND status=\'active\'',(content,now(),ep[0]['id']))
-                else:self.add_memory(content,'episode',plan['session'],turn_id,plan['text'][:2000],1.,.4)
+                else:ep=[{'id':self.add_memory(content,'episode',plan['session'],turn_id,plan['text'][:2000],1.,.4)}]
+                if row['status']!='DELIVERY_UNKNOWN':
+                    trace['experience_memory']=self.learning.experiences.capture(ep[0]['id'],{**plan,'trace':trace,'reply':reply},row)
             st.setmeta('pmm_pragmatics',pg.observe(st.meta('pmm_pragmatics'),turn_id,plan.get('interaction_plan',{}),parts,receipts,row['status'],row['receipt'].get('steps')))
             queued=bool(existing and json.loads(existing[0]['payload']).get('learning_queued'))
             if row['status']!='DELIVERY_UNKNOWN' and plan.get('interaction_plan') and not queued:
@@ -879,6 +1295,7 @@ class Engine(MemoryOperations,PMMVersions):
                 return {'turn_id':turn_id,'reply':trace.get('reply',plan['reply']),'reply_parts':trace.get('reply_parts',[]),'action':trace['decision']['action'],'state':st.meta('state'),'trace':trace,'warning':'已存在提交，不重复学习','model':self.model_info()}
             if st.meta('state')['turn_count']!=plan['expected_turn_count'] or self.profile()['revision']!=plan['expected_profile_revision']:raise ValueError('已发送回复待恢复，但主体状态已经变化；保留回执与恢复计划，不覆盖新状态')
             if 'pmm281_affect' in meta and st.meta('pmm281_affect')['revision']!=plan.get('expected_emotion_revision'):raise ValueError('情绪提交版本冲突；保留回执和原状态')
+            if 'pmm283_expression_drive' in meta and (st.meta('pmm283_expression_drive') or {}).get('revision',0)!=plan.get('expected_drive_revision'):raise ValueError('表达欲提交版本冲突；保留回执和原状态')
             text=plan['text'];reply=plan['reply'];ts=plan['at'];u=plan['understanding'];feedback=plan['feedback'];memories=plan['memories'];codes=meta['pmm_memory_codes'];decision=trace['decision'];context=plan['turn_context'];memory_log=[]
             st.db.execute('INSERT OR IGNORE INTO messages VALUES (?,?,?,?,?,?)',(turn_id+':u',sid,'user',text,ts,turn_id))
             parts=plan.get('reply_parts') or [reply]
@@ -893,6 +1310,7 @@ class Engine(MemoryOperations,PMMVersions):
             memory_gate=learn.permission(self,'memory',session['scope'],person,observed_only=not session.get('direct_interaction',True))
             if memory_gate['allowed'] and memory_gate['mode']=='automatic':
                 ep=self.add_memory(f'对方：{text[:2000]}\n我：{reply[:2000]}' if reply else f'对方：{text[:2000]}\n本轮未发言。','episode',session,turn_id,text[:2000],1.,.4);codes[ep]=u['semantic']
+                trace['experience_memory']=self.learning.experiences.capture(ep,plan,delivery)
             if meta.get('pmm_affect') and trace.get('trait_affect'):
                 layer=trace['trait_affect'];outbox=self.journal.outbox(turn_id)
                 acknowledged=any(row['status']=='ACKNOWLEDGED' and row['receipt'].get('message_id') is not None for row in outbox)
@@ -950,18 +1368,83 @@ class Engine(MemoryOperations,PMMVersions):
         return {'turn_id':turn_id,'reply':plan['reply'],'reply_parts':plan.get('reply_parts',parts),'action':decision['action'],'state':meta['state'],'trace':trace,'warning':trace.get('warning',''),'model':self.model_info()}
 
     def commit_social(self,plan):
-        st=self.store;turn_id=plan['turn_id'];receipt=self.journal.outbox(turn_id)[0]['receipt']
+        st=self.store;turn_id=plan['turn_id'];attempt_id=plan.get('attempt_id') or turn_id
+        outbox_rows=self.journal.outbox(turn_id)
+        if outbox_rows:
+            outbox_row=outbox_rows[0]
+            if outbox_row.get('id')!=turn_id:
+                raise ValueError('主动联系 Outbox 记录与发送计划 turn_id 不匹配，保留回执待核对')
+            if outbox_row.get('status') not in ('ACKNOWLEDGED','COMMITTED'):
+                raise ValueError('主动联系 Outbox 尚未收到有效 ACK，拒绝提前提交')
+            receipt=copy.deepcopy(outbox_row.get('receipt') or {})
+        else:
+            receipt=copy.deepcopy(plan.get('delivery_receipt') or {})
+        if isinstance(plan.get('delivery_receipt'),dict):
+            for rk,rv in plan['delivery_receipt'].items():
+                if rk in ('turn_id','attempt_id','motive_id','message_id') and rk in receipt and receipt[rk] is not None and rv is not None and str(receipt[rk])!=str(rv):
+                    raise ValueError(f'主动联系发送回执字段 {rk} 与发送计划不一致，保留回执待核对')
+                receipt.setdefault(rk,rv)
+        if receipt.get('turn_id') and str(receipt['turn_id'])!=str(turn_id):
+            raise ValueError('主动联系 ACK 回执 turn_id 与发送计划不匹配，保留回执待核对')
+        if receipt.get('attempt_id') and str(receipt['attempt_id'])!=str(attempt_id):
+            raise ValueError('主动联系 ACK 回执 attempt_id 与发送计划不匹配，保留回执待核对')
+        profile=self.profile()
+        if plan.get('persona_id') and plan['persona_id']!=profile['id']:
+            raise ValueError('主动联系发送计划不属于当前人格主体，保留回执待核对')
+        plan_has_motive_key='motive_id' in plan
+        target_motive_id=plan.get('motive_id')
+        if receipt.get('motive_id') is not None and target_motive_id is not None and str(receipt['motive_id'])!=str(target_motive_id):
+            raise ValueError('主动联系 ACK 回执 motive_id 与发送计划不匹配，保留回执待核对')
+        from . import expression_drive as ed, affect_runtime as ar
         with st.lock,st.db:
-            if not st.rows('SELECT id FROM sessions WHERE id=?',(plan['session_id'],)):raise ValueError('已发送主动消息的原会话不存在，保留待恢复状态')
-            if not st.rows('SELECT id FROM messages WHERE turn_id=?',(turn_id,)):
-                st.db.execute('INSERT INTO messages VALUES (?,?,?,?,?,?)',(uid(),plan['session_id'],'assistant',plan['reply'],plan['at'],turn_id))
-                st.event('social_sent',{'scope':plan['scope'],'attempt_id':turn_id,'status':'sent','message_id':receipt.get('message_id')})
-            attempts=st.meta('social_attempts') or []
+            session_rows=st.rows('SELECT * FROM sessions WHERE id=?',(plan['session_id'],))
+            if not session_rows:raise ValueError('已发送主动消息的原会话不存在，保留待恢复状态')
+            session=session_rows[0]
+            if session.get('scope') and plan.get('scope') and session['scope']!=plan['scope']:
+                raise ValueError('主动联系发送计划 scope 与原会话不一致，保留待恢复状态')
+            person=plan.get('person') or session['person']
+            attempts=copy.deepcopy(st.meta('social_attempts') or [])
+            matched_attempt=next((a for a in attempts if a.get('id') in (turn_id,attempt_id) or a.get('attempt_id')==attempt_id),None)
+            if matched_attempt and matched_attempt.get('motive_id') is not None and target_motive_id is not None and str(matched_attempt['motive_id'])!=str(target_motive_id):
+                raise ValueError('主动联系发送计划 motive_id 与待发送尝试记录不一致，保留回执待核对')
+            msg_id=plan.get('message_row_id') or (turn_id+':a:0')
+            existing_msg=st.rows('SELECT id FROM messages WHERE turn_id=?',(turn_id,))
+            base_drive=st.meta(ed.KEY)
+            if base_drive is None:base_drive=ed.empty_state(profile['id'])
+            base_affect=st.meta(ar.KEY)
+            affect_model=ar.model_for(st) if base_affect is not None else None
+            # Pre-compute pure state drafts BEFORE any table mutation so the entire commit is atomic
+            prepared=ed.prepare_proactive_outcome_draft(
+                base_drive,base_affect,affect_model,profile,plan['scope'],person,'sent',
+                at=plan['at'],reason='proactive_social_sent',turn_id=turn_id,attempt_id=attempt_id,
+                target_motive_id=target_motive_id,motive_id_explicit=True,
+                delivery_receipt=receipt,
+                persisted_message_id=existing_msg[0]['id'] if existing_msg else msg_id,
+                source_message_ids=plan.get('source_event_ids') or [],
+                relation=plan.get('relation')
+            )
+            ed.validate(prepared['drive_draft'],profile['id'])
+            if prepared['affect_draft'] is not None and prepared['affect_feedback'] and prepared['affect_feedback'].get('updated'):
+                ar.validate(prepared['affect_draft'],profile['id'])
+            if not existing_msg:
+                st.db.execute('INSERT INTO messages VALUES (?,?,?,?,?,?)',(msg_id,plan['session_id'],'assistant',plan['reply'],plan['at'],turn_id))
+                st.event('social_sent',{'scope':plan['scope'],'attempt_id':attempt_id,'turn_id':turn_id,'motive_id':target_motive_id,'status':'sent','message_id':receipt.get('message_id')})
+            if not prepared['already_applied']:
+                st.setmeta(ed.KEY,prepared['drive_draft'])
+                if prepared['affect_draft'] is not None and prepared['affect_feedback'] and prepared['affect_feedback'].get('updated'):
+                    st.setmeta(ar.KEY,prepared['affect_draft'])
+                    legacy_aff=st.meta('pmm_affect')
+                    if isinstance(legacy_aff,dict):
+                        legacy_aff=copy.deepcopy(legacy_aff)
+                        legacy_aff['emotion'].update(prepared['affect_feedback']['affect_observed'])
+                        legacy_aff['mood'].update(prepared['affect_feedback']['mood_observed'])
+                        st.setmeta('pmm_affect',legacy_aff)
             for a in attempts:
-                if a['id']==turn_id:a.update(status='sent',message_id=receipt.get('message_id'))
+                if a.get('id') in (turn_id,attempt_id) or a.get('attempt_id')==attempt_id:
+                    a.update(status='sent',message_id=receipt.get('message_id'),motive_id=target_motive_id if plan_has_motive_key else a.get('motive_id'))
             st.setmeta('social_attempts',attempts)
         self.journal.committed(turn_id)
-        return {'turn_id':turn_id,'reply':plan['reply'],'action':'reply'}
+        return {'turn_id':turn_id,'attempt_id':attempt_id,'motive_id':target_motive_id,'motive':prepared.get('motive'),'reply':plan['reply'],'action':'reply','already_applied':prepared['already_applied']}
 
     def recover_delivered(self):
         if not hasattr(self,'journal'):return []
@@ -1114,10 +1597,10 @@ class Engine(MemoryOperations,PMMVersions):
             net=self.store.meta('pmm28_models') or {};emotion=self.store.meta('pmm281_affect_models') or {}
             active_net=net.get('versions',{}).get(net.get('published'),{});active_em=emotion.get('versions',{}).get(emotion.get('active') or emotion.get('seed'),{})
             data=list((self.store.meta('pmm28_samples') or {}).get('rows',{}).values());accepted=sum(not v.get('withdrawn') for v in data)
-            return {'mode':'full','backend':'coordinated','architecture':'A 事件理解 → 情绪与心境 → 人格神经 → 按需 B 协商 → 行动与表达条件','model_id':'PMM 2.8.1',
+            return {'mode':'full','backend':'coordinated','architecture':'A 事件理解 → 情绪与心境 → 人格神经 → 表达欲动态中介 → 按需 B 协商 → 行动与表达条件','model_id':'PMM 2.8.3',
                 'registry_contract':CONTRACT,'field_coverage':info['field_coverage'],'deliberation':cfg['deliberation'],'steps':active_net.get('steps',0),'samples':accepted,
                 'train_samples':len(net.get('datasets',{}).get(net.get('published'),[])),'heldout_samples':0,'pending_samples':len(self.store.meta('pmm_training_records') or []),'metrics':{},
-                'status':'人格网络与情绪动力学参与每轮计算','checkpoint_sha256':info['checkpoint_sha256'],'neural_published':net.get('published'),
+                'status':'人格网络、情绪动力学与表达欲中介参与每轮计算','checkpoint_sha256':info['checkpoint_sha256'],'neural_published':net.get('published'),
                 'emotion_steps':active_em.get('steps',0),'emotion_calibration':active_em.get('calibration',{}).get('status','unvalidated'),'emotion_published':emotion.get('active'),
                 'preserved_weights':{'model_id':info['model_id'],'steps':info['steps']},'note':'候选训练、独立校准和发布状态分别见模型训练页。'}
         if mode!='api':return {**info,'mode':mode,'pending_samples':len(self.store.meta('pmm_training_records') or [])}
