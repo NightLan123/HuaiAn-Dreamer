@@ -84,7 +84,7 @@ def validate(profile):
         if not isinstance(f,dict) or not isinstance(f.get('evidence'),list):raise ValueError('长期习惯证据无效')
         if f.get('estimate') is not None:
             number(f['estimate']);number(f.get('uncertainty'))
-            if f.get('source_type') not in ('owner_seed','questionnaire','promoted_evidence','legacy_engineering'):raise ValueError('长期习惯必须注明来源')
+            if f.get('source_type') not in ('owner_seed','questionnaire','promoted_evidence','experience_derived','legacy_engineering'):raise ValueError('长期习惯必须注明来源')
             if f['source_type']=='questionnaire':validate_measurement(k,f.get('measurement'))
         elif f.get('uncertainty') is not None:raise ValueError('未知习惯不得伪造置信度')
     if not isinstance(t.get('disposition_observations'),list) or not isinstance(t.get('promotion_history'),list):raise ValueError('长期人格证据日志无效')
@@ -92,7 +92,10 @@ def validate(profile):
     records={r['id']:r for r in profile['source_records']+profile['psychology'].get('evidence_records',[])}
     for r in records.values():
         if r.get('subject_entity')=='agent_self':
-            if r.get('source') not in ('human','observed','imported') or r.get('evidence_kind') not in ('external_feedback','owner_evaluation') or not all(isinstance(r.get(k),str) and r[k] for k in ('scope','experience_turn_id','experience_event_key')) or event_time({'timestamp':r.get('experience_timestamp')}) is None:raise ValueError('自身经历的外部评价来源无效')
+            if r.get('source') not in ('human','observed','imported') or r.get('evidence_kind') not in ('external_feedback','owner_evaluation','experienced_event') or not all(isinstance(r.get(k),str) and r[k] for k in ('scope','experience_turn_id','experience_event_key')) or event_time({'timestamp':r.get('experience_timestamp')}) is None:raise ValueError('自身经历的外部评价来源无效')
+            if r.get('evidence_kind')=='experienced_event' and (not isinstance(r.get('memory_id'),str) or not r.get('experience_context_label')):raise ValueError('经历来源缺少记忆或情境引用')
+            if r.get('evidence_channel')=='delivered_action' and not r.get('withdrawn') and not confirmed_behavior(r,records):
+                raise ValueError('行为证据缺少送达依据或同一经历的事件原文')
             if 'experience_context' in r:
                 c=r['experience_context']
                 if not isinstance(c,dict) or not all(isinstance(c.get(k),str) and c[k] for k in ('label','quote','source')) or r.get('experience_context_key')!=digest([r['scope'],c['label']]):raise ValueError('自身经历的情境来源无效')
@@ -102,6 +105,18 @@ def validate(profile):
         if not o.get('evidence') or not isinstance(o['evidence'],list):raise ValueError('长期习惯观察缺少证据')
         for e in o['evidence']:
             if not isinstance(e,dict) or e.get('record_id') not in records or not isinstance(e.get('quote'),str) or not e['quote'] or e['quote'] not in records[e['record_id']]['text']:raise ValueError('长期习惯观察证据不匹配')
+
+def confirmed_behavior(record,records):
+    event=records.get(record.get('external_record_id')) or {}
+    qq='qq' in str(record.get('scope','')).split(':')
+    return (record.get('evidence_channel')=='delivered_action' and record.get('evidence_kind')=='experienced_event'
+            and record.get('role')=='assistant' and record.get('source')=='observed' and not record.get('withdrawn')
+            and record.get('delivery_basis') in (('qq_ack','qq_ack_prefix') if qq else ('local_commit',))
+            and record.get('subject_entity')==event.get('subject_entity')=='agent_self'
+            and event.get('evidence_kind')=='experienced_event' and event.get('role') not in ('assistant','system','tool')
+            and not event.get('withdrawn') and all(record.get(k) and event.get(k)==record[k]
+            for k in ('scope','person','memory_id','experience_turn_id','experience_event_key')))
+
 
 def validate_measurement(k,m):
     if not isinstance(m,dict) or m.get('instrument')!=DISPOSITIONS[k]['instrument']:raise ValueError('量表名称与字段不匹配')
@@ -114,15 +129,23 @@ def validate_measurement(k,m):
 
 def snapshot(profile):
     p=ensure_traits(profile);t=p['trait_profile']
+    from .known_personality import operative_personality
+    operative=operative_personality(p)
     fields={k:copy.deepcopy(p['psychology']['features'][k]) for k in LONG_IDS}
+    for k,row in fields.items():
+        if k in operative:row.update(estimate=operative[k]['estimate'],posterior_uncertainty=operative[k]['posterior_uncertainty'])
+        else:row.update(estimate=None,posterior_uncertainty=None)
     return {'schema':SCHEMA,'persona_id':p['id'],'scope':t['scope'],'trait_version':t['version'],
+            'operative_personality':operative,
             'trait_digest':digest({'features':fields,'dispositions':t['dispositions'],'character':p.get('character',{}),'seed':p.get('seed','')}),
             'hexaco_facets':{k:v for k,v in fields.items() if k.startswith('hexaco.')},
             'value_priorities':{k:v for k,v in fields.items() if k.startswith('value.')},
             'interpersonal_dispositions':{k:v for k,v in fields.items() if k.startswith('social.')},
             'behavioral_dispositions':{k:v for k,v in fields.items() if k.startswith('style.')},
             'manual_seed':{'seed':p.get('seed',''),'character':copy.deepcopy(p.get('character',{}))},
-            'affective_disposition':{k:{n:copy.deepcopy(v.get(n)) for n in ('estimate','uncertainty','source_type','updated_at')} for k,v in t['dispositions'].items()},
+            'affective_disposition':{k:{**{n:copy.deepcopy(v.get(n)) for n in ('source_type','updated_at')},
+                'estimate':operative[k]['estimate'] if k in operative else None,
+                'uncertainty':operative[k]['posterior_uncertainty'] if k in operative else None} for k,v in t['dispositions'].items()},
             'interpretation':'工程表征；owner_seed 为主人设定，推断候选不等于正式量表分数'}
 
 def edit_disposition(profile,body):
@@ -196,13 +219,15 @@ def event_time(record):
         except ValueError:pass
     return None
 
-def review(profile,apply=False,strength=1.):
+def review(profile,apply=False,strength=1.,*,experience_only=False,review_at=None):
     """Separate slow job. Three events is necessary, never sufficient by count alone."""
     number(strength);p=ensure_traits(profile);t=p['trait_profile'];rows=[];changes=[]
+    at=now() if review_at is None else number(review_at,0,1e13)
     records={r['id']:r for r in p['source_records']+p['psychology'].get('evidence_records',[])}
     observations=p['psychology']['observations']+t['disposition_observations']
     for k in (*LONG_IDS,*DISPOSITIONS):
         obs=[o for o in observations if o['feature_id']==k and o.get('source') in ('imported','observed','human') and o.get('confidence',0)>=PROMOTION_POLICY['min_confidence'] and o.get('status') not in ('rejected','withdrawn')]
+        obs=[o for o in obs if all((records.get(e['record_id'],{}).get('evidence_kind')=='experienced_event')==experience_only for e in o['evidence'])]
         if not obs:continue
         from .evidence import identity
         def prior_events(h):
@@ -213,11 +238,12 @@ def review(profile,apply=False,strength=1.):
         for o in obs:
             valid=False
             for ev in o['evidence']:
-                r=records.get(ev['record_id'],{});timestamp=event_time({'timestamp':r.get('experience_timestamp')}) if r.get('subject_entity')=='agent_self' else event_time(r);timestamp=timestamp if timestamp and timestamp<=now()+300 else None;context=r.get('experience_context_key') or r.get('scope') or r.get('context_id') or r.get('conversation_id')
+                r=records.get(ev['record_id'],{});timestamp=event_time({'timestamp':r.get('experience_timestamp')}) if r.get('subject_entity')=='agent_self' else event_time(r);timestamp=timestamp if timestamp and timestamp<=at+300 else None;context=r.get('experience_context_key') or r.get('scope') or r.get('context_id') or r.get('conversation_id')
                 event=r.get('event_id') or r.get('source_event_id') or r.get('batch_id')
                 # batch_id deliberately prevents multiple quotes from one imported
                 # transcript or one generated turn counting as independent events.
                 if r.get('source')=='generated' or r.get('withdrawn') or not timestamp or not context or not event:continue
+                if r.get('evidence_channel')=='delivered_action' and not confirmed_behavior(r,records):continue
                 from .evidence import identity
                 event_key=r.get('experience_event_key') or identity(r)
                 if event_key in consumed:continue
@@ -229,11 +255,11 @@ def review(profile,apply=False,strength=1.):
         old=t['dispositions'][k] if k in DISPOSITIONS else p['psychology']['features'][k]
         reasons=[]
         if strength==0:reasons.append('学习强度为0，不晋升长期字段')
-        if len(events)<3:reasons.append('少于 3 个有来源的独立事件')
-        if len(contexts)<2:reasons.append('缺少跨情境证据')
-        if span<86400:reasons.append('证据跨度不足 24 小时或时间不明')
-        if spread>.4:reasons.append('存在显著反例，需要人工核对')
-        if old.get('source_type') in ('owner_seed','questionnaire'):reasons.append('明确设定/量表记录不能被聊天候选覆盖')
+        if len(events)<PROMOTION_POLICY['independent_events']:reasons.append(f"少于 {PROMOTION_POLICY['independent_events']} 个有来源的独立事件")
+        if len(contexts)<PROMOTION_POLICY['contexts']:reasons.append('缺少跨情境证据')
+        if span<PROMOTION_POLICY['span_seconds']:reasons.append(f"证据跨度不足 {PROMOTION_POLICY['span_seconds']/3600:g} 小时或时间不明")
+        if spread>PROMOTION_POLICY['max_spread']:reasons.append('存在显著反例，需要人工核对')
+        if old.get('source_type')=='questionnaire' or old.get('locked') or old.get('source_type')=='owner_seed' and not experience_only:reasons.append('锁定设定/量表记录不能被聊天候选覆盖')
         signature=digest({'feature_id':k,'independent_events':sorted(events)})
         def historic_events(h):
             after=h.get('after',{});ids=after.get('evidence_ids',[]) or [e['record_id'] for e in after.get('evidence',[])]
@@ -249,11 +275,14 @@ def review(profile,apply=False,strength=1.):
             votes.append(sum(v*w for v,w in unique)/sum(w for _,w in unique))
         mean=sum(votes)/len(votes)
         before=copy.deepcopy(old);previous=old['estimate']
-        value=mean if previous is None else previous+max(-.03*strength,min(.03*strength,mean-previous))
+        step=PROMOTION_POLICY['max_step']*strength
+        value=mean if previous is None else previous+max(-step,min(step,mean-previous))
         ids=sorted({e['record_id'] for e in evidence});uncertainty=max(.25,1-strength*len(events)/(len(events)+3))
-        if k in DISPOSITIONS:old.update(estimate=value,uncertainty=uncertainty,source_type='promoted_evidence',evidence=evidence,updated_at=now())
-        else:old.update(estimate=value,posterior_uncertainty=uncertainty,evidence_ids=ids,evidence_count=len(ids),source_type='promoted_evidence',updated_at=now(),method_version=PROMOTION_POLICY['version'],conflict=False)
-        changes.append({'id':uid(),'at':now(),'feature_id':k,'before':before,'after':copy.deepcopy(old),'evidence_signature':signature,'event_ids':sorted(events),'source_evidence':copy.deepcopy(evidence),'method':PROMOTION_POLICY['version'],'counterevidence_spread':spread,'independent_events':len(events),'contexts':len(contexts),'span_seconds':span})
+        source='experience_derived' if experience_only else 'promoted_evidence'
+        method='experienced-role-development/1' if experience_only else PROMOTION_POLICY['version']
+        if k in DISPOSITIONS:old.update(estimate=value,uncertainty=uncertainty,source_type=source,evidence=evidence,updated_at=now())
+        else:old.update(estimate=value,posterior_uncertainty=uncertainty,evidence_ids=ids,evidence_count=len(ids),source_type=source,updated_at=now(),method_version=method,conflict=False)
+        changes.append({'id':uid(),'at':at,'feature_id':k,'before':before,'after':copy.deepcopy(old),'evidence_signature':signature,'event_ids':sorted(events),'source_evidence':copy.deepcopy(evidence),'method':method,'measurement_claim':False,'counterevidence_spread':spread,'independent_events':len(events),'contexts':len(contexts),'span_seconds':span})
     if changes:
         t['promotion_policy']=copy.deepcopy(PROMOTION_POLICY)
         t['version']+=1;t['updated_at']=now();p['revision']+=1;p['updated_at']=now()
@@ -264,6 +293,8 @@ def review(profile,apply=False,strength=1.):
 def filter_template(profile,ids):
     """Drop scoped long-term evidence from a portable template, not live identity."""
     t=profile['trait_profile']
+    if 'role_development' in profile:
+        profile['role_development']=[n for n in profile['role_development'] if all(e['record_id'] in ids for e in n.get('evidence',[]))]
     t['disposition_observations']=[o for o in t['disposition_observations'] if all(e['record_id'] in ids for e in o['evidence'])]
     for k,f in t['dispositions'].items():
         if any(e['record_id'] not in ids for e in f['evidence']):t['dispositions'][k]={'estimate':None,'uncertainty':None,'source_type':'unknown','evidence':[],'updated_at':None,'measurement':None}
@@ -278,7 +309,9 @@ def promotion_records(profile,change):
     seen=set();out=[]
     for rid in ids:
         if rid not in records:continue
-        r=records[rid];key=r.get('experience_event_key') or identity(r)
+        r=records[rid]
+        if r.get('evidence_channel')=='delivered_action':continue
+        key=r.get('experience_event_key') or identity(r)
         if key in seen or r.get('withdrawn'):continue
         seen.add(key);out.append(r)
     return out

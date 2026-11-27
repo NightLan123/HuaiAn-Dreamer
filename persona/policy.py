@@ -27,11 +27,18 @@ def choose(understanding,profile,views,assessments,decoded,memories,text):
         r=byid.get(v['id'],{});utility=r.get('utilities',{})
         for a in ACTIONS:score[a]+=v['weight']*clamp(utility.get(a,0))
         summary.append({'id':v['id'],'label':v['label'],'weight':v['weight'],'summary':str(r.get('summary',''))[:400]})
-    for a in ACTIONS:score[a]+=.25*decoded['influence']*decoded['action_probabilities'].get(a,0)
     contributions={}
+    negotiated=u.get('proposal_action_assessment') or {}
+    if negotiated.get('source')=='validated_B_proposals':
+        replacement={a:float(v) for a,v in negotiated.get('utilities',{}).items() if a in ACTIONS and type(v) in (int,float) and math.isfinite(v) and 0<=v<=1}
+        # B replaces the A assessment for actions it actually evaluated. It does
+        # not erase the separate local psychological terms or add duplicate votes.
+        contributions['negotiated_assessment']={a:replacement[a]-score[a] for a in replacement}
+        score.update(replacement)
+    for a in ACTIONS:score[a]+=.25*decoded['influence']*decoded['action_probabilities'].get(a,0)
     condition=u.get('decision_conditions',{})
     if condition.get('schema')=='pmm-person-relational-conditions/1':
-        for group in ('personality','relationship','regulation'):
+        for group in ('personality','relationship','regulation','emotion'):
             terms=condition.get('terms',{}).get(group,{})
             contributions[group]={a:clamp(terms.get(a,0),-.2,.2) for a in ACTIONS}
             for a,value in contributions[group].items():score[a]+=value
@@ -41,6 +48,11 @@ def choose(understanding,profile,views,assessments,decoded,memories,text):
         terms=cooperative.get('score_terms',{})
         contributions['pmm28']={a:clamp(terms.get(a,0),-.2,.2) for a in ACTIONS}
         for a,value in contributions['pmm28'].items():score[a]+=value
+    ed_policy=u.get('expressive_drive_policy',{})
+    if isinstance(ed_policy,dict) and ed_policy.get('schema')=='expressive-drive/2.8.3' and isinstance(ed_policy.get('policy_score_terms'),dict):
+        terms=ed_policy['policy_score_terms']
+        contributions['expressive_drive']={a:clamp(terms.get(a,0),-.2,.2) for a in ACTIONS}
+        for a,value in contributions['expressive_drive'].items():score[a]+=value
     need=u.get('knowledge_need','none')
     # Episodic claims require a cited source and nontrivial lexical/relevance support.
     evidence={e.get('id'):str(e.get('quote','')) for e in u.get('supported_memory_evidence',[]) if isinstance(e,dict)}
@@ -60,9 +72,12 @@ def choose(understanding,profile,views,assessments,decoded,memories,text):
         if sem.get('disengagement',0)<.7:score['silence']=-1
         if need=='none':score['unknown']=-1
         action=max(score,key=score.get);reason='同一人格三个倾向的加权效用';gate='weighted_policy'
-    return {'action':action,'reason':reason,'gate':gate,'scores':score,'perspectives':summary,'condition_contributions':contributions,
-            'knowledge':{'need':need,'grounded_memory':evidence_ok,'supporting_ids':[m['id'] for m in supporting],
-                         'base_model_confidence':u.get('knowledge_confidence',0),'verified_external':False}}
+    out={'action':action,'reason':reason,'gate':gate,'scores':score,'perspectives':summary,'condition_contributions':contributions,
+         'knowledge':{'need':need,'grounded_memory':evidence_ok,'supporting_ids':[m['id'] for m in supporting],
+                      'base_model_confidence':u.get('knowledge_confidence',0),'verified_external':False}}
+    if isinstance(ed_policy,dict) and ed_policy.get('schema')=='expressive-drive/2.8.3':
+        out['expressive_drive']={k:copy.deepcopy(ed_policy.get(k)) for k in ('activation','urgency','persistence','expressive_intent','active_motive_id','status') if k in ed_policy}
+    return out
 
 
 def style_condition(profile,text,understanding,decoded):

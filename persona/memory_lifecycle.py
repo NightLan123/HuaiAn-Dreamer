@@ -92,7 +92,8 @@ class MemoryLifecycle:
         return {'links':trace.get('links',[]),'event_id':trace.get('event_id'),'context':trace.get('context',{}),'storage_strength':storage,'retrieval_strength':retrieval,'accesses':trace.get('accesses',0),'last_access':trace.get('last_access',m['created_at']),'half_life_days':None if adaptive else half,'sources':trace.get('sources',[]),'source_type':trace.get('source_type','direct_interaction'),'calibration':'experimental_contextual_activation' if adaptive else 'engineering_baseline'}
     def describe(self,memories):
         traces=self.st.meta('memory_traces') or {};c=self.e.config.get();half=c['memory']['half_life_days'];t=now();adaptive=c['cognition']['mode']=='adaptive'
-        return [{**m,'memory_strength':self.strength(m,t,traces,half,adaptive)} for m in memories]
+        return [{**m,'memory_strength':self.strength(m,t,traces,half,adaptive),
+                 'experience':copy.deepcopy((traces.get(m['id']) or {}).get('experience'))} for m in memories]
     def touch(self,memories):
         traces=self.st.meta('memory_traces') or {};half=self.e.config.get()['memory']['half_life_days']
         for m in memories:

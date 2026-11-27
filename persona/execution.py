@@ -26,6 +26,7 @@ class ExecutionJournal:
             CREATE TABLE IF NOT EXISTS send_sources(event_id TEXT PRIMARY KEY, outbox_id TEXT);
             CREATE TABLE IF NOT EXISTS inbound(id TEXT PRIMARY KEY, scope TEXT, payload TEXT, received_at REAL);
             CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY, payload TEXT, updated_at REAL);
+            CREATE TABLE IF NOT EXISTS token_calls(id TEXT PRIMARY KEY, turn_id TEXT, payload TEXT);
             CREATE TABLE IF NOT EXISTS outbox(id TEXT PRIMARY KEY, dedupe TEXT UNIQUE, status TEXT, payload TEXT, plan TEXT, receipt TEXT, created_at REAL, updated_at REAL);''')
             # An interrupted remote call may already have delivered its message.
             for row in self.db.execute("SELECT id,payload,receipt FROM outbox WHERE status='DISPATCHING'").fetchall():
@@ -52,6 +53,16 @@ class ExecutionJournal:
     def recent(self,limit=60):
         with self.lock:rows=self.db.execute('SELECT payload FROM runs ORDER BY updated_at DESC LIMIT ?',(limit,)).fetchall()
         return [json.loads(r[0]) for r in rows]
+    def history_page(self,limit=100,offset=0,date_from=None,date_to=None):
+        where=[];args=[]
+        if date_from is not None:where.append("json_extract(payload,'$.started_at')>=?");args.append(date_from)
+        if date_to is not None:where.append("json_extract(payload,'$.started_at')<?");args.append(date_to)
+        clause=(' WHERE '+' AND '.join(where)) if where else ''
+        with self.lock:
+            total=self.db.execute('SELECT COUNT(*) FROM runs'+clause,args).fetchone()[0]
+            rows=self.db.execute('SELECT payload FROM runs'+clause+' ORDER BY updated_at DESC LIMIT ? OFFSET ?',
+                (*args,max(1,min(200,int(limit))),max(0,int(offset)))).fetchall()
+        return [json.loads(r[0]) for r in rows],total
     def prepare(self,run,payload,plan):
         dedupe=hashlib.sha256(dumps([run['persona_id'],run['scope'],run['input_event_ids'] or [run['turn_id']]]).encode()).hexdigest()
         with self.lock,self.db:
@@ -193,8 +204,34 @@ class ExecutionJournal:
         return r[0] if r else None
     def receive(self,run,text):
         with self.lock,self.db:self.db.execute('INSERT OR IGNORE INTO inbound VALUES (?,?,?,?)',(run['turn_id'],run['scope'],dumps({'session_id':run['session_id'],'text':text}),now()))
+    def save_token_call(self,record):
+        with self.lock,self.db:
+            self.db.execute('INSERT OR REPLACE INTO token_calls VALUES (?,?,?)',
+                (record['call_id'],record.get('turn_id'),dumps(record)))
+    def token_calls(self,turn_id=None):
+        with self.lock:
+            rows=self.db.execute('SELECT payload FROM token_calls'+(' WHERE turn_id=? OR EXISTS (SELECT 1 FROM json_each(token_calls.payload,\'$.turn_ids\') WHERE value=?)' if turn_id else ''),
+                (turn_id,turn_id) if turn_id else ()).fetchall()
+        return [json.loads(row['payload']) for row in rows]
+    def token_page(self,limit=50,offset=0,turn_id=None,date_from=None,date_to=None,filters=None):
+        where=[];args=[]
+        if turn_id:
+            where.append("(turn_id=? OR EXISTS (SELECT 1 FROM json_each(token_calls.payload,'$.turn_ids') WHERE value=?))")
+            args.extend([turn_id,turn_id])
+        if date_from is not None:where.append("json_extract(payload,'$.started_at')>=?");args.append(date_from)
+        if date_to is not None:where.append("json_extract(payload,'$.started_at')<?");args.append(date_to)
+        for field in ('component_role','model','phase_id'):
+            if (filters or {}).get(field) is not None:
+                where.append("json_extract(payload,'$."+field+"')=?");args.append(filters[field])
+        clause=' WHERE '+' AND '.join(where) if where else ''
+        with self.lock:
+            total=self.db.execute('SELECT COUNT(*) FROM token_calls'+clause,args).fetchone()[0]
+            rows=self.db.execute('SELECT payload FROM token_calls'+clause+
+                " ORDER BY json_extract(payload,'$.started_at') DESC,id DESC LIMIT ? OFFSET ?",
+                (*args,limit,offset)).fetchall()
+        return [json.loads(r['payload']) for r in rows],total
     def snapshot(self):
-        with self.lock:return {table:[dict(r) for r in self.db.execute('SELECT * FROM '+table)] for table in ('runs','outbox','inbound','send_sources','permissions')}
+        with self.lock:return {table:[dict(r) for r in self.db.execute('SELECT * FROM '+table)] for table in ('runs','outbox','inbound','send_sources','permissions','token_calls')}
     def merge_snapshot(self,snapshot):
         # External sends cannot be rolled back. Keep all existing dedupe tombstones;
         # imported recovery plans are never executable, even from an older backup.
@@ -215,6 +252,7 @@ class ExecutionJournal:
         with self.lock,self.db:
             self.db.execute('PRAGMA secure_delete=ON');self.db.execute('DELETE FROM runs');self.db.execute('DELETE FROM inbound')
             self.db.execute("UPDATE outbox SET payload='{}',plan='{}',receipt='{}',status='ERASED'")
+            self.db.execute('DELETE FROM token_calls')
         self.db.execute('PRAGMA wal_checkpoint(TRUNCATE)');self.db.execute('VACUUM');self.db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
     def close(self):
         with self.lock:self.db.close()
@@ -222,13 +260,29 @@ class ExecutionJournal:
 def public_trace(run):
     """Default support view excludes raw messages, prompts, media and QQ addresses."""
     allowed=('turn_id','trace_id','persona_id','session_id','decision_id','decision_revision','selected_action','status','started_at','ended_at','stages','validation','candidate_status','pre_send_status','delivery_status','memory_commit_status','outbox_id','qq_message_id','error','calls','schema_version','timing','candidate_digest','candidate_chars','candidate_check','action_state','regenerations','learning_status','background_error','cognitive_id')
-    result={k:copy.deepcopy(run[k]) for k in allowed if k in run}
+    result={k:copy.deepcopy(run[k]) for k in (*allowed,'reasoner_evaluation','negotiation_result') if k in run}
+    from .validation import safe_check
+    if run.get('candidate_inspection'):
+        result['candidate_inspection']=safe_check(run['candidate_inspection'])
+        result['candidate_check']=result['candidate_inspection']
+    if run.get('expressive_drive'):
+        ed=run['expressive_drive']
+        result['expressive_drive']={k:copy.deepcopy(ed.get(k)) for k in ('activation','urgency','persistence','expressive_intent','status','active_motive_id','delta_seconds','pending_motives_count','post_execution_outcome') if k in ed}
+    if run.get('cognitive_snapshot'):
+        snapshot=run['cognitive_snapshot'];pmm=snapshot.get('pmm28') or {}
+        result['cognitive_summary']={'persisted':True,'perspectives':len(snapshot.get('projections') or []),
+            'rounds':len(snapshot.get('rounds') or []),'components':{k:{'status':v.get('status'),
+                'executed':v.get('executed')} for k,v in pmm.get('components',{}).items()}}
+    if run.get('cognitive_route'):result['cognitive_route']=copy.deepcopy(run['cognitive_route'])
     result['calls']=[safe_call(v) for v in result.get('calls',[])]
     if 'error' in result:
         error=result['error'];result['error']={'exception_type':error.get('exception_type'),'frames':error.get('frames',[]),'details':safe_details(error.get('details',{}))}
     result['input_event_refs']=[hashlib.sha256(v.encode()).hexdigest()[:16] for v in run.get('input_event_ids',[])]
     if run.get('interaction_plan'):
-        p=run['interaction_plan'];result['expression_summary']={k:copy.deepcopy(p.get(k)) for k in ('schema','candidate_strategy','sufficiency_target','allow_follow_up_question','message_plan','yield_after_current_reply','evaluation')}
+        p=run['interaction_plan'];result['expression_summary']={k:copy.deepcopy(p.get(k)) for k in ('schema','candidate_strategy','sufficiency_target','allow_follow_up_question','message_plan','yield_after_current_reply','evaluation','expressive_drive')}
+        if isinstance(result['expression_summary'].get('expressive_drive'),dict):
+            ed_p=result['expression_summary']['expressive_drive']
+            result['expression_summary']['expressive_drive']={k:copy.deepcopy(ed_p.get(k)) for k in ('activation','urgency','persistence','expressive_intent','active_motive_id','status') if k in ed_p}
         result['expression_summary']['generated_bubbles']=p.get('realization',{}).get('generated_bubbles')
     if run.get('qq_message_ids'):result['qq_message_ids']=copy.deepcopy(run['qq_message_ids'])
     return result
@@ -243,23 +297,23 @@ def metrics(runs):
     def percentile(values,p):
         if not values:return None
         ordered=sorted(values);pos=(len(ordered)-1)*p;lo=int(pos);hi=min(lo+1,len(ordered)-1);return ordered[lo]+(ordered[hi]-ordered[lo])*(pos-lo)
-    return {'acknowledged_samples':len(latencies),'p50_first_ack_ms':percentile(latencies,.5),'p95_first_ack_ms':percentile(latencies,.95),'proactive':{'acknowledged_samples':len(proactive),'p50_opportunity_to_ack_ms':percentile(proactive,.5),'p95_opportunity_to_ack_ms':percentile(proactive,.95)},'failed_runs':sum(r.get('status') in ('VALIDATION_FAILED','DELIVERY_FAILED','DELIVERY_UNKNOWN','FAILED') for r in runs),'runs':len(runs),'user_receipt_time':None,'stage_clock':'monotonic','first_ack_clock':'wall time from inbound window to acknowledgement; includes debounce and inference; excludes proactive opportunities','clock_meaning':'应用接收到 OneBot 有 message_id 的成功回执；不是用户客户端真实收信时间'}
+    return {'acknowledged_samples':len(latencies),'p50_first_ack_ms':percentile(latencies,.5),'p95_first_ack_ms':percentile(latencies,.95),'proactive':{'acknowledged_samples':len(proactive),'p50_opportunity_to_ack_ms':percentile(proactive,.5),'p95_opportunity_to_ack_ms':percentile(proactive,.95)},'failed_runs':sum(r.get('status') in ('VALIDATION_FAILED','DELIVERY_FAILED','DELIVERY_UNKNOWN','FAILED','HOLD_HARD_CONSTRAINT','CHECKER_UNAVAILABLE','CANDIDATE_REPAIR_REQUIRED') for r in runs),'runs':len(runs),'user_receipt_time':None,'stage_clock':'monotonic','first_ack_clock':'wall time from inbound window to acknowledgement; includes debounce and inference; excludes proactive opportunities','clock_meaning':'应用接收到 OneBot 有 message_id 的成功回执；不是用户客户端真实收信时间'}
 
 
 def safe_call(call):
-    fields=('call_id','turn_ids','trace_ids','turn_id','trace_id','decision_id','decision_revision','stage','protocol','model','structured','status','duration_ms','http_status','thinking','thinking_mode','usage','finish_reason','cached','attempt','retry_count','started_at','ended_at','output_chars')
+    fields=('call_id','turn_ids','trace_ids','turn_id','trace_id','decision_id','decision_revision','stage','protocol','model','structured','status','duration_ms','http_status','thinking','thinking_mode','usage','finish_reason','cached','attempt','retry_count','started_at','ended_at','output_chars','token_ledger','format_status','json_diagnostic','json_normalization')
     out={k:copy.deepcopy(v) for k,v in call.items() if k in fields}
     if 'response' in call:out['provider_error_type']=type(call['response']).__name__
     return out
 
 def safe_details(d):
     if not isinstance(d,dict):return {}
-    keys=('code','schema_version','validator','issues','expected_view_ids','received_view_ids','action_enum','received_utility_keys','repair_attempts','expected_action','detected_action','evidence_spans','outbox_id')
+    keys=('code','schema_version','validator','issues','expected_view_ids','received_view_ids','action_enum','received_utility_keys','repair_attempts','expected_action','detected_action','evidence_spans','outbox_id','json_diagnostic')
     return {k:copy.deepcopy(d[k]) for k in keys if k in d}
 
 def validate_snapshot(s):
-    if not isinstance(s,dict) or set(s)-{'runs','outbox','inbound','send_sources','permissions'}:raise ValueError('执行备份表无效')
-    cols={'permissions':{'id','payload'},'send_sources':{'event_id','outbox_id'},'runs':{'id','payload','updated_at'},'outbox':{'id','dedupe','status','payload','plan','receipt','created_at','updated_at'},'inbound':{'id','scope','payload','received_at'}}
+    if not isinstance(s,dict) or set(s)-{'runs','outbox','inbound','send_sources','permissions','token_calls'}:raise ValueError('执行备份表无效')
+    cols={'token_calls':{'id','turn_id','payload'},'permissions':{'id','payload'},'send_sources':{'event_id','outbox_id'},'runs':{'id','payload','updated_at'},'outbox':{'id','dedupe','status','payload','plan','receipt','created_at','updated_at'},'inbound':{'id','scope','payload','received_at'}}
     for table,rows in s.items():
         if not isinstance(rows,list) or len(rows)>100000:raise ValueError('执行备份条数无效')
         seen=set()

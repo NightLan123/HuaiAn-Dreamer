@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="app-build" content="__APP_BUILD__" />
+  <title>槐安梦客 | 数字生命观察与研究管理 — UI Shell Phase 2.0</title>
+  <link rel="stylesheet" href="/src/styles/tokens.css" />
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  <link rel="stylesheet" href="/src/styles/user-theme.css" />
+  <link rel="stylesheet" href="/src/styles/developer-theme.css" />
+  <link rel="stylesheet" href="/src/styles/phase20-extensions.css" />
+  <link rel="stylesheet" href="/src/visualizations/psych-viz.css" />
+  <link rel="stylesheet" href="/src/visualizations/persona-view.css" />
+  <link rel="stylesheet" href="/src/visualizations/emotion-view.css" />
+  <link rel="stylesheet" href="/src/visualizations/drive-view.css" />
+  <link rel="stylesheet" href="/src/visualizations/memory-graph.css" />
+  <link rel="stylesheet" href="/src/visualizations/life-views.css" />
+  <link rel="stylesheet" href="/src/visualizations/dev-workbench.css" />
+  <link rel="stylesheet" href="/src/visualizations/connection-settings.css" />
+  <script src="/src/contracts/DataEnvelope.js"></script>
+  <script src="/src/adapters/mockFallbackData.js"></script>
+  <script src="/src/adapters/MockAdapter.js"></script>
+  <script src="/src/adapters/ModelAdapter.js"></script>
+  <script src="/src/adapters/ConnectionAdapter.js"></script>
+  <script src="/src/adapters/PMMAdapter.js"></script>
+</head>
+<body>
+  <div id="root" class="app-shell">
+
+    <!-- 全局布局编辑悬浮控制栏 (进入「✦ 编辑布局」模式时显示) -->
+    <div id="layoutEditFloatingBar" class="layout-edit-floating-bar" hidden>
+      <span style="display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#48602D;">
+        <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span id="layoutEditScopeLabel">布局编辑模式：用户端 · 观察首页 · 角色：当前角色</span>
+      </span>
+      <span style="font-size:12px;color:#666A5E;">可拖拽卡片交换位置，或点击卡片右上角切换「标准 / 宽卡 / 高卡」尺寸</span>
+      <button type="button" id="btnSaveLayout" class="layout-bar-btn save">保存个人布局</button>
+      <button type="button" id="btnResetLayout" class="layout-bar-btn reset">恢复默认布局</button>
+      <button type="button" id="btnCancelLayout" class="layout-bar-btn cancel">完成 / 退出</button>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- WORKSPACE 1: 用户端 (User Mode — 数字生命空间 · 100% 全屏适配)          -->
+    <!-- ===================================================================== -->
+    <div class="user-shell-viewport" id="userShellViewport">
+      <img
+        src="/public/assets/user_home_background.png"
+        alt="日式夏日田舍背景"
+        class="user-scene-bg"
+      />
+      <div class="user-left-rail-backdrop" aria-hidden="true"></div>
+      <img
+        src="/public/assets/decorations/foreground_hydrangea_bl.png"
+        alt=""
+        aria-hidden="true"
+        class="user-fg-hydrangea"
+      />
+
+      <!-- 顶部导航栏：品牌 + 磨砂玻璃双标签切换器 + 角色/数据源切换 + 编辑布局 + 搜索/通知/设置 -->
+      <header class="user-topbar" role="banner">
+        <div class="user-brand-group">
+          <span class="user-brand-leaf" aria-hidden="true">
+            <svg class="lucide-icon" width="30" height="30" viewBox="0 0 24 24">
+              <path d="M12 20v-8" stroke="#6B7D4E" stroke-width="2"/>
+              <path d="M12 14C7.5 14 4 10.5 4 6c4.5 0 8 3.5 8 8Z" fill="#8B9D69" stroke="#6B7D4E" stroke-width="1.6"/>
+              <path d="M12 12c4-0.5 7.5-3.5 8-7.5-4.5 0-7.5 3-8 7.5Z" fill="#A6B785" stroke="#6B7D4E" stroke-width="1.6"/>
+            </svg>
+          </span>
+          <span class="user-brand-title">槐安梦客</span>
+          <span class="user-brand-divider" aria-hidden="true"></span>
+          <span class="user-brand-subtitle">数字生命陪伴与观察空间</span>
+
+          <!-- 第五阶段：磨砂玻璃风格双标签切换器 (带平滑鼠尾草绿滑动指示器) -->
+          <div class="frosted-mode-switcher" data-active-mode="user" role="tablist" aria-label="空间模式切换">
+            <div class="frosted-mode-slider" aria-hidden="true"></div>
+            <button type="button" class="frosted-mode-tab active" data-switch-mode="user" role="tab" aria-selected="true">
+              <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              <span class="frosted-mode-tab-text">
+                <span class="frosted-mode-tab-title">用户端</span>
+                <span class="frosted-mode-tab-sub">数字生命空间</span>
+              </span>
+            </button>
+            <button type="button" class="frosted-mode-tab" data-switch-mode="developer" role="tab" aria-selected="false">
+              <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span class="frosted-mode-tab-text">
+                <span class="frosted-mode-tab-title">开发端</span>
+                <span class="frosted-mode-tab-sub">研究与管理</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="user-topbar-actions">
+          <!-- 当前角色选择与状态胶囊 (P0 修复：点击打开角色选择器 role_switcher，不再误入调试面板) -->
+          <button type="button" class="topbar-chip-btn" id="userRoleDataBtn" data-open-modal="role_switcher" title="切换当前角色与查看角色状态">
+            <span class="envelope-badge live" id="userTopSourceBadge">LIVE 实测</span>
+            <span>角色：<strong class="js-persona-name">待加载</strong> (v<span class="js-trait-ver">—</span>)</span>
+          </button>
+
+          <!-- 第四阶段：独立「编辑布局」按钮 -->
+          <button type="button" class="topbar-chip-btn js-toggle-layout-edit" id="userEditLayoutBtn" title="进入/退出卡片自由拖拽与尺寸调整模式">
+            <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>编辑布局</span>
+          </button>
+
+          <label class="user-search-pill" aria-label="全局搜索">
+            <svg class="lucide-icon" width="17" height="17" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+            <input
+              type="text"
+              id="globalSearchInput"
+              placeholder="搜索记忆、经历或构念..."
+            />
+          </label>
+
+          <button type="button" class="user-icon-btn" id="topNotifBtn" data-open-modal="notif_center" aria-label="通知中心" title="查看待办与系统通知">
+            <svg class="lucide-icon" width="21" height="21" viewBox="0 0 24 24">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+            <span class="user-notif-dot" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="user-avatar-btn" id="topAvatarBtn" data-open-modal="role_switcher" aria-label="切换角色" title="角色管理与切换">
+            <img src="/public/assets/character/user_header_avatar.png" alt="角色头像" />
+          </button>
+
+          <button type="button" class="user-icon-btn" id="topSettingsBtn" data-user-nav="settings" aria-label="设置入口" title="打开设置">
+            <svg class="lucide-icon" width="21" height="21" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- 主体布局：左侧从顶到底贯穿导航 + 右侧全屏响应式舞台 -->
+      <div class="user-body-layout">
+        <nav class="user-sidenav" aria-label="用户端主导航">
+          <div class="user-nav-list">
+            <button type="button" class="user-nav-item active" data-user-nav="observe">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              <span>观察</span>
+            </button>
+
+            <button type="button" class="user-nav-item" data-user-nav="psych_state">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span>心理状态</span>
+            </button>
+
+            <button type="button" class="user-nav-item" data-user-nav="emo_drive">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 3" />
+              </svg>
+              <span>情绪与表达</span>
+            </button>
+
+            <button type="button" class="user-nav-item" data-user-nav="persona_analysis">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <polygon points="12 2 19 7 16 19 8 19 5 7 12 2" />
+              </svg>
+              <span>人格分析</span>
+            </button>
+
+            <button type="button" class="user-nav-item" data-user-nav="memories">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <path d="M12 20v-8" />
+                <path d="M12 14C7.5 14 4 10.5 4 6c4.5 0 8 3.5 8 8Z" />
+                <path d="M12 12c4-.5 7.5-3.5 8-7.5-4.5 0-7.5 3-8 7.5Z" />
+              </svg>
+              <span>记忆</span>
+            </button>
+
+            <button type="button" class="user-nav-item" data-user-nav="experiences">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <path d="M12 3c.5 4.5 4 8 8.5 8.5-4.5.5-8 4-8.5 8.5-.5-4.5-4-8-8.5-8.5 4.5-.5 8-4 8.5-8.5Z" />
+              </svg>
+              <span>经历</span>
+            </button>
+
+            <button type="button" class="user-nav-item" data-user-nav="growth">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+              <span>成长</span>
+            </button>
+
+            <button type="button" class="user-nav-item" data-user-nav="rel_net">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              <span>关系网络</span>
+            </button>
+
+            <button type="button" class="user-nav-item" data-user-nav="parlor">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+              </svg>
+              <span>会客室</span>
+            </button>
+          </div>
+
+          <div class="user-nav-divider" aria-hidden="true"></div>
+
+          <div class="user-nav-list">
+            <button type="button" class="user-nav-item" data-user-nav="settings">
+              <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span>设置</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- 观察首页响应式主舞台 (保留田舍木廊少女与猫咪视觉中心) -->
+        <main id="observeHomeView" class="user-observe-stage">
+          <div class="user-observe-upper-grid">
+            <!-- 左列卡片组 (支持拖拽排序与尺寸切换) -->
+            <div class="user-left-stack" data-layout-grid="user_observe_left">
+              <div class="user-greeting-block">
+                <div class="user-greeting-title-row">
+                  <h1 class="user-greeting-title">你好，欢迎回到槐安梦客</h1>
+                  <svg class="user-greeting-flourish" viewBox="0 0 160 28" fill="none">
+                    <path d="M 4 22 C 38 6, 98 6, 154 21" stroke="#EAE4D3" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M 32 16 C 68 8, 112 10, 146 20" stroke="#C5BFA8" stroke-width="1.2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <p class="user-greeting-subtitle">在这里，陪伴一份正在生长的数字生命（当前角色：<strong class="js-persona-name">待加载</strong>），观察她的日常、心境与成长。</p>
+              </div>
+
+              <!-- Card 1: 此刻心境 (6.1 动态色彩云团 + 快慢情绪维度映射) -->
+              <section class="ui-frosted-card interactive-card card-current-state" data-layout-card="card_mood_now" data-card-size="standard" data-domain-card="emotion">
+                <div class="card-header-row">
+                  <div class="card-title-group" data-user-nav="psych_state">
+                    <svg class="lucide-icon" width="23" height="23" viewBox="0 0 24 24" style="color:#6F834D">
+                      <path d="M12 20v-8" />
+                      <path d="M12 14C7.5 14 4 10.5 4 6c4.5 0 8 3.5 8 8Z" fill="#9BB07A" />
+                      <path d="M12 12c4-.5 7.5-3.5 8-7.5-4.5 0-7.5 3-8 7.5Z" fill="#B3C494" />
+                    </svg>
+                    <h2 class="card-title-text">此刻心境</h2>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="emotion">待加载</span>
+                  </div>
+                  <span class="status-pill-badge" id="userMoodBadgePill" data-open-modal="color_mapping_legend" title="点击查看色彩与情绪维度映射规则">
+                    <i class="status-pill-dot" id="userMoodDot" aria-hidden="true"></i>
+                    <span id="userMoodBadgeText">待加载</span>
+                  </span>
+                </div>
+
+                <div class="mood-cloud-stage" data-user-nav="psych_state">
+                  <div class="mood-cloud-orb" id="userMoodCloudOrb" style="background: radial-gradient(circle at 35% 35%, #CED3C8 0%, #9BA396 68%, rgba(155,163,150,0.25) 100%);">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8">
+                      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" fill="rgba(255,255,255,0.32)"/>
+                    </svg>
+                  </div>
+                  <div style="flex:1;min-width:0;">
+                    <div class="state-main-heading" id="userMoodHeadline" style="margin-top:0;font-size:19px;">正在读取心理状态</div>
+                    <div class="state-desc-lines" id="userMoodDescLines" style="margin-top:3px;font-size:13px;"><div>暂无已加载的心理记录。</div></div>
+                  </div>
+                </div>
+
+                <div class="mood-dimension-pills" id="userMoodDimPills">
+                  <span class="mood-dim-pill">快情绪愉悦度 <strong id="userFastValenceVal">—</strong></span>
+                  <span class="mood-dim-pill">唤醒度 <strong id="userFastArousalVal">—</strong></span>
+                  <span class="mood-dim-pill">专注度 <strong id="userFastEngageVal">—</strong></span>
+                  <span class="mood-dim-pill" style="color:#5B703E;">趋势：<span id="userMoodDeltaText">尚无记录</span></span>
+                </div>
+
+                <img
+                  src="/public/assets/decorations/card_state_hydrangea.png"
+                  alt=""
+                  aria-hidden="true"
+                  class="card-state-hydrangea-deco"
+                />
+              </section>
+
+              <!-- Card 2: 想说的话 (映射 Expressive Drive 未竟表达动机) -->
+              <section class="ui-frosted-card interactive-card card-thoughts" data-layout-card="card_inner_thoughts" data-card-size="standard" data-domain-card="expression_drive">
+                <div class="card-header-row">
+                  <div class="card-title-group" data-open-modal="user_thoughts">
+                    <span class="quote-mark-icon" aria-hidden="true">“</span>
+                    <h2 class="card-title-text">想说的话</h2>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="expression_drive">待加载</span>
+                  </div>
+                  <span style="font-size:11.5px;color:#667848;font-weight:600;" id="userThoughtMotiveBadge">尚无记录</span>
+                </div>
+                <div class="thoughts-quote-body" id="userThoughtsQuoteBody" data-open-modal="user_thoughts">
+                  <div><span class="thoughts-quote-inline-open">“</span>最近常常在想：</div>
+                  <div style="padding-left: 18px;" id="userThoughtTextLine">暂无已加载的想法。</div>
+                </div>
+              </section>
+            </div>
+
+            <!-- 中间视觉焦点留白区：完整保留少女、熟睡的猫、风铃与窗外稻田 -->
+            <div class="user-center-scenic-spacer" aria-hidden="true"></div>
+
+            <!-- 右列卡片组：最近经历 + 记忆摘要 -->
+            <div class="user-right-stack" data-layout-grid="user_observe_right">
+              <!-- Card 5: 最近经历 (3.5 仅映射已完成认知评价的心理经历) -->
+              <section class="ui-frosted-card interactive-card card-recent-exp" data-layout-card="card_recent_exp" data-card-size="standard" data-domain-card="experiences">
+                <div class="card-header-row">
+                  <div class="card-title-group" data-user-nav="experiences">
+                    <svg class="lucide-icon" width="23" height="23" viewBox="0 0 24 24" style="color:#657746">
+                      <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
+                    </svg>
+                    <h2 class="card-title-text">最近经历</h2>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="experiences">待加载</span>
+                  </div>
+                  <button type="button" class="card-header-link" data-user-nav="experiences">
+                    <span>近 7 天 · 详情</span>
+                    <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </div>
+                <div class="card-Soft-divider"></div>
+                <ul class="exp-list" id="userRecentExpList" data-user-nav="experiences"><li class="exp-list-item">暂无已加载的经历。</li></ul>
+              </section>
+
+              <!-- Card 6: 记忆摘要 -->
+              <section class="ui-frosted-card interactive-card card-memory-summary" data-layout-card="card_memory_summary" data-card-size="standard" data-domain-card="memories">
+                <div class="card-header-row">
+                  <div class="card-title-group" data-user-nav="memories">
+                    <svg class="lucide-icon" width="22" height="22" viewBox="0 0 24 24" style="color:#657746">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                      <polyline points="2 12 12 17 22 12" />
+                      <polyline points="2 17 12 22 22 17" />
+                    </svg>
+                    <h2 class="card-title-text">记忆</h2>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="memories">待加载</span>
+                  </div>
+                  <button type="button" class="card-header-link" data-user-nav="memories">
+                    <span id="userMemoryCountText">尚无记录</span>
+                    <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </div>
+                <div class="card-Soft-divider"></div>
+                <div class="memory-card-body" id="userMemoryCardBody" data-user-nav="memories">
+                  <img
+                    src="/public/assets/decorations/card_memory_polaroid.png"
+                    alt="记忆卡片装饰插画"
+                    class="memory-polaroid-img"
+                  />
+                  <ul class="memory-bullet-list" id="userMemoryBulletList"><li class="memory-bullet-item">暂无已加载的记忆。</li></ul>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- 第六阶段核心升级：用户端心理、人格、情绪变化与表达状态可视化行 -->
+          <div class="user-observe-psych-grid" data-layout-grid="user_observe_psych">
+            <!-- 6.3 人格特征可视化卡 (真实 68 构念域 & HEXACO 六维聚合雷达，保留 null 未知态) -->
+            <section class="ui-frosted-card interactive-card" style="padding:18px 22px;" data-layout-card="card_persona_overview" data-card-size="standard" data-domain-card="personality">
+              <div class="card-header-row">
+                <div class="card-title-group" data-user-nav="persona_analysis">
+                  <svg class="lucide-icon" width="21" height="21" viewBox="0 0 24 24" style="color:#657746">
+                    <polygon points="12 2 19 7 16 19 8 19 5 7 12 2" />
+                  </svg>
+                  <h2 class="card-title-text">人格特征</h2>
+                  <span class="envelope-badge unavailable js-domain-badge" data-domain="personality">待加载</span>
+                </div>
+                <div class="mini-tab-group" role="group" aria-label="人格模型视图切换">
+                  <button type="button" class="mini-tab-btn active" data-persona-view-mode="hexaco">HEXACO 投影</button>
+                  <button type="button" class="mini-tab-btn" data-persona-view-mode="blocks68">原生 68 构念域</button>
+                </div>
+              </div>
+              <div id="userPersonaCardBody" style="margin-top:10px;">
+                <!-- Rendered dynamically by runtime controller -->
+              </div>
+            </section>
+
+            <!-- 6.2 情绪变化趋势卡 (支持 24h / 7d / 维度切换 / 展开详情) -->
+            <section class="ui-frosted-card interactive-card" style="padding:18px 22px;" data-layout-card="card_emotion_trend" data-card-size="standard" data-domain-card="emotion_trend">
+              <div class="card-header-row">
+                <div class="card-title-group" data-user-nav="emo_drive">
+                  <svg class="lucide-icon" width="21" height="21" viewBox="0 0 24 24" style="color:#657746">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                  </svg>
+                  <h2 class="card-title-text">情绪变化</h2>
+                  <span class="envelope-badge unavailable js-domain-badge" id="userEmoTrendSourceBadge" data-domain="emotion_trend">待加载</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div class="mini-tab-group" role="group" aria-label="情绪时间范围切换">
+                    <button type="button" class="mini-tab-btn active" data-emo-range="24h">24小时</button>
+                    <button type="button" class="mini-tab-btn" data-emo-range="7d">7天</button>
+                    <button type="button" class="mini-tab-btn" data-emo-range="events">实测事件点</button>
+                  </div>
+                  <button type="button" class="mini-tab-btn" id="btnExpandEmotionCard" title="展开/收起宽幅趋势图">展开 ⤢</button>
+                </div>
+              </div>
+              <div id="userEmotionTrendBody" style="margin-top:10px;">
+                <!-- Rendered dynamically by runtime controller -->
+              </div>
+            </section>
+
+            <!-- 6.4 表达状态可视化卡 (当前表达欲 + 主动发言/补充表达/主动追问三大倾向) -->
+            <section class="ui-frosted-card interactive-card" style="padding:18px 22px;" data-layout-card="card_expression_drive" data-card-size="standard" data-domain-card="expression_drive">
+              <div class="card-header-row">
+                <div class="card-title-group" data-user-nav="emo_drive">
+                  <svg class="lucide-icon" width="21" height="21" viewBox="0 0 24 24" style="color:#657746">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v4l3 3" />
+                  </svg>
+                  <h2 class="card-title-text">表达状态</h2>
+                  <span class="envelope-badge unavailable js-domain-badge" data-domain="expression_drive">待加载</span>
+                </div>
+                <button type="button" class="card-header-link" data-user-nav="emo_drive">
+                  <span>详情</span>
+                  <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </div>
+              <div id="userExpressionDriveBody" style="margin-top:10px;">
+                <!-- Rendered dynamically by runtime controller -->
+              </div>
+            </section>
+          </div>
+
+          <!-- 底部三卡行：成长工作室 + 会客室 + 连接状态 -->
+          <div class="user-observe-bottom-grid" data-layout-grid="user_observe_bottom">
+            <!-- Card 8: 成长工作室入口 -->
+            <section class="ui-frosted-card interactive-card card-studio-entry" data-layout-card="card_studio_entry" data-card-size="standard" data-domain-card="learning">
+              <img
+                src="/public/assets/decorations/card_studio_books.png"
+                alt=""
+                aria-hidden="true"
+                class="card-studio-deco"
+              />
+              <div class="card-header-row" style="position:relative;z-index:2;">
+                <div class="card-title-group" data-user-nav="growth">
+                  <svg class="lucide-icon" width="23" height="23" viewBox="0 0 24 24" style="color:#657746">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                  </svg>
+                  <h2 class="card-title-text">成长工作室</h2>
+                  <span class="envelope-badge unavailable js-domain-badge" data-domain="learning">待加载</span>
+                </div>
+              </div>
+              <div class="card-sub-tags" style="position:relative;z-index:2;">学习 · 思考 · 探索 · 复盘</div>
+              <div class="card-studio-desc" style="position:relative;z-index:2;"><div>尚未读取成长记录。</div></div>
+              <button type="button" class="card-circle-arrow" data-user-nav="growth" aria-label="进入成长工作室">
+                <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                  <path d="M5 12h14" />
+                  <path d="m13 6 6 6-6 6" />
+                </svg>
+              </button>
+            </section>
+
+            <!-- Card 9: 会客室入口 -->
+            <section class="ui-frosted-card interactive-card card-parlor-entry" data-layout-card="card_parlor_entry" data-card-size="standard">
+              <img
+                src="/public/assets/decorations/card_parlor_window.png"
+                alt=""
+                aria-hidden="true"
+                class="card-parlor-deco"
+              />
+              <div class="card-header-row" style="position:relative;z-index:2;">
+                <div class="card-title-group" data-user-nav="parlor">
+                  <svg class="lucide-icon" width="23" height="23" viewBox="0 0 24 24" style="color:#657746">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                  <h2 class="card-title-text">会客室</h2>
+                  <span class="envelope-badge unavailable js-domain-badge" data-domain="experiences" id="userParlorTurnBadge">待加载</span>
+                </div>
+              </div>
+              <div class="card-sub-tags" style="position:relative;z-index:2;">和她聊聊天吧</div>
+              <div class="card-parlor-desc" style="position:relative;z-index:2;"><div>在这里开始和角色对话。</div></div>
+              <button type="button" class="card-circle-arrow" data-user-nav="parlor" aria-label="进入会客室">
+                <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+                  <path d="M5 12h14" />
+                  <path d="m13 6 6 6-6 6" />
+                </svg>
+              </button>
+            </section>
+
+            <!-- Card 10: 连接状态 -->
+            <section class="ui-frosted-card interactive-card card-connection-status" data-layout-card="card_conn_status" data-card-size="standard" data-domain-card="connections" data-open-modal="user_conn">
+              <div class="card-header-row">
+                <div class="card-title-group">
+                  <svg class="lucide-icon" width="23" height="23" viewBox="0 0 24 24" style="color:#657746">
+                    <circle cx="12" cy="12" r="2" fill="currentColor" />
+                    <path d="M8.5 8.5a5 5 0 0 0 0 7" />
+                    <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+                    <path d="M5.5 5.5a9 9 0 0 0 0 13" />
+                    <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+                  </svg>
+                  <h2 class="card-title-text">连接状态</h2>
+                </div>
+                <span class="status-pill-badge">
+                  <i class="status-pill-dot" aria-hidden="true"></i>
+                  <span id="userConnOverallBadge">等待连接状态</span>
+                </span>
+              </div>
+              <div class="conn-rows" id="userConnRows"><div class="conn-row-item">正在读取连接配置。</div></div>
+            </section>
+          </div>
+        </main>
+
+        <!-- 用户端子页面统一卡片化容器 (所有子页面均支持 LayoutManager 卡片拖拽与尺寸调整) -->
+        <section id="userSubpageContainer" class="subpage-workspace-panel" hidden></section>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- WORKSPACE 2: 开发端 (Developer Mode — 研究与管理 · 100% 全屏适配)       -->
+    <!-- ===================================================================== -->
+    <div class="dev-shell-viewport" id="devShellViewport" hidden>
+      <img
+        src="/public/assets/developer_home_background.png"
+        alt="开发端夏日窗景背景"
+        class="dev-scene-bg"
+      />
+      <div class="dev-left-rail-backdrop" aria-hidden="true"></div>
+
+      <!-- 开发端顶部导航栏 -->
+      <header class="dev-topbar" role="banner">
+        <div class="dev-topbar-left">
+          <div class="dev-brand-cluster">
+            <span class="dev-brand-flower" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="#63784C">
+                <circle cx="12" cy="6.5" r="3.2" />
+                <circle cx="17.2" cy="10.2" r="3.2" />
+                <circle cx="15.2" cy="16.4" r="3.2" />
+                <circle cx="8.8" cy="16.4" r="3.2" />
+                <circle cx="6.8" cy="10.2" r="3.2" />
+                <circle cx="12" cy="12" r="2.1" fill="#F7F4EC" />
+              </svg>
+            </span>
+            <span class="dev-brand-title">槐安梦客</span>
+            <span class="dev-version-label">开发者控制台 v2.8.3-dev</span>
+          </div>
+
+          <!-- 第五阶段：磨砂玻璃双标签切换器 (替代原有的突兀绿色按钮) -->
+          <div class="frosted-mode-switcher" data-active-mode="developer" role="tablist" aria-label="空间模式切换">
+            <div class="frosted-mode-slider" aria-hidden="true"></div>
+            <button type="button" class="frosted-mode-tab" data-switch-mode="user" role="tab" aria-selected="false">
+              <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              <span class="frosted-mode-tab-text">
+                <span class="frosted-mode-tab-title">用户端</span>
+                <span class="frosted-mode-tab-sub">数字生命空间</span>
+              </span>
+            </button>
+            <button type="button" class="frosted-mode-tab active" data-switch-mode="developer" role="tab" aria-selected="true">
+              <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span class="frosted-mode-tab-text">
+                <span class="frosted-mode-tab-title">开发端</span>
+                <span class="frosted-mode-tab-sub">研究与管理</span>
+              </span>
+            </button>
+          </div>
+
+          <!-- 当前角色选择胶囊 -->
+          <button type="button" class="dev-role-pill" id="devRolePickerBtn" data-open-modal="role_switcher">
+            <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24" style="color:#7B8F6E;margin-left:4px;">
+              <path d="M12 3c.5 4.5 4 8 8.5 8.5-4.5.5-8 4-8.5 8.5-.5-4.5-4-8-8.5-8.5 4.5-.5 8-4 8.5-8.5Z" />
+            </svg>
+            <img src="/public/assets/character/dev_character_avatar.png" alt="当前角色" class="dev-role-avatar" />
+            <span>当前角色：<strong class="js-persona-name" id="devCurrentRoleName">待加载</strong></span>
+            <span class="envelope-badge live" id="devTopSourceBadge">LIVE v2.8.3</span>
+            <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+
+        <div class="dev-topbar-right">
+          <button type="button" class="topbar-chip-btn" id="devDataBusBtn" data-open-modal="data_bus_inspector" title="打开 DataEnvelope 统一数据信封与接口健康检查器">
+            <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>数据信封检查</span>
+          </button>
+          <button type="button" class="topbar-chip-btn" id="devFaultInjectorBtn" data-open-modal="fault_injector" title="打开模块级异常状态与容错注入测试台">
+            <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>容错注入测试</span>
+          </button>
+
+          <button type="button" class="topbar-chip-btn js-toggle-layout-edit" id="devEditLayoutBtn" title="进入/退出开发端卡片自由拖拽与尺寸调整">
+            <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>编辑布局</span>
+          </button>
+
+          <button type="button" class="user-icon-btn" id="devTopSearchBtn" data-open-modal="dev_search" aria-label="搜索">
+            <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </button>
+          <button type="button" class="user-icon-btn" id="devTopNotifBtn" data-open-modal="notif_center" aria-label="通知">
+            <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+            <span class="user-notif-dot" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="user-icon-btn" id="devTopSettingsBtn" data-dev-nav="model_cfg" aria-label="设置">
+            <svg class="lucide-icon" width="19" height="19" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- 开发端主体：左侧五分组导航 + 右侧总览/子页工作区 -->
+      <div class="dev-body-layout">
+        <nav class="dev-sidenav" aria-label="开发端功能导航">
+          <button type="button" class="dev-overview-pill active" data-dev-nav="overview">
+            <svg class="lucide-icon" width="17" height="17" viewBox="0 0 24 24">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span>总览</span>
+          </button>
+
+          <div class="dev-nav-group">
+            <div class="dev-nav-group-title">角色管理</div>
+            <button type="button" class="dev-nav-link" data-dev-nav="role_info">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 18c1.2-2 3-3 5-3s3.8 1 5 3"/></svg>
+              <span>角色信息</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="persona_set">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+              <span>人格与设定</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="archives">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+              <span>资料与档案</span>
+            </button>
+          </div>
+
+          <div class="dev-nav-group">
+            <div class="dev-nav-group-title">运行与连接</div>
+            <button type="button" class="dev-nav-link" data-dev-nav="model_cfg">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              <span>模型配置</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="pmm_sys">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>
+              <span>PMM 系统 (双组件)</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="qq_conn">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M5 19c1.5-4 4-6 7-6s5.5 2 7 6"/></svg>
+              <span>QQ 连接</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="run_state">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span>运行状态</span>
+            </button>
+          </div>
+
+          <div class="dev-nav-group">
+            <div class="dev-nav-group-title">学习与蒸馏</div>
+            <button type="button" class="dev-nav-link" data-dev-nav="data_import">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span>数据导入</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="distill_task">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/></svg>
+              <span>蒸馏任务</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="learn_record">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h6"/></svg>
+              <span>学习记录</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="version_mgmt">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span>版本管理</span>
+            </button>
+          </div>
+
+          <div class="dev-nav-group">
+            <div class="dev-nav-group-title">观测与分析</div>
+            <button type="button" class="dev-nav-link" data-dev-nav="psych_state">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span>心理状态</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="emo_drive">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+              <span>情绪与表达</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="rel_net">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span>关系网络</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="behavior_event">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <span>行为与事件</span>
+            </button>
+          </div>
+
+          <div class="dev-nav-group">
+            <div class="dev-nav-group-title">开发与调试</div>
+            <button type="button" class="dev-nav-link" data-dev-nav="session_trace">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+              <span>会话追踪</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="logs_monitor">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="12" y2="16"/></svg>
+              <span>日志与监控</span>
+            </button>
+            <button type="button" class="dev-nav-link" data-dev-nav="api_tools">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              <span>接口与工具</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- 开发端总览主舞台 -->
+        <main id="devOverviewView" class="dev-overview-stage">
+          <div class="dev-center-col">
+            <div class="dev-greeting-banner">
+              <h1 class="dev-greeting-title" id="devGreetingTitle">控制台就绪，当前主体：<span class="js-persona-name">待加载</span></h1>
+              <div class="dev-greeting-meta" id="devGreetingMeta">运行时间待获取（原版后端未提供进程启动时间戳）· 正在读取后端各模块状态...</div>
+            </div>
+
+            <!-- 4 张服务状态卡 (支持拖拽排序) -->
+            <div class="dev-service-grid" data-layout-grid="dev_overview_services">
+              <div class="dev-frosted-card clickable dev-service-card" data-layout-card="dev_srv_llm" data-card-size="standard" data-dev-nav="model_cfg">
+                <div class="dev-service-top">
+                  <span class="dev-service-name">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <span>外部对话模型</span>
+                  </span>
+                  <span class="dev-service-badge"><span>待加载</span></span>
+                </div>
+                <div class="dev-service-sub">连接详情尚未加载</div>
+              </div>
+
+              <div class="dev-frosted-card clickable dev-service-card" data-layout-card="dev_srv_pmm" data-card-size="standard" data-dev-nav="pmm_sys">
+                <div class="dev-service-top">
+                  <span class="dev-service-name">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>
+                    <span>PMM 双组件系统</span>
+                  </span>
+                  <span class="dev-service-badge"><span>待加载</span></span>
+                </div>
+                <div class="dev-service-sub">连接详情尚未加载</div>
+              </div>
+
+              <div class="dev-frosted-card clickable dev-service-card" data-layout-card="dev_srv_qq" data-card-size="standard" data-dev-nav="qq_conn">
+                <div class="dev-service-top">
+                  <span class="dev-service-name">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#292D25"><circle cx="12" cy="8" r="5" fill="#292D25"/><path d="M6 19c1.5-4 3.5-6 6-6s4.5 2 6 6"/></svg>
+                    <span>QQ 通道</span>
+                  </span>
+                  <span class="dev-service-badge"><span>待加载</span></span>
+                </div>
+                <div class="dev-service-sub">连接详情尚未加载</div>
+              </div>
+
+              <div class="dev-frosted-card clickable dev-service-card" data-layout-card="dev_srv_learn" data-card-size="standard" data-dev-nav="distill_task">
+                <div class="dev-service-top">
+                  <span class="dev-service-name">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>
+                    <span>学习与记忆服务</span>
+                  </span>
+                  <span class="dev-service-badge"><span>待加载</span></span>
+                </div>
+                <div class="dev-service-sub">连接详情尚未加载</div>
+              </div>
+            </div>
+
+            <!-- 补充约束第 3 条核心面板：API-PMM 与 Learned-PMM 独立状态追踪与同轮协作仲裁 -->
+            <div data-layout-grid="dev_overview_dual_pmm">
+              <section class="dev-frosted-card" style="padding:16px 20px;" data-layout-card="dev_card_dual_pmm" data-card-size="standard">
+                <div class="dev-card-head">
+                  <span class="dev-card-title">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>
+                    <span>PMM 双组件独立状态追踪与同轮协作仲裁 (API-PMM vs Learned-PMM)</span>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="decisions">待加载</span>
+                  </span>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:11.5px;color:#5D6355;">外部语言层：General LLM (独立，不计入 PMM 内部组件)</span>
+                    <button type="button" class="dev-card-more" data-dev-nav="pmm_sys">
+                      <span>完整追踪矩阵</span>
+                      <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div id="devDualPmmTrackerBody">
+                  <!-- Rendered dynamically by runtime controller -->
+                </div>
+              </section>
+            </div>
+
+            <!-- 中央第一行：当前心理状态 + 人格概览 -->
+            <div class="dev-row-1" data-layout-grid="dev_overview_row1">
+              <section class="dev-frosted-card clickable dev-card-psych" data-layout-card="dev_card_psych" data-card-size="standard" data-domain-card="emotion" data-dev-nav="psych_state">
+                <div class="dev-card-head">
+                  <span class="dev-card-title">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    <span>当前心理状态</span>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="emotion">待加载</span>
+                  </span>
+                  <span class="dev-card-more">
+                    <span>详情</span>
+                    <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                  </span>
+                </div>
+                <div class="dev-psych-body" id="devPsychBody">
+                  <div class="dev-psych-left">
+                    <div class="dev-psych-state-label" id="devPsychStateTitle">待加载</div>
+                    <div class="dev-psych-desc" id="devPsychDesc"><div>尚未读取心理状态。</div></div>
+                    <div class="dev-psych-metrics">
+                      <div class="dev-metric-line">
+                        <span>愉悦度 (Valence)</span>
+                        <div class="dev-metric-bar"><div class="dev-metric-fill" id="devBarValence" style="width:0%"></div></div>
+                        <strong id="devTextValence">—</strong>
+                      </div>
+                      <div class="dev-metric-line">
+                        <span>唤醒度 (Arousal)</span>
+                        <div class="dev-metric-bar"><div class="dev-metric-fill" id="devBarArousal" style="width:0%"></div></div>
+                        <strong id="devTextArousal">—</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <img src="/public/assets/decorations/dev_psych_cloud.png" alt="心理状态云团" class="dev-psych-cloud-img" />
+                </div>
+              </section>
+
+              <section class="dev-frosted-card clickable dev-card-hexaco" data-layout-card="dev_card_persona" data-card-size="standard" data-domain-card="personality" data-dev-nav="persona_set">
+                <div class="dev-card-head">
+                  <span class="dev-card-title">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><circle cx="12" cy="12" r="9"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                    <span>人格概览 <small style="font-weight:500;color:#6E7065;">(68构念 & HEXACO · v<span class="js-trait-ver">—</span>)</small></span>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="personality">待加载</span>
+                  </span>
+                  <span class="dev-card-more">
+                    <span>68项详情</span>
+                    <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                  </span>
+                </div>
+                <div class="dev-hexaco-body" id="devHexacoBody">
+                  <!-- Rendered dynamically by runtime controller -->
+                </div>
+              </section>
+            </div>
+
+            <!-- 中央第二行：24 小时情绪变化趋势 + 表达欲 -->
+            <div class="dev-row-2" data-layout-grid="dev_overview_row2">
+              <section class="dev-frosted-card clickable dev-card-curve" data-layout-card="dev_card_curve" data-card-size="standard" data-domain-card="emotion_trend" data-dev-nav="emo_drive">
+                <div class="dev-card-head">
+                  <span class="dev-card-title">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span>情绪变化趋势 (离散事件轨迹 vs 24h 时序)</span>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="emotion_trend">待加载</span>
+                  </span>
+                  <div class="dev-curve-legend">
+                    <span class="dev-legend-item"><i class="dev-legend-dot" style="background:#7A9460"></i><span>愉悦度</span></span>
+                    <span class="dev-legend-item"><i class="dev-legend-dot" style="background:#DF9B52"></i><span>唤醒度</span></span>
+                  </div>
+                </div>
+                <div id="devEmotionCurveContainer">
+                  <!-- Rendered dynamically by runtime controller -->
+                </div>
+              </section>
+
+              <section class="dev-frosted-card clickable dev-card-drive" data-layout-card="dev_card_drive" data-card-size="standard" data-domain-card="expression_drive" data-dev-nav="emo_drive">
+                <div class="dev-card-head">
+                  <span class="dev-card-title">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+                    <span>表达欲 <small style="font-weight:500;color:#6E7065;">Expressive Drive</small></span>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="expression_drive">待加载</span>
+                  </span>
+                  <span class="dev-card-more">
+                    <span>详情</span>
+                    <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                  </span>
+                </div>
+                <div class="dev-drive-body" id="devDriveBody">
+                  <!-- Rendered dynamically by runtime controller -->
+                </div>
+              </section>
+            </div>
+
+            <!-- 最近动态时间线 -->
+            <div data-layout-grid="dev_overview_activity">
+              <section class="dev-frosted-card dev-card-activity" data-layout-card="dev_card_activity" data-card-size="standard">
+                <div class="dev-card-head">
+                  <span class="dev-card-title">
+                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+                    <span>最近动态与决策流水</span>
+                    <span class="envelope-badge unavailable js-domain-badge" data-domain="experiences">待加载</span>
+                  </span>
+                  <button type="button" class="dev-card-more" data-dev-nav="session_trace">
+                    <span>查看全部回合</span>
+                    <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </div>
+                <div class="dev-activity-list" id="devActivityList"><div class="card-state-banner">暂无已加载的动态。</div></div>
+              </section>
+            </div>
+          </div>
+
+          <!-- 右侧快捷操作 + 运行任务列 (支持拖拽排序，底部留白露出橘猫与书本) -->
+          <aside class="dev-right-col" data-layout-grid="dev_overview_right">
+            <section class="dev-frosted-card dev-card-quick" data-layout-card="dev_card_quick" data-card-size="standard">
+              <div class="dev-card-head">
+                <span class="dev-card-title">
+                  <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><path d="M12 3c.5 4.5 4 8 8.5 8.5-4.5.5-8 4-8.5 8.5-.5-4.5-4-8-8.5-8.5 4.5-.5 8-4 8.5-8.5Z"/></svg>
+                  <span>快捷操作</span>
+                </span>
+              </div>
+
+              <button type="button" class="dev-quick-btn primary-green" data-quick-action="parlor">
+                <span class="dev-quick-left">
+                  <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  <span>进入会客室</span>
+                </span>
+                <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+
+              <button type="button" class="dev-quick-btn" data-dev-nav="pmm_sys">
+                <span class="dev-quick-left">
+                  <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/></svg>
+                  <span>检视 API-PMM / Learned-PMM</span>
+                </span>
+                <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+
+              <button type="button" class="dev-quick-btn" data-dev-nav="distill_task">
+                <span class="dev-quick-left">
+                  <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span>新建蒸馏与导入任务</span>
+                </span>
+                <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+
+              <button type="button" class="dev-quick-btn" data-dev-nav="learn_record">
+                <span class="dev-quick-left">
+                  <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><path d="M12 20v-8"/><path d="M12 14C7.5 14 4 10.5 4 6c4.5 0 8 3.5 8 8Z"/><path d="M12 12c4-.5 7.5-3.5 8-7.5-4.5 0-7.5 3-8 7.5Z"/></svg>
+                  <span>审阅特质与学习结果</span>
+                </span>
+                <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+
+              <button type="button" class="dev-quick-btn" data-dev-nav="api_tools">
+                <span class="dev-quick-left">
+                  <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><rect x="3" y="4" width="18" height="16" rx="2"/><polyline points="8 10 11 13 8 16"/><line x1="13" y1="16" x2="16" y2="16"/></svg>
+                  <span>运行容错与接口调试工具</span>
+                </span>
+                <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </section>
+
+            <section class="dev-frosted-card dev-card-tasks" data-layout-card="dev_card_tasks" data-card-size="standard" data-domain-card="learning">
+              <div class="dev-card-head">
+                <span class="dev-card-title">
+                  <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" style="color:#596A3E"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
+                  <span>运行任务</span>
+                </span>
+                <button type="button" class="dev-card-more" data-dev-nav="distill_task">
+                  <span>全部任务</span>
+                  <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </div>
+
+              
+
+              
+
+              
+            </section>
+          </aside>
+        </main>
+
+        <!-- 开发端子页面统一卡片化容器 (支持 LayoutManager 拖拽与尺寸调整) -->
+        <section id="devSubpageContainer" class="subpage-workspace-panel" hidden></section>
+      </div>
+    </div>
+
+    <!-- 通用详情与交互弹窗 -->
+    <div id="shellModalBackdrop" class="shell-modal-backdrop" hidden>
+      <div class="shell-modal-card" style="max-width:740px;width:92%;" role="dialog" aria-modal="true" aria-labelledby="shellModalTitle">
+        <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(155,153,140,0.22);padding-bottom:12px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <h3 id="shellModalTitle" style="font-family:var(--font-serif);font-size:21px;">详情面板</h3>
+            <span class="envelope-badge live" id="shellModalBadge">LIVE / PMM</span>
+          </div>
+          <button type="button" id="shellModalCloseBtn" style="padding:6px 14px;border-radius:999px;background:rgba(0,0,0,0.06);font-size:13px;font-weight:600;">关闭 ✕</button>
+        </div>
+        <div id="shellModalBody" style="font-size:14px;line-height:1.7;color:#3A3D34;max-height:72vh;overflow-y:auto;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/src/visualizations/DisplayText.js"></script>
+  <script src="/src/visualizations/PsychViz.js"></script>
+  <script src="/src/visualizations/ModelSettings.js"></script>
+  <script src="/src/visualizations/PersonalityView.js"></script>
+  <script src="/src/visualizations/EmotionView.js"></script>
+  <script src="/src/visualizations/SampleView.js"></script>
+  <script src="/src/visualizations/DriveView.js"></script>
+  <script src="/src/visualizations/MemoryGraphView.js"></script>
+  <script src="/src/visualizations/LifeViews.js"></script>
+  <script src="/src/visualizations/GraphViewport.js"></script>
+  <script src="/src/visualizations/RelationView.js"></script>
+  <script src="/src/visualizations/ParlorView.js"></script>
+  <script src="/src/visualizations/DevViz.js"></script>
+  <script src="/src/visualizations/ReasoningView.js"></script>
+  <script src="/src/visualizations/TokenView.js"></script>
+  <script src="/src/visualizations/SchedulerView.js"></script>
+  <script src="/src/visualizations/ResearchView.js"></script>
+  <script src="/src/visualizations/NotificationView.js"></script>
+  <script src="/src/visualizations/PmmFlow.js"></script>
+  <script src="/src/visualizations/DeveloperViews.js"></script>
+  <script src="/src/visualizations/PersonaManager.js"></script>
+  <script src="/src/app/phase20Controller.js"></script>
+</body>
+</html>

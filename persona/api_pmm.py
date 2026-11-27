@@ -49,6 +49,10 @@ class BudgetedProvider:
         self.deadline=time.monotonic()+seconds;self.trace_context=getattr(provider,'trace_context',{})
     @property
     def calls(self):return getattr(self.provider,'calls',[])
+    @property
+    def stage(self):return getattr(self.provider,'stage','')
+    @stage.setter
+    def stage(self,value):self.provider.stage=value
     def complete(self,*args,**kwargs):
         remaining=self.deadline-time.monotonic()
         if remaining<=0:raise TimeoutError('Internal PMM request budget exhausted')

@@ -9,7 +9,7 @@ from .psychology import profile_condition,context_profile
 from . import relationships as dy
 
 DECIDE='''[SOCIAL_DECISION_V212]
-这是主动联系决策，机会不等于必须发消息。结合此主体人格、当前模拟情绪、情境关系、兴趣证据、历史联系与真实反馈决定 SEND 或 NO_ACTION。
+这是主动联系决策，机会不等于必须发消息。结合此主体人格、当前模拟情绪、表达欲与未完成表达动机(expressive_drive)、情境关系、兴趣证据、历史联系与真实反馈决定 SEND 或 NO_ACTION。
 默认 NO_ACTION；没有合适话题、关系不适合、对方可能不愿被打扰时保持沉默，不制造紧迫感或索取回应。
 只使用给定会话的真实原文或记忆，不跨联系人透露内容，不把假设、AI自己的回复当用户兴趣事实，不虚构刚刚做过的事。
 输出JSON {"action":"NO_ACTION或SEND","reason":"简短依据","topic":"有来源的轻量话题","evidence":[{"record_id":"提供的id","quote":"逐字引文"}]}。
@@ -85,7 +85,7 @@ class Social:
             contacts=st.meta('social_contacts') or {};scope=parsed['scope'];r=contacts.get(scope,{})
             if r.get('unanswered',0):
                 st.event('social_feedback',{'scope':scope,'kind':'reply_received','last_outbound':r.get('last_attempt'),'latency_seconds':max(0,now()-r.get('last_sent_at',now())),'interpretation':'收到新消息，不等同于积极情绪或喜欢主动联系'})
-            r.update(last_input_at=now(),last_event_key=parsed['key'],person=parsed['person'],unanswered=0)
+            r.update(last_input_at=now(),last_event_key=parsed['key'],last_input_text=parsed.get('text','')[:1000],person=parsed['person'],unanswered=0)
             if re.fullmatch(r'\s*(?:请)?(?:不要主动联系我|别主动联系我|别再找我|不要再找我|stop messaging me|do not message me)[。.!！ ]*',parsed['text'],re.I):
                 self.engine.journal.permission(scope+':proactive',parsed['person'],True);r.update(blocked=True,block_quote=parsed['text'][:1000]);st.event('social_feedback',{'scope':scope,'kind':'stop_request','quote':parsed['text'][:1000]})
             contacts[scope]=r;st.setmeta('social_contacts',contacts)
@@ -98,11 +98,19 @@ class Social:
         with st.lock,st.db:
             blocked=st.meta('contact_permissions') or {};blocked[scope+'|'+person]={'withdrawn':True,'quote':quote[:1000],'at':now()};st.setmeta('contact_permissions',blocked)
             contacts=st.meta('social_contacts') or {};r=contacts.get(scope,{});r.update(blocked=scope.startswith('private:'),block_quote=quote[:1000]);contacts[scope]=r;st.setmeta('social_contacts',contacts)
+            from . import expression_drive as ed
+            drive_state=st.meta(ed.KEY)
+            if drive_state is not None:
+                updated_drive,_=ed.apply_delivery_outcome(drive_state,scope,person,'abandoned',at=now(),reason='contact_withdrawn')
+                updated_drive['revision']+=1
+                st.setmeta(ed.KEY,updated_drive)
             st.event('contact_withdrawn',{'scope':scope,'person':person,'source':'external_request'})
     def contact_allowed(self,scope,person):return not self.engine.journal.permission(scope,person) and not (self.engine.store.meta('contact_permissions') or {}).get(scope+'|'+person,{}).get('withdrawn')
     def status(self):
         c=self.engine.config.get()
-        return {'running':bool(self.thread and self.thread.is_alive()),'contacts':self.engine.store.meta('social_contacts') or {},'attempts':(self.engine.store.meta('social_attempts') or [])[-50:],'config':c['social'],'activation_missing':readiness(c)}
+        from . import expression_drive as ed
+        return {'running':bool(self.thread and self.thread.is_alive()),'contacts':self.engine.store.meta('social_contacts') or {},'attempts':(self.engine.store.meta('social_attempts') or [])[-50:],'config':c['social'],'activation_missing':readiness(c),
+                'expressive_drive':ed.status_summary(self.engine.store,self.engine.profile())}
     def gate(self,scope,t=None,preview=False):
         t=now() if t is None else t;c=self.engine.config.get();s=c['social'];contacts=self.engine.store.meta('social_contacts') or {};contact=contacts.get(scope,{})
         if not preview and not s['enabled']:return '自动主动联系已关闭'
@@ -127,85 +135,207 @@ class Social:
         if now()-self.last_poll<15:return
         self.last_poll=now()
         if self.thread and self.thread.is_alive():return
+        candidates=[]
         for scope in self.engine.config.get()['social']['recipients']:
             if not self.gate(scope):
-                self.thread=threading.Thread(target=self._auto,args=(scope,),daemon=True,name='persona-social');self.thread.start();return
+                try:
+                    ev=self.engine.advance_expressive_drive_idle(scope,commit=True)
+                    if not ev.get('proactive_eligible') or not ev.get('has_concrete_motive'):
+                        continue
+                    score=float(ev.get('proactive_motive_score',0.))+0.15*float(ev.get('urgency',0.))
+                except Exception:
+                    continue
+                candidates.append((score,scope))
+        if candidates:
+            candidates.sort(key=lambda item:item[0],reverse=True)
+            chosen=candidates[0][1]
+            self.thread=threading.Thread(target=self._auto,args=(chosen,),daemon=True,name='persona-social');self.thread.start();return
     def _auto(self,scope):
         try:self.evaluate(scope,send=True)
         except Exception:pass # evaluate writes explicit failure audit records.
     def evaluate(self,scope,send=False):
         if not self.lock.acquire(blocking=False):raise ValueError('主动社交评估正在运行')
-        e=self.engine;st=e.store;attempt=None;run=None;started=time.monotonic()
+        e=self.engine;st=e.store;attempt=None;run=None;clients=[];started=time.monotonic();ledger_context=None
         try:
             with e.lock:
                 reason=self.gate(scope,preview=not send)
                 if reason:return {'action':'NO_ACTION','reason':reason,'sent':False}
                 cfg=e.config.get();profile=e.profile();contacts=st.meta('social_contacts') or {};contact=copy.deepcopy(contacts[scope]);session_rows=st.rows('SELECT * FROM sessions WHERE scope=? ORDER BY created_at DESC LIMIT 1',(scope,))
                 if not session_rows:return {'action':'NO_ACTION','reason':'没有可延续的真实会话','sent':False}
-                session=session_rows[0];hist=st.history(session['id'],12);records=[{'id':r['id'],'text':r['content'][:2000]} for r in hist if r['role']=='user']
-                memories=e.retrieve(' '.join(r['text'] for r in records[-2:]),scope,4)
-                records += [{'id':m['id'],'text':m['evidence'][:2000]} for m in memories if m['kind'] not in ('hypothesis','self_observation') and m['evidence']]
+                session=session_rows[0];hist=st.history(session['id'],16);records=[{'id':r['id'],'text':r['content'][:2000],'turn_id':r.get('turn_id'),'created_at':r.get('created_at')} for r in hist if r['role']=='user']
                 relations=[dy.policy_relation(v) for v in (st.meta('pmm_dyads') or {}).values() if v['context_id']==scope][-20:]
-                context={'self':profile_condition(context_profile(profile,scope)),'emotion':e.activity(),'relationships':relations,'records':records,'history':[{'role':r['role'],'content':r['content'][:2000]} for r in hist], 'feedback':contact,'budget':cfg['social']['daily_budget']}
+                from . import expression_drive as ed
+                act_view=e.activity(scope,session['person'],session['id'])
+                _,drive_eval=ed.evaluate_proactive(
+                    st,profile,scope,person=session['person'],session_id=session['id'],at=now(),
+                    affect_view=act_view,relation=relations[-1] if relations else {},recent_records=records,session_history=hist,commit=send
+                )
+                selected_motive=copy.deepcopy(drive_eval.get('active_motive')) if isinstance(drive_eval.get('active_motive'),dict) else None
+                selected_motive_id=selected_motive.get('motive_id') if selected_motive else None
+                from .motive_generation import candidate_current
+                if not candidate_current(e,selected_motive):
+                    return {'action':'NO_ACTION','reason':'候选来源或会话已经变化，暂不联系','sent':False}
+                role_query='\n'.join(r['text'] for r in records[-2:])
+                motive_anchor=((drive_eval.get('active_motive') or {}).get('content_anchor') or {})
+                if isinstance(motive_anchor.get('topic'),str) and motive_anchor['topic'].strip():
+                    role_query=(role_query+'\n'+motive_anchor['topic'].strip()).strip()
+                memories=e.retrieve(role_query,scope,4)
+                records += [{'id':m['id'],'text':m['evidence'][:2000]} for m in memories if m['kind'] not in ('hypothesis','self_observation') and m['evidence']]
+                if (selected_motive or {}).get('origin')=='memory_reflection':
+                    for source in selected_motive.get('source_evidence',[]):
+                        if source['ref'] not in {r['id'] for r in records}:records.append({'id':source['ref'],'text':source['quote']})
+                from .prompt_compiler import emotion_view
+                persona_view=e.persona_views.scoped_views(profile,scope)
+                from .prompt_compiler import runtime_persona
+                persona_view['generator_view']=runtime_persona(persona_view['generator_view'],query=role_query,purpose='generator')
+                persona_view['checker_view']=runtime_persona(persona_view['checker_view'],query=role_query,purpose='checker')
+                context={'self':copy.deepcopy(persona_view['generator_view']),'persona_view_revision':persona_view['version_id'],
+                    'emotion':emotion_view(act_view),'expressive_drive':{k:copy.deepcopy(drive_eval[k]) for k in ('activation','urgency','persistence','expressive_intent','has_concrete_motive','proactive_motive_score','general_initiation_tendency','general_tendency_not_sufficient_alone','proactive_eligible','ineligible_reason','active_motive','intended_expression','unfinished_motives','regulation_strategy') if k in drive_eval},
+                    'relationships':relations,'records':records,
+                    'history':[{'role':r['role'],'content':r['content'][:2000]} for r in hist], 'feedback':contact,'budget':cfg['social']['daily_budget']}
                 if e.mode()!='api':
                     relation=relations[-1] if relations else {'trust':.5,'affection':.5,'familiarity':0,'interactions':0}
-                    decoded=e.model.decode(e.input_vector(' '.join(r['text'] for r in records[-2:]),{},profile,e.activity()['emotion'],relation,e.activity()),[])
-                    context['numeric_pmm_condition']={k:decoded[k] for k in ('state','style','action_probabilities','influence')}
+                    decoded=e.model.decode(e.input_vector(' '.join(r['text'] for r in records[-2:]),{},profile,act_view['emotion'],relation,act_view),[])
+                    context['numeric_pmm_condition']={k:decoded[k] for k in ('state','style')}
                 if send:
                     contacts[scope]['last_evaluated_at']=now()
                     with st.lock,st.db:st.setmeta('social_contacts',contacts)
             run=e.journal.start(profile['id'],session['id'],['social-opportunity:'+str(contact.get('last_event_key') or session['id'])],scope) if send else None
+            if run:
+                from . import token_ledger
+                ledger_context=token_ledger.begin(e.journal,run)
+                run['persona_version_id']=persona_view['version_id']
+                run['attempt_id']=run['turn_id']
+                run['motive_id']=selected_motive_id
+                run['expressive_drive']=copy.deepcopy(context['expressive_drive'])
+                e.journal.save(run)
             context['boundary_context']=e.boundaries.context(scope,session['person']);context['claim_memory']=e.claims.recent(scope)
             client=APIPMM(cfg,e.pmm_provider_factory).provider if cfg['pmm']['mode']=='api' else e.provider_factory(cfg)
-            if run:client.trace_context={k:run[k] for k in ('turn_id','trace_id','session_id','persona_id')}
+            clients.append(client)
+            if run:client.trace_context={**{k:run[k] for k in ('turn_id','trace_id','session_id','persona_id')},'persona_view_revision':persona_view['version_id'],'component_role':'PMM-A' if cfg['pmm']['mode']=='api' else 'General'}
             result=client.complete([{'role':'system','content':DECIDE},{'role':'user','content':dumps(context)}],structured=True)
             if not isinstance(result,dict) or result.get('action') not in ('NO_ACTION','SEND'):raise ProviderError('主动社交决策无效')
             result={k:result.get(k) for k in ('action','reason','topic','evidence')};result['reason']=str(result['reason'] or '')[:500];result['topic']=str(result['topic'] or '')[:1000]
             sources={r['id']:r['text'] for r in records};evidence=result['evidence']
             valid=[r for r in evidence if isinstance(r,dict) and r.get('record_id') in sources and isinstance(r.get('quote'),str) and r['quote'].strip() and r['quote'] in sources[r['record_id']]] if isinstance(evidence,list) else []
             result['evidence']=valid
+            result['expressive_drive']={k:copy.deepcopy(drive_eval[k]) for k in ('activation','urgency','persistence','expressive_intent','has_concrete_motive','proactive_motive_score','general_initiation_tendency','proactive_eligible','ineligible_reason','active_motive','intended_expression') if k in drive_eval}
             if result['action']=='SEND' and not valid:result.update(action='NO_ACTION',reason='话题缺少可核对的真实来源')
+            if result['action']=='SEND' and not drive_eval.get('proactive_eligible',False):
+                result.update(action='NO_ACTION',reason='当前缺少具体未完成表达目标或处于表达抑制状态，不单凭人格基线发起主动联系')
             if any(b.get('enabled') and b.get('hard') and any(k.lower() in result['topic'].lower() for k in b.get('keywords',[]) if k) for b in profile['boundaries']):result.update(action='NO_ACTION',reason='话题触及启用的硬边界')
             with st.lock,st.db:st.event('social_decision',{'scope':scope,'preview':not send,**result,'duration_ms':round((time.monotonic()-started)*1000)})
             if result['action']=='NO_ACTION' or not send:
+                if send:
+                    _,deferred_motive,ar_fb=ed.apply_proactive_outcome(
+                        st,profile,scope,session['person'],'deferred',
+                        at=now(),reason=result['reason'],
+                        turn_id=run['turn_id'] if run else None,
+                        attempt_id=run['turn_id'] if run else None,
+                        target_motive_id=selected_motive_id,
+                        motive_id_explicit=True,
+                        relation=relations[-1] if relations else None
+                    )
+                    if deferred_motive:
+                        result['expressive_drive']['active_motive']=deferred_motive
+                        result['expressive_drive']['status']=deferred_motive['status']
+                    if ar_fb:
+                        result['expressive_drive']['emotion_feedback']=ar_fb
                 if run:run.update(status='NO_ACTION',action_state='NO_ACTION',ended_at=now(),calls=getattr(client,'calls',[]));e.journal.save(run)
                 return {**result,'sent':False,'preview':not send}
             general=e.provider_factory(cfg);decision={'decision_id':uid(),'decision_revision':1,'action':'reply'}
+            clients.append(general)
             run.update(decision_id=decision['decision_id'],decision_revision=1,selected_action='reply',action_state='REPLY');e.journal.save(run)
-            general.trace_context={k:run[k] for k in ('turn_id','trace_id','session_id','persona_id','decision_id','decision_revision')}
+            general.trace_context={**{k:run[k] for k in ('turn_id','trace_id','session_id','persona_id','decision_id','decision_revision')},'persona_view_revision':persona_view['version_id'],'component_role':'General'}
             reply=general.complete([{'role':'system','content':REALIZE},{'role':'user','content':dumps({**context,'decision':result})}])
-            if not isinstance(reply,str) or not reply.strip() or len(reply)>400:raise ProviderError('主动消息为空或过长，未发送')
-            if any(b.get('enabled') and b.get('hard') and any(k.lower() in reply.lower() for k in b.get('keywords',[]) if k) for b in profile['boundaries']):raise ProviderError('主动消息触及启用的硬边界，未发送')
-            from .validation import ACTION_CHECK_PROMPT,candidate_check,validated_call,safe_check,ValidationFailure
+            from .validation import ACTION_CHECK_PROMPT,candidate_check,inspect_candidate,safe_check,InspectionFailure
             for regeneration in range(2):
-                if any(b.get('enabled') and b.get('hard') and any(k.lower() in reply.lower() for k in b.get('keywords',[]) if k) for b in profile['boundaries']):raise ProviderError('主动消息触及启用的硬边界，未发送')
-                checked=validated_call(general,[{'role':'system','content':ACTION_CHECK_PROMPT},{'role':'user','content':dumps({'decision_id':decision['decision_id'],'decision_revision':1,'expected_action':'reply','candidate':reply,'evidence_context':records,'boundary_context':context['boundary_context'],'actual_tool_receipts':[]})}],lambda v:candidate_check(v,decision,reply),run['validation'])
-                run.update(candidate_check=safe_check(checked),regenerations=regeneration,candidate_chars=len(reply));e.journal.save(run)
-                if checked['compliant']:break
-                if regeneration:raise ValidationFailure('candidate-action-check/1','social_candidate',[{'path':'/candidate','expected':'reply within permissions','actual_type':'string','reason':checked['failure_code']}])
-                reply=general.complete([{'role':'system','content':REALIZE},{'role':'user','content':dumps({**context,'decision':result,'repair':checked})}])
-                if not isinstance(reply,str) or not reply.strip() or len(reply)>400:raise ValueError('修复后的主动消息无效')
+                run.setdefault('candidate_archive',[]).append({'attempt':regeneration,'text':reply if isinstance(reply,str) else None})
+                run.update(candidate_status='GENERATED',regenerations=regeneration,candidate_chars=len(reply) if isinstance(reply,str) else 0)
+                e.journal.save(run)
+                hard=[copy.deepcopy(b) for b in profile['boundaries'] if b.get('enabled') and b.get('hard')]
+                relevant=[b for b in hard if any(isinstance(k,str) and k.strip() and k.lower() in (str(reply)+'\n'+result['topic']).lower() for k in b.get('keywords',[]))]
+                check_context={'input':result['topic'],'actual_tool_receipts':[],'evidence_context':valid,
+                    'hard_constraints':hard,'high_risk':bool(relevant),'permission_verified':False,
+                    'persona':copy.deepcopy(persona_view['checker_view'])}
+                checked=inspect_candidate(decision,reply,check_context)
+                if regeneration and len(run.get('candidate_archive',[]))>1 and reply==run['candidate_archive'][-2].get('text') and (run.get('candidate_inspection') or {}).get('disposition')=='REPAIR_CANDIDATE':
+                    checked.update(compliant=False,disposition='REPAIR_CANDIDATE',checker_required=False,trigger_reason='unchanged_previously_verified_violation')
+                checked.update(decision_id=decision['decision_id'],decision_revision=1,expected_action='reply',
+                    detected_action='reply',spans=[],failure_code='NONE',checker_status='local_only')
+                if isinstance(reply,str) and len(reply)>400:
+                    checked['local_checks'].append({'code':'SOCIAL_TEXT_LENGTH','status':'failed','max_chars':400})
+                    checked.update(compliant=False,disposition='REPAIR_CANDIDATE',checker_required=False)
+                if checked.get('checker_required'):
+                    # Use only the candidate, cited topic and relevant constraints.
+                    # The existing full social context is not duplicated for review.
+                    checker_context={'decision_id':decision['decision_id'],'decision_revision':1,'expected_action':'reply',
+                        'candidate':reply,'input':result['topic'],'actual_tool_receipts':[],'hard_constraints':relevant,
+                        'evidence_context':valid,'trigger_reason':checked['trigger_reason'],
+                        'persona':copy.deepcopy(persona_view['checker_view']),'persona_view_revision':persona_view['version_id']}
+                    checker_context['suspected_issues']=checked.get('suspected_issues',[])
+                    original=getattr(general,'config',None)
+                    try:
+                        if isinstance(original,dict):general.config={**original,'json_repair':False}
+                        value=general.complete([{'role':'system','content':ACTION_CHECK_PROMPT},{'role':'user','content':dumps(checker_context)}],structured=True)
+                        checked=candidate_check(value,decision,reply,check_context)
+                    except (ProviderError,TimeoutError,ConnectionError,ValueError,TypeError,KeyError) as ex:
+                        hard_review=checked.get('hard_review_required',True)
+                        checked.update(compliant=not hard_review,disposition='CHECKER_UNAVAILABLE' if hard_review else 'SEND_WITH_NOTE',checker_status='unavailable',
+                            failure_code='CHECKER_UNAVAILABLE',checker_error=type(ex).__name__)
+                    finally:
+                        if isinstance(original,dict):general.config=original
+                run['candidate_inspection']=safe_check(checked);run['candidate_check']=run['candidate_inspection']
+                run.setdefault('inspections',[]).append(copy.deepcopy(run['candidate_inspection']))
+                run['calls']=[call for provider in clients for call in getattr(provider,'calls',[])]
+                e.journal.save(run)
+                if checked.get('compliant') and checked['disposition'] in ('SEND','SEND_WITH_NOTE'):break
+                if checked['disposition'] in ('CHECKER_UNAVAILABLE','HOLD_HARD_CONSTRAINT'):
+                    run['candidate_status']=checked['disposition'];e.journal.save(run)
+                    raise InspectionFailure(checked['disposition'],{'candidate_inspection':safe_check(checked)})
+                if regeneration:
+                    run['candidate_status']='CANDIDATE_REPAIR_REQUIRED';e.journal.save(run)
+                    raise InspectionFailure('CANDIDATE_REPAIR_REQUIRED',{'candidate_inspection':safe_check(checked)})
+                repair={'input':result['topic'],'candidate':reply,'repair':safe_check(checked),'evidence_context':valid,
+                    'hard_constraints':relevant,'actual_tool_receipts':[],'persona':copy.deepcopy(persona_view['generator_view']),
+                    'persona_view_revision':persona_view['version_id']}
+                reply=general.complete([{'role':'system','content':REALIZE},
+                    {'role':'user','content':'[SOCIAL_CANDIDATE_REPAIR_V282] 仅修正已证实的问题，保持有来源的主动话题。\n'+dumps(repair)}])
             run.update(candidate_status='VALIDATED',calls=getattr(client,'calls',[])+getattr(general,'calls',[]));e.journal.save(run)
             with e.lock,st.lock:
                 current=e.config.get();latest=(st.meta('social_contacts') or {}).get(scope,{})
-                if current!=cfg or latest.get('last_input_at')!=contact.get('last_input_at') or latest.get('blocked') or e.profile()['revision']!=profile['revision'] or quiet(current['social'],now()) or not self.contact_allowed(scope,session['person']) or e.journal.permission(scope+':proactive',session['person']) or e.boundaries.context(scope,session['person'])!=context['boundary_context']:
+                if not candidate_current(e,selected_motive) or current!=cfg or latest.get('last_input_at')!=contact.get('last_input_at') or latest.get('blocked') or e.profile()['revision']!=profile['revision'] or quiet(current['social'],now()) or not self.contact_allowed(scope,session['person']) or e.journal.permission(scope+':proactive',session['person']) or e.boundaries.context(scope,session['person'])!=context['boundary_context']:
                     run.update(status='CANCELLED',ended_at=now());e.journal.save(run)
                     return {'action':'NO_ACTION','reason':'生成期间配置、人格或对话已变化，取消发送','sent':False}
                 # Reserve before delivery: an ambiguous transport result never triggers an automatic resend.
-                attempt={'id':run['turn_id'],'scope':scope,'at':now(),'status':'sending','reply':reply,'decision':result}
+                attempt_id=run['turn_id']
+                attempt={'id':attempt_id,'turn_id':run['turn_id'],'attempt_id':attempt_id,'motive_id':selected_motive_id,'scope':scope,'person':session['person'],'at':now(),'status':'sending','reply':reply,'decision':result}
                 with st.lock,st.db:
                     attempts=st.meta('social_attempts') or [];attempts.append(attempt);st.setmeta('social_attempts',attempts)
                     contacts=st.meta('social_contacts') or {};contacts[scope].update(last_attempt=attempt['at'],last_sent_at=attempt['at'],unanswered=contacts[scope].get('unanswered',0)+1);st.setmeta('social_contacts',contacts)
+                    if selected_motive_id:
+                        ed_base=st.meta(ed.KEY)
+                        if ed_base is not None:
+                            ed_bound=ed.bind_proactive_send_plan(ed_base,profile['id'],scope,session['person'],motive_id=selected_motive_id,turn_id=run['turn_id'],attempt_id=attempt_id,at=attempt['at'])
+                            st.setmeta(ed.KEY,ed_bound)
                 from .qq import verify_bot
                 verify_bot(cfg['qq'])
                 private=scope.startswith('private:');dest={'user_id' if private else 'group_id':int(scope.rsplit(':',1)[-1])}
                 run['pre_send_status']='VALID';e.journal.save(run)
                 envelope={'bot':cfg['qq'].get('self_id'),'target':dest,'action':'send_private_msg' if private else 'send_group_msg','message':[{'type':'text','data':{'text':reply}}]}
-                plan={'format':'social-commit/1','turn_id':run['turn_id'],'session_id':session['id'],'scope':scope,'reply':reply,'at':now()}
+                motive_src_ids=list(selected_motive.get('source_event_ids') or [ev.get('ref') for ev in selected_motive.get('source_evidence',[]) if isinstance(ev,dict) and ev.get('ref')]) if selected_motive else []
+                plan={'format':'social-commit/1','turn_id':run['turn_id'],'attempt_id':attempt_id,'persona_id':profile['id'],'session_id':session['id'],'scope':scope,'person':session['person'],'reply':reply,'at':now(),'message_row_id':run['turn_id']+':a:0','source_event_ids':motive_src_ids or [r['id'] for r in records[:4]],'motive_id':selected_motive_id}
                 identifier=e.journal.prepare(run,envelope,plan)
                 receipt=e.journal.dispatch(identifier,lambda v:request_json(cfg['qq']['api_url'].rstrip('/')+'/'+v['action'],{**v['target'],'message':v['message']},cfg['qq']['api_token'],20))
-                run.update(delivery_status='ACKNOWLEDGED',qq_message_id=receipt['message_id']);run['timing']={'first_ack_ms':round((time.monotonic()-started)*1000)};e.journal.save(run)
-                e.commit_social(plan);run.update(status='COMPLETED',delivery_status='COMMITTED',memory_commit_status='COMMITTED',learning_status='AWAITING_EXTERNAL_FEEDBACK',ended_at=now());e.journal.save(run)
+                bound_receipt={**receipt,'turn_id':run['turn_id'],'attempt_id':attempt_id,'motive_id':selected_motive_id}
+                e.journal.transition(identifier,'ACKNOWLEDGED',bound_receipt)
+                plan['delivery_receipt']=bound_receipt;run['proactive_commit_plan']=copy.deepcopy(plan)
+                run.update(delivery_status='ACKNOWLEDGED',qq_message_id=receipt['message_id'],delivery_receipt=bound_receipt);run['timing']={'first_ack_ms':round((time.monotonic()-started)*1000)};e.journal.save(run)
+                commit_out=e.commit_social(plan)
+                if isinstance(commit_out,dict) and commit_out.get('motive'):
+                    result['expressive_drive']['active_motive']=commit_out['motive']
+                    result['expressive_drive']['status']=commit_out['motive']['status']
+                run.update(status='COMPLETED',delivery_status='COMMITTED',memory_commit_status='COMMITTED',learning_status='AWAITING_EXTERNAL_FEEDBACK',ended_at=now());e.journal.save(run)
                 return {**result,'sent':True,'status':'sent','reply':reply}
         except Exception as ex:
             with st.lock,st.db:
@@ -215,12 +345,28 @@ class Social:
                         if a['id']==attempt['id']:a['status']='sent_postprocess_pending' if run and run.get('delivery_status')=='ACKNOWLEDGED' else 'failed' if getattr(ex,'code',None) in ('VALIDATION_FAILED','DELIVERY_FAILED') else 'uncertain'
                     st.setmeta('social_attempts',attempts)
                 if run:
-                    run.update(status='POSTPROCESS_FAILED' if run.get('delivery_status')=='ACKNOWLEDGED' else getattr(ex,'code','FAILED'),ended_at=now(),error={'exception_type':type(ex).__name__,'details':getattr(ex,'details',{})})
+                    run.update(status='POSTPROCESS_FAILED' if run.get('delivery_status')=='ACKNOWLEDGED' else getattr(ex,'code','FAILED'),ended_at=now(),error={'exception_type':type(ex).__name__,'details':getattr(ex,'details',{})},calls=[call for provider in clients for call in getattr(provider,'calls',[])])
                     if getattr(ex,'code',None) in ('DELIVERY_UNKNOWN','DELIVERY_FAILED'):run['delivery_status']=ex.code
                     e.journal.save(run)
                 st.event('social_failed',{'scope':scope,'error':str(ex) if isinstance(ex,(ValueError,ProviderError)) else '主动社交处理失败','attempt_id':attempt['id'] if attempt else None})
+            if send and 'session' in locals() and not (run and run.get('delivery_status')=='ACKNOWLEDGED'):
+                try:
+                    from . import expression_drive as ed
+                    ed.apply_proactive_outcome(
+                        st,profile,scope,session['person'],'failed',
+                        at=now(),reason=type(ex).__name__,
+                        turn_id=run['turn_id'] if run else None,
+                        attempt_id=run['turn_id'] if run else None,
+                        target_motive_id=selected_motive_id if 'selected_motive_id' in locals() else None,
+                        motive_id_explicit=True,
+                        relation=relations[-1] if 'relations' in locals() and relations else None
+                    )
+                except Exception:
+                    pass
             raise
-        finally:self.lock.release()
+        finally:
+            if ledger_context is not None:token_ledger.end(ledger_context)
+            self.lock.release()
     def unblock(self,scope):
         st=self.engine.store
         with self.engine.lock,st.lock,st.db:

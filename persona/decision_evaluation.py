@@ -12,28 +12,42 @@ from .common import clamp
 
 RULE='pmm-person-relational-conditions/1'
 def conditions(profile,u,relation):
-    ts=tr.snapshot(profile);appraisal=dy.cognition(ts,u,relation);s=u['semantic'];features={r['feature_id']:r for r in appraisal['source_features']}
+    ts=tr.snapshot(profile);appraisal=dy.cognition(ts,u,relation);s=u['semantic'];features={k:{**r,'uncertainty':r['posterior_uncertainty']} for k,r in ts['operative_personality'].items()}
     def value(k):
         f=features.get(k)
         return (f['estimate']-.5)*2*(1-(f['uncertainty'] if f['uncertainty'] is not None else 1)) if f else 0.
     d=relation['dyad'];trust=(d['trust']-.5)*2*(1-d.get('uncertainties',{}).get('trust',{}).get('estimate',.5)) if d['trust'] is not None else 0.
     h=s.get('hostility',0);social=s.get('social',0);ambiguity=s.get('ambiguity',0)
     terms={group:{a:0. for a in ACTIONS} for group in ('personality','relationship','regulation')}
-    terms['personality'].update(reply=.16*value('social.communion')*social,clarify=.18*value('hexaco.c.prudence')*ambiguity,disagree=-.18*value('hexaco.a.patience')*h)
+    terms['personality'].update(reply=(.08*value('social.communion')+.08*value('hexaco.x.sociability'))*social,clarify=.18*value('hexaco.c.prudence')*ambiguity,disagree=-.18*value('hexaco.a.patience')*h)
     terms['relationship'].update(reply=.12*trust*social,clarify=-.06*trust*social,disagree=-.08*trust*h)
     reg=ts['affective_disposition']['erq.cognitive_reappraisal'];r=0. if reg['estimate'] is None else (reg['estimate']-.5)*2*(1-(reg['uncertainty'] if reg['uncertainty'] is not None else 1))
     terms['regulation'].update(clarify=.08*r*h,disagree=-.1*r*h)
     return {'schema':RULE,'trait_version':ts['trait_version'],'trait_digest':ts['trait_digest'],'relationship_version':d.get('schema_revision',0),
         'relationship_digest':digest(d),'person':d['other_id'],'scope':d['context_id'],'appraisal':appraisal,'terms':terms,
-        'regulation_source':{'feature_id':'erq.cognitive_reappraisal',**reg},
+        'regulation_source':{'feature_id':'erq.cognitive_reappraisal',**reg},'personality_inputs':features,
         'model':'explicit_bounded_engineering_coefficients','calibrated':False,
         'source_use':{k:'contributes_to_scores' if any(abs(v)>1e-12 for v in rows.values()) else 'read_with_zero_score_effect' for k,rows in terms.items()}}
+
+def with_affect(condition,activity,u):
+    """Current affect changes evaluation/action, never the stable trait store."""
+    c=copy.deepcopy(condition);e=activity.get('emotion') or {};s=u.get('semantic') or {}
+    stress=e.get('stress');valence=e.get('valence');social=s.get('social',0);hostility=s.get('hostility',0)
+    terms={a:0. for a in ACTIONS}
+    if type(valence) in (int,float):terms['reply']=.08*clamp(valence,-1,1)*social
+    if type(stress) in (int,float):
+        terms['clarify']=.06*clamp(stress)*s.get('ambiguity',0)
+        terms['disagree']=.06*clamp(stress)*hostility
+    c['terms']['emotion']=terms;c['emotion_inputs']={k:e.get(k) for k in ('valence','arousal','stress','engagement')}
+    c['source_use']['emotion']='contributes_to_scores' if any(terms.values()) else 'read_with_zero_score_effect'
+    return c
 
 def compact_profile(p):
     q=empty_profile(p['id'],p['name']);q.update({k:copy.deepcopy(p[k]) for k in ('seed','character','revision','updated_at') if k in p})
     q['psychology']['features']=copy.deepcopy(p['psychology']['features'])
+    q['psychology']['evidence_records']=[{k:copy.deepcopy(r[k]) for k in ('id','source','role','withdrawn','evidence_kind') if k in r} for r in p.get('source_records',[])+p['psychology'].get('evidence_records',[])]
     q['trait_profile']={**copy.deepcopy(p['trait_profile']),'disposition_observations':[],'promotion_history':[]}
-    for f in q['trait_profile']['dispositions'].values():f['evidence']=[]
+    for f in q['trait_profile']['dispositions'].values():f['evidence']=[{'record_id':e['record_id']} for e in f.get('evidence',[])]
     q['boundaries']=[{k:copy.deepcopy(v) for k,v in b.items() if k!='evidence'} for b in p['boundaries']]
     return q
 
@@ -57,11 +71,13 @@ def evaluate_case(frozen,intervention=None):
         for v in p['trait_profile']['dispositions'].values():v.update(estimate=None,uncertainty=None,source_type='unknown')
     if 'feature_id' in intervention:
         k=intervention['feature_id'];v=number(intervention['estimate'])
-        if k in LONG_IDS:p['psychology']['features'][k].update(estimate=v,posterior_uncertainty=0.,source_type='experimental_intervention')
-        elif k in tr.DISPOSITIONS:p['trait_profile']['dispositions'][k].update(estimate=v,uncertainty=0.,source_type='experimental_intervention')
+        if k in LONG_IDS:
+            p=tr.edit_canonical(p,{'feature_id':k,'estimate':v,'expected_version':p['trait_profile']['version'],'note':'仅离线反事实，不提交'})
+        elif k in tr.DISPOSITIONS:p['trait_profile']['dispositions'][k].update(estimate=v,uncertainty=0.,source_type='owner_seed')
         else:raise ValueError('实验只能干预注册的长期人格或情绪倾向')
     u=f['understanding'];c=conditions(p,u,rel);u['decision_conditions']=c
     state,layer=af.evaluate(f['affect_before'],tr.snapshot(p),u,f['event'],rel,f['memories'],f['affect_proposal'],at=f['at'])
+    c=with_affect(c,af.compatibility(state),u);u['decision_conditions']=c
     decision=choose(u,p,f['views'],f['assessment']['views'],f['decoded'],f['memories'],f['event']['text'])
     actual=f['actual_decision'];locked=actual['gate']!='weighted_policy'
     if locked:decision.update(action=actual['action'],gate=actual['gate'],reason='固定现有知识/边界/执行门控；本次不重新评估该门控')

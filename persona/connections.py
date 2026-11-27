@@ -47,11 +47,16 @@ class Presets:
                 data['items']=[v for v in data['items'] if v['id']!=row['id']]+[row]
             atomic_json(self.path,data)
             return self.list()
-    def test(self, identifier, base):
+    def test(self, identifier, base, journal=None, persona_id=None):
         row=self.get(identifier);kind=row['kind'];value=row['value']
-        if kind=='general':return Provider(value).test()
+        def probe(config,role):
+            from .token_ledger import bind_factory
+            client=bind_factory(Provider,journal,persona_id,role)(config)
+            client.trace_context={'task_name':'connection_preset_test','trigger_reason':'explicit_preset_test','component_role':role}
+            return client.test()
+        if kind=='general':return probe(value,'General')
         if kind=='pmm':
-            if value['mode']=='api':return Provider(value['api']).test()
+            if value['mode']=='api':return probe(value['api'],'PMM-A')
             from .pmm_interface import create_pmm
             c=copy.deepcopy(base);c['pmm']=copy.deepcopy(value)
             return create_pmm(c,None,'').test()

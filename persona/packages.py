@@ -12,10 +12,16 @@ from .relationships import validate as validate_dyads
 
 FORMAT='persona-package/2.3'
 COMPATIBLE_FORMATS=('persona-package/2.0','persona-package/2.1',FORMAT)
-META_KEYS=('pmm281_affect','pmm281_affect_models','pmm28_models','pmm28_samples','pmm28_estimator','learning_evidence','learning_policy','learning_center','learning_observed_sources','social_graph','pmm_pragmatics','pmm_affect','identity','state','pmm_profile','pmm_activity','pmm_interlocutors','pmm_memory_codes','pmm_expression','pmm_synthesis','pmm_training_records','api_retrieval','pmm_checkpoint','pmm_dyads','consolidation_queue','memory_pending','memory_traces','cognitive_head','cognitive_feedback','memory_open_events','boundary_model','claim_memory')
+META_KEYS=('pmm_experience_learning','pmm_persona_views','pmm283_expression_drive','pmm281_affect','pmm281_affect_models','pmm28_models','pmm28_samples','pmm28_estimator','learning_evidence','learning_policy','learning_center','learning_observed_sources','social_graph','pmm_pragmatics','pmm_affect','identity','state','pmm_profile','pmm_activity','pmm_interlocutors','pmm_memory_codes','pmm_expression','pmm_synthesis','pmm_training_records','api_retrieval','pmm_checkpoint','pmm_dyads','consolidation_queue','memory_pending','memory_traces','cognitive_head','cognitive_feedback','memory_open_events','boundary_model','claim_memory')
 
 
 def validate_metadata(meta):
+    from .experience_learning import validate_state as validate_experience_learning
+    validate_experience_learning(meta.get('pmm_experience_learning'))
+    from .persona_views import validate as validate_persona_views
+    validate_persona_views(meta.get('pmm_persona_views'),(meta.get('identity') or {}).get('id'))
+    from .expression_drive import validate_metadata as validate_expression_drive
+    validate_expression_drive(meta)
     from .affect_runtime import validate_metadata as validate_affect_v2
     validate_affect_v2(meta)
     from .pmm_trainer import validate_metadata as validate_pmm28
@@ -101,6 +107,9 @@ def export_continuity(engine):
         rows=engine.store.rows("SELECT payload FROM events WHERE kind='boundary_appraisal' ORDER BY created_at,id")
         if rows:meta['boundary_model']['recent']=[json.loads(r['payload']) for r in rows]
     return {'format':FORMAT,'scope':'continuity','exported_at':now(),'identity':meta['identity'],'profile':meta['pmm_profile'],
+            'persona_views':meta.get('pmm_persona_views'),
+            'experience_learning':meta.get('pmm_experience_learning'),
+            'expressive_drive':meta.get('pmm283_expression_drive'),
             'pmm281':{k:meta.get(k) for k in ('pmm281_affect','pmm281_affect_models')},
             'pmm28':{k:meta.get(k) for k in ('pmm28_models','pmm28_samples','pmm28_estimator')},
             'learning_evidence':meta['learning_evidence'],'learning_center':meta['learning_center'],'learning_policy':meta['learning_policy'],'learning_observed_sources':meta['learning_observed_sources'],'social_graph':meta['social_graph'],
@@ -111,7 +120,7 @@ def export_continuity(engine):
             'memory_state':{'pending':meta['memory_pending'] or [],'traces':meta['memory_traces'] or {},'open_events':meta['memory_open_events'] or {}},
             'cognitive_state':{'head':meta['cognitive_head'],'feedback':meta['cognitive_feedback'] or []},
             'consolidation_queue':meta['consolidation_queue'] or [],'boundary_model':meta['boundary_model'],'claim_memory':meta['claim_memory'] or [],
-            'contents':'同一主体的人格证据、原始语言样本、情绪/心境、关系、含私密原文的记忆与对象模型、待训练样本、可选核心/Adapter；不含 API 连接、密钥或完整会话表。'}
+            'contents':'同一主体的人格证据、原始语言样本、情绪/心境、表达欲、关系、含私密原文的记忆与对象模型、待训练样本、可选核心/Adapter；不含 API 连接、密钥或完整会话表。'}
 
 
 def validate_pack(pack):
@@ -122,7 +131,7 @@ def validate_pack(pack):
     if not isinstance(learning,dict):raise ValueError('人格包学习部分无效')
     checkpoint=learning.get('checkpoint')
     if checkpoint is None:checkpoint=RegistryPMM(identity=identity['id']).export()
-    meta={'pmm_pragmatics':pack.get('pragmatics'),'pmm_affect':pack.get('affect_state'),'identity':identity,'pmm_profile':pack.get('profile'),'state':pack.get('state',copy.deepcopy(BASE_STATE)),
+    meta={'pmm_persona_views':pack.get('persona_views'),'pmm283_expression_drive':pack.get('expressive_drive'),'pmm_pragmatics':pack.get('pragmatics'),'pmm_affect':pack.get('affect_state'),'identity':identity,'pmm_profile':pack.get('profile'),'state':pack.get('state',copy.deepcopy(BASE_STATE)),
           'consolidation_queue':pack.get('consolidation_queue',[]),'pmm_dyads':pack.get('dyads',{}),'pmm_activity':pack.get('activity'),'pmm_expression':pack.get('expression'),'pmm_synthesis':pack.get('synthesis'),
           'pmm_interlocutors':pack.get('interlocutors',{}),'pmm_memory_codes':pack.get('memory_codes',{}),
           'pmm_training_records':learning.get('pending',[]),'api_retrieval':learning.get('retrieval'),'pmm_checkpoint':checkpoint}
@@ -134,6 +143,7 @@ def validate_pack(pack):
     meta.update({k:extra.get(k) for k in ('pmm28_models','pmm28_samples','pmm28_estimator')})
     meta.update(boundary_model=pack.get('boundary_model'),claim_memory=pack.get('claim_memory',[]))
     meta.update({k:pack.get(k) for k in ('learning_evidence','learning_center','learning_policy','learning_observed_sources','social_graph')})
+    meta['pmm_experience_learning']=pack.get('experience_learning')
     cognition=pack.get('cognitive_state',{})
     if not isinstance(cognition,dict):raise ValueError('认知连续状态无效')
     meta.update(cognitive_head=cognition.get('head'),cognitive_feedback=cognition.get('feedback',[]))
@@ -184,4 +194,6 @@ def apply_pack(store,validated):
     migrate(store)
     from .affect_runtime import migrate as migrate_affect_v2
     migrate_affect_v2(store)
+    from .expression_drive import migrate as migrate_expression_drive
+    migrate_expression_drive(store)
     store.event('persona_package_applied',{'identity_id':meta['identity']['id'],'history_preserved':True})

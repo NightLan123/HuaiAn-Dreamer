@@ -1,9 +1,0 @@
-test_factorial_and_independent_interventions (test_de_gate2.JointCases.test_factorial_and_independent_interventions) ... ok
-test_no_purpose_no_burst_and_no_questions_from_emotion (test_de_gate2.JointCases.test_no_purpose_no_burst_and_no_questions_from_emotion) ... ok
-test_old_observation_keeps_unknown_instead_of_manufactured_trace (test_de_gate2.JointCases.test_old_observation_keeps_unknown_instead_of_manufactured_trace) ... ok
-test_partial_qq_reconciles_prefix_without_duplicate_state_or_feedback (test_de_gate2.JointCases.test_partial_qq_reconciles_prefix_without_duplicate_state_or_feedback) ... ok
-
-----------------------------------------------------------------------
-Ran 4 tests in 21.705s
-
-OK

@@ -87,7 +87,11 @@ class Consolidation:
             client=APIPMM(captured,e.pmm_provider_factory).provider if captured['pmm']['mode']=='api' else e.provider_factory(captured)
             client.trace_context={'turn_ids':sorted(ids),'trace_ids':[(e.journal.get(v) or {}).get('trace_id') for v in sorted(ids)]};client.stage='后台长期学习'
             payload=[{'turn_id':r['id'],'user_record':r['user_record'],'self_record':r['self_record'],'prior_interactions':e.formation.interactions(r['session']['scope'],r['session']['person'],before=r['created_at']),'decision':r['decision'],'memories':memory_context(r['memories']),'boundary_feedback':r['understanding'].get('boundary_feedback',{}),'boundary_states':r.get('boundary_states',[]),'claim_memory':e.claims.recent(r['session']['scope'])} for r in batch]
-            response=client.complete([{'role':'system','content':BATCH+'\n'+FEEDBACK},{'role':'user','content':dumps({'turns':payload,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS,'disposition_registry':traits.DISPOSITION_REGISTRY})}],structured=True)
+            request={'turns':payload,'traits':TRAITS,'values':VALUES,'construct_registry':FIELDS,'disposition_registry':traits.DISPOSITION_REGISTRY}
+            if captured['pmm281']['mode']=='full':
+                from .prompt_compiler import feedback as compile_feedback
+                request=compile_feedback(request)
+            response=client.complete([{'role':'system','content':BATCH+'\n'+FEEDBACK},{'role':'user','content':dumps(request)}],structured=True)
             items=response.get('items') if isinstance(response,dict) else None
             if not isinstance(items,list) or len(items)!=len(ids) or any(not isinstance(i,dict) for i in items) or {i.get('turn_id') for i in items}!=ids:raise ProviderError('批量整理没有完整对应原始轮次，未提交任何更新')
             reports={i['turn_id']:validate_feedback(i.get('feedback')) for i in items}

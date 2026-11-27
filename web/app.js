@@ -6,8 +6,9 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const actionNames={reply:'回答',unknown:'不知道',clarify:'澄清',disagree:'异议',decline:'拒绝',silence:'沉默'};
 const titles={modelTraining:['候选、校准与发布','模型训练'],chat:['对话记录','对话'],profiles:['人物与证据','人物'],affectPage:['当前状态','情绪'],expressionPage:['示范与实际表现','语言习惯'],memory:['事件与来源','记忆'],distill:['来源与学习任务','蒸馏'],connections:['General LLM / PMM','模型设置'],qqPage:['连接与消息处理','QQ 设置'],diagnostics:['运行与执行记录','后台诊断记录'],research:['参数与数据管理','数据与版本']};
 let state=null,sessionId='',page='chat',busy=false,events=[],memories=[],messages=[],feedbackTurn='',importParsed=false,versions={weights:[],cores:[]},personaRevisions=[];
-const APP_VERSION='2.8.1';
+const APP_VERSION='2.8.3-dev';
 let csrfToken='',connectionPromise=null,uiReady=false,refreshSerial=0,panelFailures={},historyMore=false;
+let activeOperationReceipt=null;
 function requestError(message,path,status=0,code='NETWORK_ERROR',id='',method='GET'){
  const e=new Error(`${message} [${method} ${path} · ${status||'网络'} · ${code}${id?' · '+id:''}]`);
  Object.assign(e,{method,path,status,code,request_id:id});return e;
@@ -30,7 +31,7 @@ async function connectLocal(force=false){
  try{await connectionPromise;}finally{connectionPromise=null;}
 }
 async function api(path,body,retried=false){
- await connectLocal();
+ const requestOwner=state?.identity?.id;await connectLocal();
  const method=body===undefined?'GET':'POST';
  const options={credentials:'same-origin',cache:'no-store',headers:{'X-App-Client-Version':APP_VERSION}};
  if(body!==undefined)Object.assign(options,{method:'POST',headers:{...options.headers,'Content-Type':'application/json','X-CSRF-Token':csrfToken},body:JSON.stringify(body)});
@@ -45,7 +46,7 @@ async function api(path,body,retried=false){
   }
   const err=requestError(data.error||'请求失败',path,r.status,data.code||'REQUEST_FAILED',data.request_id,method);err.diagnostics=data.diagnostics;throw err;
  }
- if(body!==undefined)recordOperation(path,data);
+ if(body!==undefined)recordOperation(path,data,requestOwner);
  return data;
 }
 const loadingDisabled=new Map(),recoveryControls=new Set(['retryLocal','copyLocalError','exportSource','exportSourceIndex','exportSupport']);
@@ -77,10 +78,10 @@ async function refresh(){
  }catch(err){if(serial===refreshSerial){setDataReady(false);state=null;loadStatus(err.message,true);notice(err.message,true);}throw err;}
  if(serial!==refreshSerial)return;
  const changed=state?.identity?.id!==next.identity.id;state=next;csrfToken=next.csrf||csrfToken;setDataReady(true);
- if(changed){previewTrace281=null;selectedTrace281=null;workspace281=null;learningPolicyDirty=false;learningPreview=null;boundaryHistoryOffset=0;events=[];memories=[];versions={weights:[],cores:[]};personaRevisions=[];messages=[];sessionId='';}
+ if(changed){previewTrace281=null;selectedTrace281=null;workspace281=null;learningPolicyDirty=false;learningPreview=null;boundaryHistoryOffset=0;events=[];memories=[];versions={weights:[],cores:[]};personaRevisions=[];messages=[];sessionId='';resetRuntime282();activeOperationReceipt=null;$('operationReceipt').hidden=true;}
  if(!state.sessions.some(s=>s.id===sessionId))sessionId=state.sessions[0]?.id||'';
  let renderFailures=0;const draw=(id,fn)=>{if(!renderSafely(id,fn))renderFailures++;};
- draw('chatLog',renderShell);draw('psychologyPanel',renderProfiles);draw('affectStatus',renderAffect);draw('expressionStatus',renderExpression);draw('dynamicBoundaryList',renderBoundaryModel);draw('synthesisPanel',renderSynthesis);draw('cognitiveList',renderCognition);draw('learningOverview',renderLearning);
+ draw('chatLog',renderShell);draw('psychologyPanel',renderProfiles);draw('affectStatus',renderAffect);draw('expressionStatus',renderExpression);draw('dynamicBoundaryList',renderBoundaryModel);draw('synthesisPanel',renderSynthesis);draw('cognitiveList',renderCognition);draw('learningOverview',renderLearning);if(typeof renderUI3==='function')draw('ui3IdentityHero',renderUI3);
  if(changed&&state.config){if(page==='affectPage')fillAffectParameters();if($('traitSeedDialog').open)$('traitSeedDialog').close();if(['connections','qqPage'].includes(page))draw('localStatus',()=>openSettings(false));if(['connections','qqPage','memory','diagnostics'].includes(page))draw('localStatus',fillOperations);}
  const jobs=[['events','/api/events'],['memories','/api/memories'],['versions','/api/pmm/versions'],['revisions','/api/persona/revisions']];
  if(sessionId)jobs.push(['messages','/api/messages?session='+encodeURIComponent(sessionId)]);
@@ -89,13 +90,14 @@ async function refresh(){
  if(serial!==refreshSerial)return;
  $('versionLoadError').textContent='';const failures={};results.forEach((r,i)=>{const key=jobs[i][0];if(r.status==='rejected'){failures[key]=r.reason;return;}if(key==='events')events=r.value;if(key==='memories')memories=r.value;if(key==='versions')versions=r.value;if(key==='revisions')personaRevisions=r.value;if(key==='messages')messages=r.value;});
  if(!sessionId)messages=[];panelFailures=failures;historyMore=!failures.messages&&messages.length===2000;
- draw('trainingPanel',renderResearch);draw('versionLoadError',renderVersions);draw('memoryList',renderMemory);draw('chatLog',renderChat);
+ draw('trainingPanel',renderResearch);draw('versionLoadError',renderVersions);draw('memoryList',renderMemory);draw('chatLog',renderChat);if(typeof renderUI3==='function')draw('ui3IdentityHero',renderUI3);
  const areas={events:'eventList',memories:'memoryList',versions:'versionLoadError',revisions:'versionLoadError',messages:'chatLog'};
  for(const [key,err] of Object.entries(failures))panelError(areas[key],err);if(failures.versions){$('activateWeights').disabled=true;$('activateCore').disabled=true;}if(failures.revisions)$('rollbackPersona').disabled=true;
  const component=Object.entries(state.component_errors||{});
  if(component.length)notice(component.map(([key,e])=>`${key}：${e.message} · ${e.request_id}`).join('；'),true);
  const failed=Object.keys(failures).length+component.length+renderFailures;
  loadStatus(`本地数据已连接 · ${state.profile.name} · ${state.sessions.length} 个会话${failed?' · '+failed+' 个区域加载失败，可重新连接重试':''}`,failed>0);
+ if(page==='profiles')await loadPersonaViews282().catch(e=>{$('personaViewsStatus282').textContent=e.message;});
 }
 function renderShell(){const p=state.profile;$('personaSelect').innerHTML=state.personas.items.map(i=>`<option value="${esc(i.id)}" ${i.id===state.identity.id?'selected':''}>${esc(i.id===p.id?p.name:i.name)}</option>`).join('');$('subjectName').textContent=p.name;$('identitySummary').textContent=`${state.state.turn_count} 次互动 · 人格修订 ${p.revision}`;$('modelName').textContent=(state.config.model||'大模型待配置')+' · '+(state.config.pmm281.mode==='full'?'完整 PMM':'备用兼容模式');$('connectionDot').className=modelsConfigured()?'ready':'';$('connectionDot').querySelector('span').textContent=modelsConfigured()?'连接已填写 · 请测试':'需要配置模型连接';$('sessions').innerHTML=state.sessions.map(s=>`<button data-session="${esc(s.id)}" class="${s.id===sessionId?'selected':''}">${esc(s.title)}</button>`).join('')||'<p class="empty">还没有对话</p>';
 const a=state.affect_state?.emotion||{};$('emotionMeters').innerHTML=affectMeter('效价',a.valence,true)+affectMeter('唤醒',a.arousal)+affectMeter('主导感',a.dominance);$('modelStats').innerHTML=`<p class="muted">${esc(state.model.status)} · ${esc(modeName(state.model.mode))}</p><div class="stat"><span>待训练样本</span><strong>${state.model.pending_samples||0}</strong></div><div class="stat"><span>训练样本</span><strong>${state.model.train_samples}</strong></div><div class="stat"><span>保留样本</span><strong>${state.model.heldout_samples}</strong></div><div class="stat"><span>参数更新</span><strong>${state.model.steps}</strong></div>`;const readonly=state.sessions.find(s=>s.id===sessionId)?.scope.startsWith('group:qq:')||state.sessions.find(s=>s.id===sessionId)?.scope.startsWith('private:qq:');$('message').disabled=!!readonly;$('composeHint').textContent=readonly?'QQ 会话在此查看；请到 QQ 继续交流，或新建本机对话。':'Enter 发送 · Shift + Enter 换行 · 每轮判断可查看并校正';}
@@ -119,13 +121,34 @@ function showPage(view,tab,focus=true){
   if(view==='profiles'){renderOtherLearning();renderLearning();loadBoundaryHistory(true).catch(e=>notice(e.message,true));}
   if(view==='qqPage')refreshSocial().catch(e=>notice(e.message,true));
   if(['connections','modelTraining','affectPage'].includes(view))refresh281().catch(e=>notice(e.message,true));
+  if(view==='profiles')loadPersonaViews282().catch(e=>{$('personaViewsStatus282').textContent=e.message;});
   if(view==='modelTraining')refreshPmm28().catch(e=>notice(e.message,true));
   if(view==='diagnostics'){$('qqStatusBtn').onclick();refreshPmm28().catch(e=>notice(e.message,true));}
  }
  restoreDrafts();updateRoute();if(focus)$('pageTitle').focus();
 }
 async function newSession(){const r=await api('/api/session',{});sessionId=r.id;showPage('chat');await refresh();$('message').focus();}
-async function runJob(result,kind){if(kind==='learning')return runLearningJob(result);setBusy(true);$('progress').hidden=false;notice(kind==='distill'?'开始蒸馏。任务完成前请保持程序运行。':'');try{while(true){const j=await api('/api/jobs/'+result.job_id);if(kind==='learning')$('learningProgress').textContent=(j.phase||'处理中');$('progress').textContent=(j.phase||'处理中')+' · 已用 '+Math.max(0,Math.floor(Date.now()/1000-(j.started_at||j.created_at)))+' 秒';if(kind==='distill')$('distillResult').innerHTML=`<article class="card"><div class="step">正在处理</div><p>${esc(j.phase)}</p></article>`;if(j.status==='error'){await refresh();throw new Error(j.error+'（详情见操作历史）');}if(j.status==='done'){await refresh();if(kind==='distill'){recordOperation('/api/distill',j.result);const pending=j.result.learning_job&&j.result.learning_job.status!=='completed';$('distillResult').innerHTML=`<article class="card"><div class="step">${pending?'本批已结束，任务尚未全部完成':'蒸馏完成'}</div><h2>新增 ${j.result.report.added} 条来源</h2><p class="muted">接受 ${j.result.report.accepted} 项有引用的判断，拒绝 ${j.result.report.rejected} 项无效或无来源的判断。</p>${pending?`<p>已处理 ${j.result.learning_job.cursor} / ${j.result.learning_job.source_count}，请在学习任务中继续或检查状态。</p>`:''}<button data-goto="distill" data-target-tab="learningPage">查看实际写入与后续任务 →</button></article>`;notice(pending?'部分来源已处理，剩余任务可在学习中心继续。':'蒸馏完成，实际写入可在学习中心查看。');}else notice(j.result.warning||j.result.message||'');return j.result;}await new Promise(resolve=>setTimeout(resolve,900));}}finally{setBusy(false);$('progress').hidden=true;}}
+async function runJob(result,kind){
+ if(kind==='learning')return runLearningJob(result);
+ const owner=state?.identity?.id;setBusy(true);$('progress').hidden=false;notice(kind==='distill'?'开始蒸馏。任务完成前请保持程序运行。':'');
+ try{while(true){
+  const j=await api('/api/jobs/'+result.job_id);updateJobOperationReceipt(j,owner);
+  $('progress').textContent=(j.phase||'处理中')+' · 已用 '+Math.max(0,Math.floor(Date.now()/1000-(j.started_at||j.created_at)))+' 秒';
+  if(kind==='distill')$('distillResult').innerHTML=`<article class="card"><div class="step">正在处理</div><p>${esc(j.phase)}</p></article>`;
+  if(j.status==='error'){await refresh();updateJobOperationReceipt(j,owner);const error=new Error(j.error+'（详情见操作历史）');error.operationReceiptHandled=true;throw error;}
+  if(j.status==='done'){
+   await refresh();updateJobOperationReceipt(j,owner);
+   if(kind==='distill'){
+    const pending=j.result.learning_job&&j.result.learning_job.status!=='completed';
+    $('distillResult').innerHTML=`<article class="card"><div class="step">${pending?'本批已结束，任务尚未全部完成':'蒸馏完成'}</div><h2>新增 ${j.result.report.added} 条来源</h2><p class="muted">接受 ${j.result.report.accepted} 项有引用的判断，拒绝 ${j.result.report.rejected} 项无效或无来源的判断。</p>${pending?`<p>已处理 ${j.result.learning_job.cursor} / ${j.result.learning_job.source_count}，请在学习任务中继续或检查状态。</p>`:''}<button data-goto="distill" data-target-tab="learningPage">查看实际写入与后续任务 →</button></article>`;
+    notice(pending?'部分来源已处理，剩余任务可在学习中心继续。':'蒸馏完成，实际写入可在学习中心查看。');
+   }else notice(j.result.warning||j.result.message||'');
+   return j.result;
+  }
+  await new Promise(resolve=>setTimeout(resolve,900));
+ }}catch(error){error.operationReceiptContext={owner,job_id:result.job_id};throw error;}
+ finally{setBusy(false);$('progress').hidden=true;}
+}
 let pendingWebInput=null;
 async function sendMessage(e){e.preventDefault();if(busy)return;const text=$('message').value.trim();if(!text)return;if(!modelsConfigured()){openSettings();return;}if(!sessionId)await newSession();setBusy(true);const key=state.identity.id+':'+sessionId;if(!pendingWebInput||pendingWebInput.key!==key||pendingWebInput.text!==text)pendingWebInput={key,text,id:globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)};try{const j=await api('/api/chat',{session_id:sessionId,text,client_event_id:pendingWebInput.id});$('message').value='';messages.push({role:'user',content:text});renderChat();await runJob(j,'chat');pendingWebInput=null;}catch(err){$('message').value=text;await refresh();throw err;}finally{setBusy(false);}}
 function renderProfiles(){const p=state.profile;$('characterSummary').textContent=`自称：${p.character?.self_reference||'我'} · 初始人格：${p.character?.initial_personality||'尚未设置'} · 基础设定：${p.seed||'尚未设置'}`;renderPsychology();$('selfProfileName').textContent=p.name;$('stylePanel').innerHTML=p.style.count?`<div class="stat"><span>原始表达样本</span><strong>${p.style.count}</strong></div><div class="stat"><span>句长中位数</span><strong>${p.style.median_chars} 字符</strong></div>${meter('极短表达（≤8 字符）比例',p.style.vector[1])}<div>${p.style.short_examples.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>`:'<p class="empty">导入聊天后，风格将从原始表达独立统计。</p>';
@@ -297,9 +320,9 @@ function renderBoundaryModel(){
 
 function editDynamicBoundary(b){$('dynamicBoundaryId').value=b?.boundary_id||'';$('dynamicBoundaryTopic').value=b?.topic||'';$('dynamicBoundaryDomain').value=b?.domain||'disclosure';$('dynamicBoundaryStrength').value=b?.stable_sensitivity??.65;$('dynamicBoundaryScope').value=b?.scope||'*';$('dynamicBoundaryPerson').value=b?.recipient||'*';$('dynamicBoundaryDialog').showModal();}
 function showBoundaryEvidence(id){const b=state.boundary_model;$('traceTitle').textContent='边界证据与修订';const rows=b.evidence.filter(r=>!id||r.boundary_id===id);$('traceBody').innerHTML='<p class="fine">外部反馈、主人修正与模型推断分别保留。AI 自己的回复不计为独立心理证据。</p>'+rows.map(r=>`<article><p>${r.polarity==='counter'?'反例':'支持'} · ${esc(r.source)} · ${esc(r.date)} · ${esc(r.person)}</p><blockquote>${esc(r.quote)}</blockquote><p>${esc(r.interpretation)}</p><p class="fine">其他解释：${r.alternative_explanations.map(esc).join('；')}</p></article>`).join('')+'<h3>修订记录</h3><pre>'+esc(JSON.stringify(b.history.filter(r=>!id||r.boundary_id===id),null,2))+'</pre>';$('traceDialog').showModal();}
-const executionStatusNames={INTERRUPTED_AFTER_ACK:'已发部分 · 因新事件停止',DELIVERY_INTERRUPTED:'已确认部分 · 剩余已停止',PARTIAL_COMMITTED:'已保存确认部分',DELIVERY_PARTIAL:'已发部分 · 后续接口失败',COMPLETED:'已完成',VALIDATION_FAILED:'输出校验失败',DELIVERY_FAILED:'QQ 明确发送失败',DELIVERY_UNKNOWN:'发送结果未知',POSTPROCESS_FAILED:'已发送 · 本地提交待恢复',FAILED:'处理失败',RUNNING:'处理中',CANCELLED:'已取消',PERMISSION_WITHDRAWN:'对方已撤回联系许可'};
+const executionStatusNames={HOLD_HARD_CONSTRAINT:'硬约束待核实 · 未发送',CHECKER_UNAVAILABLE:'检查器不可用 · 待处理',CANDIDATE_REPAIR_REQUIRED:'候选需修复 · 未发送',INTERRUPTED_AFTER_ACK:'已发部分 · 因新事件停止',DELIVERY_INTERRUPTED:'已确认部分 · 剩余已停止',PARTIAL_COMMITTED:'已保存确认部分',DELIVERY_PARTIAL:'已发部分 · 后续接口失败',COMPLETED:'已完成',VALIDATION_FAILED:'输出校验失败',DELIVERY_FAILED:'QQ 明确发送失败',DELIVERY_UNKNOWN:'发送结果未知',POSTPROCESS_FAILED:'已发送 · 本地提交待恢复',FAILED:'处理失败',RUNNING:'处理中',CANCELLED:'已取消',PERMISSION_WITHDRAWN:'对方已撤回联系许可'};
 function renderExecution(data){executionData=data;const m=data.metrics||{};$('executionMetrics').textContent=`成功回执样本 ${m.acknowledged_samples||0} · P50 ${m.p50_first_ack_ms==null?'暂无':seconds(m.p50_first_ack_ms)} · P95 ${m.p95_first_ack_ms==null?'暂无':seconds(m.p95_first_ack_ms)}。计时终点为 OneBot 回执，用户客户端收信时间尚无测量。`;
-$('executionList').innerHTML=(data.runs||[]).map(r=>`<article class="decision-row"><div class="row spread"><strong>${esc(executionStatusNames[r.status]||r.status)}</strong><time>${date(r.started_at)}</time><button data-execution="${esc(r.turn_id)}">查看阶段与字段诊断</button></div><p>行动 ${esc(r.action_state||r.selected_action||'尚未决定')} · 候选 ${esc(r.candidate_status)} · 发送 ${esc(r.delivery_status)} · 学习 ${esc(r.learning_status||r.memory_commit_status)}</p><p class="record-id">Trace ${esc(r.trace_id)}</p></article>`).join('')||'<p class="empty">尚无执行记录。连接模型并发起对话后显示。</p>';}
+$('executionList').innerHTML=(data.runs||[]).map(r=>`<article class="decision-row"><div class="row spread"><strong>${esc(executionStatusNames[r.status]||r.status)}</strong><time>${date(r.started_at)}</time><button data-execution="${esc(r.turn_id)}">查看阶段与字段诊断</button></div><p>行动 ${esc(r.action_state||r.selected_action||'尚未决定')} · 候选 ${esc(r.candidate_status)} · 发送 ${esc(r.delivery_status)} · 学习 ${esc(r.learning_status||r.memory_commit_status)}</p><p class="record-id">Trace ${esc(r.trace_id)}</p>${r.candidate_inspection?`<p>候选检查：${esc(({SEND:"本地通过",SEND_WITH_NOTE:"通过，偏差已记录",HOLD_HARD_CONSTRAINT:"硬约束待核实",CHECKER_UNAVAILABLE:"检查器不可用",REPAIR_CANDIDATE:"修复已证实问题"})[r.candidate_inspection.disposition]||r.candidate_inspection.disposition)} · ${r.candidate_inspection.checker_status==="completed"?"已运行异常复核":r.candidate_inspection.checker_status==="unavailable"?"异常复核失败":"本地检查"}</p>`:""}<p class="fine">${r.cognitive_summary?.persisted?"已保留本轮认知中间记录，可核对失败前的组件状态。":""}</p></article>`).join('')||'<p class="empty">尚无执行记录。连接模型并发起对话后显示。</p>';}
 async function loadExecution(){renderExecution(await api('/api/execution'));}
 $('newDynamicBoundary').onclick=()=>editDynamicBoundary();
 $('dynamicBoundaryForm').onsubmit=guard(async e=>{e.preventDefault();await api('/api/boundaries/edit',{op:'save',boundary_id:$('dynamicBoundaryId').value||undefined,topic:$('dynamicBoundaryTopic').value,domain:$('dynamicBoundaryDomain').value,stable_sensitivity:Number($('dynamicBoundaryStrength').value),scope:$('dynamicBoundaryScope').value,recipient:$('dynamicBoundaryPerson').value});$('dynamicBoundaryDialog').close();await refresh();notice('边界倾向已保存。');});
@@ -412,12 +435,16 @@ function setMultiOptions(id,items){const selected=new Set(selectedValues(id));$(
 function learningBody(){const range=$('learningRange').value,n=Number($('learningAmount').value);return {persona_id:state.identity.id,target:$('learningTarget').value,person:$('learningPerson').value.trim(),scopes:selectedValues('learningScopes'),source:'history',intent:$('learningIntent').value,include_observations:$('learningIncludeObservations').checked,train_weights:$('learningTrainWeights').checked,reanalyse:$('learningReanalyse').checked,...(range==='recent'?{limit:n}:range==='days'?{days:n}:range==='session'?{session_id:$('learningSession').value}:{})};}
 function renderLearning(){
  const center=state?.learning_center;if(!center){$('learningOverview').innerHTML='<p>学习中心暂不可用，请查看本地诊断。</p>';return;}
- const p=center.policy;$('learningOverview').innerHTML=`<div class="learning-summary"><div><span>自动处理</span><strong>${p.paused?'已暂停':'按领域策略运行'}</strong></div><div><span>待后台整理</span><strong>${state.consolidation?.pending||0} 项</strong></div><div><span>已追踪任务</span><strong>${center.total_jobs}</strong></div><div><span>已应用的来源×目标</span><strong>${center.processed_sources}</strong></div></div><p class="fine">当前主体 ${esc(state.profile.name)} · 策略版本 ${p.version} · 自动任务沿用“累计 ${state.config.performance?.batch_turns||5} 条 / 空闲 ${state.config.performance?.idle_seconds||60} 秒”的触发设置。</p>${center.last_failure?`<p class="error">最近失败：${esc(center.last_failure.error||center.last_failure.status)} <button data-learning-detail="${esc(center.last_failure.id)}">查看任务</button></p>`:''}`;
+ const p=center.policy;$('learningOverview').innerHTML=`<div class="learning-summary"><div><span>自动处理</span><strong>${p.paused?'已暂停':'按领域策略运行'}</strong></div><div><span>待后台整理</span><strong>${state.consolidation?.pending||0} 项</strong></div><div><span>已追踪任务</span><strong>${center.total_jobs}</strong></div><div><span>已应用的来源×目标</span><strong>${center.processed_sources}</strong></div></div><p class="fine">当前主体 ${esc(state.profile.name)} · 策略版本 ${p.version} · 人物与关系整理沿用“累计 ${state.config.performance?.batch_turns||5} 条 / 空闲 ${state.config.performance?.idle_seconds||60} 秒”的触发设置；自身经历成长按下方新增记忆数量单独触发。</p>${center.last_failure?`<p class="error">最近失败：${esc(center.last_failure.error||center.last_failure.status)} <button data-learning-detail="${esc(center.last_failure.id)}">查看任务</button></p>`:''}`;
  const legacy=center.legacy_generated_audit;if(legacy?.old_observations)$('learningOverview').innerHTML+=`<p class="callout">旧来源复核：发现 ${legacy.old_observations} 项旧观测引用生成回复。${esc(legacy.action)} 可用下方历史原文重新分析；未自动清空已训练权重。</p>`;
  if(!learningPolicyDirty){
   $('learningPolicyFields').innerHTML=Object.entries(p.domains).map(([d,r])=>`<fieldset class="learning-domain"><legend>${esc(learningNames[d])}</legend><label><input id="lp-enabled-${d}" type="checkbox" ${r.enabled?'checked':''}> 允许长期学习</label><label for="lp-mode-${d}">模式</label><select id="lp-mode-${d}">${[['manual','仅手动'],['candidate_only','自动收集候选，等待审阅'],['automatic','在证据门槛内自动更新']].map(([v,l])=>`<option value="${v}" ${r.mode===v?'selected':''}>${l}</option>`).join('')}</select><label for="lp-strength-${d}">更新强度 <output id="lp-value-${d}">${Math.round(r.strength*100)}%</output></label><input id="lp-strength-${d}" data-learning-strength="${d}" type="range" min="0" max="100" step="1" value="${Math.round(r.strength*100)}"><details><summary>范围与旁观授权</summary><label for="lp-scopes-${d}">允许范围（每行一个；留空沿用直接交互范围）</label><textarea id="lp-scopes-${d}" rows="2">${esc(r.scopes.join('\n'))}</textarea><label for="lp-people-${d}">允许人物（每行一个）</label><textarea id="lp-people-${d}" rows="2">${esc(r.people.join('\n'))}</textarea><label><input id="lp-group-${d}" type="checkbox" ${r.allow_group_observation?'checked':''}> 允许旁观学习（上方必须指定群与人物）</label></details></fieldset>`).join('');
   $('learningPaused').checked=p.paused;for(const [id,key] of [['learningBatchRecords','batch_records'],['learningBatchChars','batch_chars'],['learningMaxCalls','max_calls'],['learningMaxTokens','max_tokens']])$(id).value=p.budget[key];
+  $('experienceLearningEnabled').checked=p.experience?.enabled ?? true;
+  $('experienceLearningCount').value=p.experience?.new_memories ?? 10;
  }
+ const experience=center.experience_learning;
+ $('experienceLearningStatus').textContent=experience ? `待整理 ${experience.pending_memories} 条 / 每 ${experience.next_at} 条触发 · 已处理 ${experience.processed_events} 个事件 · 待确认人设变化 ${(experience.role_change_candidates||[]).length} 项 · 已生效补充 ${(experience.role_supplements||[]).length} 项（仅重大经历及后续证据触发）` : '经历学习状态尚未返回。';
  setMultiOptions('learningScopes',center.available_scopes||[]);setMultiOptions('graphScopes',center.available_scopes||[]);
  const selected=$('learningSession').value;$('learningSession').innerHTML='<option value="">选择会话</option>'+state.sessions.map(s=>`<option value="${esc(s.id)}" ${s.id===selected?'selected':''}>${esc(s.title)} · ${esc(s.person)} · ${esc(s.scope)}</option>`).join('');
  renderLearningJobs(center.jobs||[]);renderLearningPaging(center);renderCalibrationResults();renderOtherLearning();
@@ -442,7 +469,15 @@ function renderGraph(r){graphResult=r;const people=r.people.slice(0,60),W=800,H=
 async function queryGraph(){const scopes=selectedValues('graphScopes');if(!scopes.length)throw new Error('请选择至少一个可查询范围');renderGraph(await api('/api/social-graph?'+scopes.map(s=>'scope='+encodeURIComponent(s)).join('&')+'&person='+encodeURIComponent($('graphPerson').value.trim())));}
 function bindLearningUI(){
  $('learningPolicyForm').oninput=e=>{learningPolicyDirty=true;const d=e.target.dataset?.learningStrength;if(d)$('lp-value-'+d).textContent=e.target.value+'%';};
- $('learningPolicyForm').onsubmit=guard(async()=>{const p=JSON.parse(JSON.stringify(state.learning_center.policy));for(const d of Object.keys(p.domains)){p.domains[d]={enabled:$('lp-enabled-'+d).checked,mode:$('lp-mode-'+d).value,strength:Number($('lp-strength-'+d).value)/100,scopes:$('lp-scopes-'+d).value.split('\n').map(s=>s.trim()).filter(Boolean),people:$('lp-people-'+d).value.split('\n').map(s=>s.trim()).filter(Boolean),allow_group_observation:$('lp-group-'+d).checked};}p.paused=$('learningPaused').checked;for(const [id,k] of [['learningBatchRecords','batch_records'],['learningBatchChars','batch_chars'],['learningMaxCalls','max_calls'],['learningMaxTokens','max_tokens']])p.budget[k]=Number($(id).value);await api('/api/learning/policy',{persona_id:state.identity.id,expected_version:state.learning_center.policy.version,policy:p});learningPolicyDirty=false;learningPreview=null;$('learningCreate').disabled=true;await refresh();notice('学习策略已保存；已有历史不会被自动重新扫描。');});
+ $('learningPolicyForm').onsubmit=guard(async()=>{
+  const p=JSON.parse(JSON.stringify(state.learning_center.policy));
+  for(const d of Object.keys(p.domains)) p.domains[d]={enabled:$('lp-enabled-'+d).checked,mode:$('lp-mode-'+d).value,strength:Number($('lp-strength-'+d).value)/100,scopes:$('lp-scopes-'+d).value.split('\n').map(s=>s.trim()).filter(Boolean),people:$('lp-people-'+d).value.split('\n').map(s=>s.trim()).filter(Boolean),allow_group_observation:$('lp-group-'+d).checked};
+  p.paused=$('learningPaused').checked;
+  p.experience={...(p.experience || {max_attempts:3,retry_seconds:300}),enabled:$('experienceLearningEnabled').checked,new_memories:Number($('experienceLearningCount').value)};
+  for(const [id,k] of [['learningBatchRecords','batch_records'],['learningBatchChars','batch_chars'],['learningMaxCalls','max_calls'],['learningMaxTokens','max_tokens']])p.budget[k]=Number($(id).value);
+  await api('/api/learning/policy',{persona_id:state.identity.id,expected_version:state.learning_center.policy.version,policy:p});
+  learningPolicyDirty=false;learningPreview=null;$('learningCreate').disabled=true;await refresh();notice('学习策略已保存；已有历史不会被自动重新扫描。');
+ });
  $('learningPreset').onchange=()=>{const preset=$('learningPreset').value;if(preset==='custom')return;const strength={observe:50,cautious:20,standard:50,broad:80}[preset];for(const d of Object.keys(learningNames)){$('lp-mode-'+d).value=preset==='observe'?'candidate_only':'automatic';$('lp-strength-'+d).value=strength;$('lp-value-'+d).textContent=strength+'%';}learningPolicyDirty=true;};
  $('learningPreviewForm').onchange=()=>{learningPreview=null;$('learningCreate').disabled=true;};
  $('learningPreviewForm').onsubmit=guard(async()=>{const body=learningBody();if($('learningRange').value==='session'&&!body.session_id)throw new Error('请选择会话');const p=await api('/api/learning/preview',body);learningPreview={body,preview:p};$('learningPreviewResult').innerHTML=`<div class="callout">${p.source_count} 条可用原文 · ${p.duplicate_count} 条已处理 · ${p.excluded_count} 条被策略排除<br>预计 ${p.estimated_calls} 次调用 / ${p.estimated_tokens} Token，实际费用未知。</div><p class="fine">${esc(p.self_source_rule||p.estimate_note)}</p>${p.excluded.map(r=>`<p class="fine">${esc(r.id)}：${r.reasons.map(esc).join('；')}</p>`).join('')}<div class="source-preview">${p.samples.map(r=>`<details><summary>${esc(r.person)} · ${esc(r.scope)} · ${esc(r.id)}</summary><blockquote>${esc(r.text)}</blockquote></details>`).join('')}</div>`;$('learningCreate').disabled=!p.source_count;});
@@ -464,11 +499,11 @@ let learningJobsOffset=0,learningMonitor=null;
 function learningPreviewHTML(p){return `<p class="callout">${p.source_count} 条可用原文 · ${p.duplicate_count} 条已处理 · ${p.excluded_count} 条被策略排除</p><p>预计 ${p.estimated_calls} 次调用 / ${p.estimated_tokens} Token；费用未知。</p><p class="fine">${esc(p.self_source_rule||p.estimate_note)}</p>${p.samples.map(r=>`<details><summary>${esc(r.person)} · ${esc(r.scope)} · ${esc(r.id)}</summary><blockquote>${esc(r.text)}</blockquote></details>`).join('')}`;}
 async function runLearningJob(result){
  if(learningMonitor===result.job_id)return;learningMonitor=result.job_id;const identity=state.identity.id;
- try{while(state?.identity.id===identity){const j=await api('/api/jobs/'+result.job_id);$('learningProgress').textContent=j.phase||'后台处理中，对话仍可使用';
-  if(j.status==='error'){await refresh();throw new Error(j.error);}
-  if(j.status==='done'){await refresh();await refreshLearningActivities();$('learningProgress').textContent='此批已结束，可查看状态、来源与实际写入差异。';recordOperation('/api/learning/run',j.result);return j.result;}
+ try{while(state?.identity.id===identity){const j=await api('/api/jobs/'+result.job_id);if(state?.identity.id!==identity)return;updateJobOperationReceipt(j,identity);$('learningProgress').textContent=j.phase||'后台处理中，对话仍可使用';
+  if(j.status==='error'){await refresh();updateJobOperationReceipt(j,identity);const error=new Error(j.error);error.operationReceiptHandled=true;throw error;}
+  if(j.status==='done'){await refresh();await refreshLearningActivities();$('learningProgress').textContent='此批已结束，可查看状态、来源与实际写入差异。';updateJobOperationReceipt(j,identity);return j.result;}
   const center=await api('/api/learning?offset='+learningJobsOffset);if(state?.identity.id!==identity)return;state.learning_center=center;renderLearningJobs(center.jobs);renderLearningPaging(center);await new Promise(resolve=>setTimeout(resolve,900));
- }}finally{if(learningMonitor===result.job_id)learningMonitor=null;}
+ }}catch(error){error.operationReceiptContext={owner:identity,job_id:result.job_id};throw error;}finally{if(learningMonitor===result.job_id)learningMonitor=null;}
 }
 function renderLearningPaging(c=state.learning_center){if(!c)return;$('learningJobPage').textContent=`共 ${c.total_jobs} 个任务 · 第 ${Math.floor((c.offset||0)/50)+1} 页`;$('learningJobsPrevious').disabled=!(c.offset>0);$('learningJobsNext').disabled=(c.offset||0)+c.jobs.length>=c.total_jobs;}
 async function loadLearningJobs(delta=0){learningJobsOffset=Math.max(0,learningJobsOffset+delta);const c=await api('/api/learning?offset='+learningJobsOffset);state.learning_center=c;renderLearningJobs(c.jobs);renderLearningPaging(c);}
@@ -548,15 +583,26 @@ function operationTarget(path){
  if(path.includes('/config')||path.includes('/connection'))return ['diagnostics','diagnostics-panel-history','配置操作记录'];
  return ['diagnostics','diagnostics-panel-history','操作记录'];
 }
-function recordOperation(path,result){
+function recordOperation(path,result,owner=state?.identity?.id){
+ if(owner!==state?.identity?.id)return;
  if(path==='/api/learning/preview'||path==='/api/import/preview'||path==='/api/chat')return;
  const [view,tab,label]=operationTarget(path),job=result.learning_job||result.job||(result.target&&result.id?result:{}),status=result.status||job.status;
- const actual=status?(learningStates[status]||executionStatusNames[status]||status):result.job_id?'已排队，尚未完成':result.ok===false?'未完成':'请求已完成';
+ const domainStatus=status?(learningStates[status]||executionStatusNames[status]||status):null;
+ const jobStatus={queued:'已排队，尚未完成',running:'处理中',done:domainStatus?'本批已结束 · '+domainStatus:'已完成',error:'处理失败'}[result.async_job_status];
+ const actual=jobStatus|| (domainStatus|| (result.job_id?'已排队，尚未完成':result.ok===false?'未完成':'请求已完成'));
+ activeOperationReceipt={owner,path,job_id:result.job_id||null};
  const id=result.job_id||job.id||result.id||result.boundary_id;
  const text=`${state?.profile?.name||'当前主体'} · ${label} · ${actual}${id?' · 记录 ID：'+id:''}${typeof result.promoted==='number'?' · 实际晋升 '+result.promoted+' 项':''}`;
  $('operationReceipt').innerHTML=`<div><strong>${esc(text)}</strong><p class="fine">${esc(result.message||result.warning||'实际字段变化、证据与写入状态请查看对应记录。')}</p></div><div class="row">${job.id?`<button type="button" data-learning-detail="${esc(job.id)}">此任务的原文与变化 →</button>`:''}<button type="button" data-goto="${view}" data-target-tab="${tab}">查看结果 →</button></div>`;$('operationReceipt').hidden=false;
 }
+function updateJobOperationReceipt(job,owner){
+ const receipt=activeOperationReceipt;if(!receipt||owner!==state?.identity?.id||receipt.owner!==owner||receipt.job_id!==job.id)return false;
+ recordOperation(receipt.path,{...(job.result||{}),job_id:job.id,async_job_status:job.status,...(job.status==='error'?{message:job.error}: {})},owner);return true;
+}
 function showFailureReceipt(error){
+ if(error.operationReceiptHandled)return;
+ const context=error.operationReceiptContext;if(context&&(context.owner!==state?.identity?.id||activeOperationReceipt?.owner!==context.owner||activeOperationReceipt?.job_id!==context.job_id))return;
+ activeOperationReceipt=null;
  $('operationReceipt').innerHTML=`<div><strong>操作未完成</strong><p>${esc(error.message||error)}${error.request_id?' · 请求 ID：'+esc(error.request_id):''}</p></div><button type="button" data-goto="diagnostics" data-target-tab="diagnostics-panel-history">查看错误记录 →</button>`;$('operationReceipt').hidden=false;
 }
 
@@ -720,6 +766,7 @@ async function refresh281(){const owner=state?.identity?.id;if(!owner)return;con
  for(const r of ['A','B']){const c=s.connections[r],last=c.latest;$(r+'Result281').textContent=`${connStatus281[c.status]}${c.model?' · '+c.model:''}${last?' · '+Number(last.elapsed_ms||0).toFixed(1)+' ms · '+date(last.at):''}`;}
  const selected=$('pmmTurn281').value;$('pmmTurn281').innerHTML=s.traces.map(t=>`<option value="${esc(t.turn_id)}">${date(t.timestamp)} · ${esc(actionNames[t.official_decision?.action]||'未完成')}</option>`).join('')||'<option value="">尚无正式回合</option>';if(s.traces.some(t=>t.turn_id===selected))$('pmmTurn281').value=selected;
  selectedTrace281=s.traces.find(t=>t.turn_id===$('pmmTurn281').value)||null;renderRun281(previewTrace281||selectedTrace281);renderEmotion281();renderAffectTraining281();
+ if(page==='connections')await refreshRuntime282();
 }
 $('refresh281').onclick=guard(refresh281);$('pmmTurn281').onchange=()=>{previewTrace281=null;selectedTrace281=workspace281.traces.find(t=>t.turn_id===$('pmmTurn281').value);renderRun281(selectedTrace281);renderEmotion281();};
 const nodeNames281={reasoner:'事件理解 A',affect:'新情绪动力学',neural:'人格神经计算',memory:'记忆与证据',relationship:'关系认知',negotiation:'内部协商 B',decision:'统一决策',expression:'外部语言表达'};
@@ -749,3 +796,1781 @@ $('affectImport281').onsubmit=guard(async e=>{e.preventDefault();const dataset=a
 $('affectTrain281').onsubmit=guard(async e=>{e.preventDefault();await affectAction281({op:'train',dataset_id:$('affectDatasetChoice281').value,component:$('affectTarget281').value,epochs:Number($('affectEpochs281').value),lr:Number($('affectLR281').value)});});
 for(const b of document.querySelectorAll('[data-affect-op]'))b.onclick=guard(async()=>{await affectAction281({op:b.dataset.affectOp,dataset_id:$('affectDatasetChoice281').value});});
 refresh().then(async()=>{if(!state)return;restoreRoute();if(state.pmm_start_error)notice(state.pmm_start_error,true);const pending=state.active_jobs?.[0];if(pending)await runJob({job_id:pending.id},pending.kind);}).catch(e=>notice(e.message,true));
+
+// BEGIN UI282: pure formatters also exercised by the structural UI tests.
+let runtime282={owner:null,runs:[],calls:[],selected:null,detail:null,filteredRuns:[],filteredCalls:[],dateQuery:'',nextOffset:null,hasMore:false,total:null},personaViews282={owner:null,current_id:null,versions:[],selected:null},runtimeRequestSerial282=0;
+let tokenPrices282={owner:null,price_revision:null,entries:[]};
+const roleNames282={General:'General · 理解与表达','PMM-A':'A · 事件评价','PMM-B':'B · 综合立场协商'};
+const phaseNames282={prospective_appraisal:'事前认知评估',cognitive_json_repair:'认知 JSON 格式修复',understanding:'理解原始消息',event_appraisal:'A 事件评价',psychological_preparation:'A 心理准备',internal_discussion:'B 内部讨论',internal_review:'B 方案复核',reply_generation:'生成回复',candidate_inspection:'异常复核',candidate_repair:'局部修复',feedback:'已确认回合反馈',background_consolidation:'后台证据整理'};
+const dispositions282={SEND:'通过',SEND_WITH_NOTE:'通过，偏差已记录',REPAIR_CANDIDATE:'修复已证实问题',HOLD_HARD_CONSTRAINT:'硬约束待核实，未发送',CHECKER_UNAVAILABLE:'检查器不可用，待处理'};
+function known282(v){return typeof v==='number'&&Number.isFinite(v)&&v>=0;}
+function n282(v){return known282(v)?v.toLocaleString('zh-CN'):'未知';}
+function status282(v){return executionStatusNames[v]||({requesting:'请求中',completed:'已完成',failed:'失败',disabled:'未调用',ok:'已执行'}[v])||v||'未记录';}
+function stamp282(v){if(v==null)return '时间未记录';const t=typeof v==='number'?v:Date.parse(v)/1000;return Number.isFinite(t)?date(t):'时间未记录';}
+function list282(v){return Array.isArray(v)?v.filter(x=>x!=null).map(String):v==null?[]:[String(v)];}
+function refs282(v){const values=Array.isArray(v)?v:v==null?[]:[v];return values.length?values.map(x=>`<span class="tag record-id">${esc(typeof x==='object'?[x.id||x.ref,x.kind,x.scope].filter(Boolean).join(' · '):x)}</span>`).join(' '):'<span class="fine">未记录引用</span>';}
+function aggregate282(calls){
+ const fields=['prompt_tokens','completion_tokens','total_tokens','cache_hit_tokens','cache_miss_tokens','reasoning_tokens'];
+ const out={calls:calls.length,retries:calls.filter(c=>Number(c.request_attempt||0)>0).length,unknown_counts:{},known_subtotals:{}};
+ for(const f of fields){const known=calls.filter(c=>known282(c[f]));out.unknown_counts[f]=calls.length-known.length;out.known_subtotals[f]=known.reduce((a,c)=>a+c[f],0);out[f]=calls.length&&known.length===calls.length?out.known_subtotals[f]:null;}
+ out.duration_ms=calls.length&&calls.every(c=>known282(c.duration_ms))?calls.reduce((a,c)=>a+c.duration_ms,0):null;
+ out.cost_by_currency={};out.unpriced_calls=0;for(const c of calls){if(known282(c.cost)&&c.currency){out.cost_by_currency[c.currency]=(out.cost_by_currency[c.currency]||0)+c.cost;}else out.unpriced_calls++;}
+ return out;
+}
+function costText282(summary,calls=[]){const s=summary?.cost_by_currency?summary:aggregate282(calls),parts=Object.entries(s.cost_by_currency).map(([currency,amount])=>esc(currency)+' '+amount.toLocaleString('zh-CN',{maximumSignificantDigits:8}));return parts.length?parts.join(' / ')+(s.unpriced_calls?' · '+s.unpriced_calls+' 次未知':''):'未配置费用或用量不足';}
+function tokenCards282(summary,calls=[]){
+ const s=summary||aggregate282(calls),retry=Number.isFinite(s.retries)?s.retries:calls.filter(c=>Number(c.request_attempt||0)>0).length;
+ const labels=[['total_tokens','实际总 Token'],['prompt_tokens','输入 Token'],['completion_tokens','输出 Token'],['cache_hit_tokens','输入中的缓存命中']];
+ return `<div class="token-cards282">${labels.map(([k,label])=>`<div><span>${label}</span><strong>${n282(s[k])}</strong>${s.unknown_counts?.[k]?`<small>${n282(s.unknown_counts[k])} 次调用缺少该项；已知小计 ${n282(s.known_subtotals?.[k])}</small>`:''}</div>`).join('')}<div><span>实际请求 / 重试</span><strong>${n282(s.calls)} / ${n282(retry)}</strong><small>缓存与 reasoning 不重复加总</small></div><div><span>按当前价目折算</span><strong>${costText282(s,calls)}</strong><small>币种分别计算；未知用量保持未知</small></div></div>`;
+}
+function callsForTurn282(id,calls=runtime282.calls){return calls.filter(c=>c.turn_id===id||(Array.isArray(c.turn_ids)&&c.turn_ids.includes(id)));}
+function resetRuntime282(){
+ runtimeRequestSerial282++;runtime282={owner:null,runs:[],calls:[],selected:null,detail:null,filteredRuns:[],filteredCalls:[],dateQuery:'',nextOffset:null,hasMore:false,total:null};personaViews282={owner:null,current_id:null,versions:[],selected:null};
+ $('runtimeRuns282').innerHTML='';$('runtimeOverview282').innerHTML='';$('runtimeTrend282').innerHTML='';$('runtimeDetail282').innerHTML='<p class="empty">选择当前角色的回合查看。</p>';
+ $('runtimePageStatus282').textContent='';$('runtimeMore282').hidden=true;$('runtimeStatus282').textContent='打开 PMM 设置后读取当前角色的真实回合记录。';
+ $('personaVersionsList282').innerHTML='';$('personaVersionDetail282').innerHTML='';$('personaViewsStatus282').textContent='打开人物设定后读取当前角色的版本记录。';
+ $('personaVersionsDelete282').disabled=true;
+ tokenPrices282={owner:null,price_revision:null,entries:[]};$('tokenPriceRows282').innerHTML='';$('tokenPricesStatus282').textContent='读取价目后可编辑；留空的用量或单价保持未知。';
+}
+function dateQuery282(){const values=[];if($('runtimeFrom282').value)values.push('date_from='+encodeURIComponent($('runtimeFrom282').value));if($('runtimeTo282').value)values.push('date_to='+encodeURIComponent($('runtimeTo282').value));return values.join('&');}
+async function refreshRuntime282(append=false){
+ const owner=state?.identity?.id;if(!owner)return;const serial=++runtimeRequestSerial282,query=dateQuery282(),offset=append?runtime282.nextOffset:0;
+ if(append&&(query!==runtime282.dateQuery||offset==null))return refreshRuntime282(false);
+ $('runtimeStatus282').textContent='正在读取当前角色的回合与请求账本…';
+ try{
+  const [history,ledger]=await Promise.all([api('/api/pmm282/history?limit=200&offset='+offset+(query?'&'+query:'')),api('/api/token-ledger')]);
+  if(owner!==state?.identity?.id||serial!==runtimeRequestSerial282)return;
+  if(!Array.isArray(history.runs)||!Array.isArray(ledger.calls))throw new Error('运行历史或账本响应格式无效');
+  const prior=append&&runtime282.owner===owner?runtime282.runs:[],byId=new Map([...prior,...history.runs].map(r=>[r.turn_id,r]));
+  runtime282.owner=owner;runtime282.runs=[...byId.values()];runtime282.calls=ledger.calls;
+  runtime282.dateQuery=query;runtime282.nextOffset=history.next_offset??null;runtime282.hasMore=history.has_more===true;runtime282.total=history.total??null;
+  $('runtimeMore282').hidden=!runtime282.hasMore;$('runtimePageStatus282').textContent=`当前日期范围已载入 ${runtime282.runs.length} / ${known282(runtime282.total)?runtime282.total:'总量未记录'} 个回合。`;
+  $('runtimeModels282').innerHTML=[...new Set(ledger.calls.map(c=>c.model).filter(Boolean))].map(m=>`<option value="${esc(m)}"></option>`).join('');
+  applyRuntimeFilters282();
+  if(runtime282.selected&&runtime282.filteredRuns.some(r=>r.turn_id===runtime282.selected))await openRuntimeTurn282(runtime282.selected);
+ }catch(error){if(owner!==state?.identity?.id||serial!==runtimeRequestSerial282)return;$('runtimeStatus282').textContent='运行历史读取失败：'+error.message;$('runtimeDetail282').innerHTML='<p class="error">'+esc(error.message)+'</p>';}
+}
+function runtimeFilterValues282(){return {range:['20','100','all'].includes($('runtimeRange282').value)?$('runtimeRange282').value:'20',query:$('runtimeQuery282').value.trim().toLowerCase(),role:$('runtimeRole282').value,model:$('runtimeModel282').value.trim().toLowerCase(),phase:$('runtimePhase282').value.trim().toLowerCase(),from:$('runtimeFrom282').value,to:$('runtimeTo282').value};}
+function applyRuntimeFilters282(){
+ const f=runtimeFilterValues282(),start=f.from?Date.parse(f.from+'T00:00:00')/1000:-Infinity,end=f.to?Date.parse(f.to+'T23:59:59.999')/1000:Infinity;
+ let calls=runtime282.calls.filter(c=>(!f.role||c.component_role===f.role)&&(!f.model||String(c.model||'').toLowerCase().includes(f.model))&&(!f.phase||[c.task_name,c.phase_id,phaseNames282[c.task_name]].join(' ').toLowerCase().includes(f.phase)));
+ let runs=runtime282.runs.filter(r=>{const at=typeof r.started_at==='number'?r.started_at:Date.parse(r.started_at)/1000;return at>=start&&at<=end&&(!f.query||[r.turn_id,r.event_summary].join(' ').toLowerCase().includes(f.query))&&(!(f.role||f.model||f.phase)||callsForTurn282(r.turn_id,calls).length);}).sort((a,b)=>Number(b.started_at)-Number(a.started_at));
+ if(f.range!=='all')runs=runs.slice(0,Number(f.range));const ids=new Set(runs.map(r=>r.turn_id));
+ calls=calls.filter(c=>ids.has(c.turn_id)||(Array.isArray(c.turn_ids)&&c.turn_ids.some(id=>ids.has(id))));
+ runtime282.filteredRuns=runs;runtime282.filteredCalls=calls;
+ $('runtimeStatus282').textContent=`当前角色 · ${runs.length} 个回合 · ${calls.length} 次物理请求${f.role||f.model||f.phase?'（按调用筛选）':''}。共享后台请求只计一次。`;
+ $('runtimeOverview282').innerHTML=tokenCards282(aggregate282(calls),calls);
+ $('runtimeTrend282').innerHTML=trendHTML282(runs,calls);
+ $('runtimeRuns282').innerHTML=runs.map(r=>{const s=aggregate282(callsForTurn282(r.turn_id,calls)),selected=r.turn_id===runtime282.selected;return `<button type="button" class="runtime-turn282 ${selected?'selected':''}" data-runtime-turn282="${esc(r.turn_id)}" aria-pressed="${selected}"><span>${esc(status282(r.status))} · ${esc(r.cognitive_route?.level||r.cognitive_route?.route_level||'路由未记录')}</span><strong>${esc(r.event_summary||r.turn_id)}</strong><small>${stamp282(r.started_at)} · Token ${n282(s.total_tokens)}</small></button>`;}).join('')||'<p class="empty">当前筛选下没有已保存回合。</p>';
+ if(runtime282.selected&&!runs.some(r=>r.turn_id===runtime282.selected)){runtime282.selected=null;runtime282.detail=null;$('runtimeDetail282').innerHTML='<p class="empty">当前筛选未包含原回合，请重新选择。</p>';}
+}
+function trendHTML282(runs,calls){
+ if(!runs.length)return '<p class="fine">有回合记录后显示历史趋势。</p>';
+ const rows=runs.slice().reverse().map(r=>({r,s:aggregate282(callsForTurn282(r.turn_id,calls))})),known=rows.filter(v=>known282(v.s.total_tokens)),peak=known.length?Math.max(...known.map(v=>v.s.total_tokens)):null;
+ const latencies=runs.map(r=>r.timing?.total_ms??(known282(r.ended_at)&&known282(r.started_at)?(r.ended_at-r.started_at)*1000:null)).filter(known282).sort((a,b)=>a-b);
+ const median=latencies.length?(latencies[Math.floor((latencies.length-1)/2)]+latencies[Math.ceil((latencies.length-1)/2)])/2:null,mean=latencies.length?latencies.reduce((a,b)=>a+b,0)/latencies.length:null;
+ const completed=runs.filter(r=>['COMPLETED','COMMITTED','INTERRUPTED_AFTER_ACK'].includes(r.status)).length,failed=runs.filter(r=>['FAILED','VALIDATION_FAILED','HOLD_HARD_CONSTRAINT','CHECKER_UNAVAILABLE','CANDIDATE_REPAIR_REQUIRED','DELIVERY_UNKNOWN','DELIVERY_FAILED','POSTPROCESS_FAILED'].includes(r.status)).length;
+ const width=640,step=600/rows.length;const bars=rows.map((v,i)=>{const x=24+i*step;if(!known282(v.s.total_tokens))return `<text x="${x+step/2}" y="135" font-size="12" text-anchor="middle">?</text>`;const h=peak?100*v.s.total_tokens/peak:0;return `<rect x="${x}" y="${130-h}" width="${Math.max(1,step-2)}" height="${Math.max(1,h)}" class="trend-bar282"><title>${esc(v.r.turn_id)} · 实际 Token ${n282(v.s.total_tokens)}</title></rect>`;}).join('');
+ return `<figure class="trend282"><svg viewBox="0 0 ${width} 156" role="img" aria-label="按回合的实际Token趋势，问号表示未知用量"><line x1="24" y1="131" x2="624" y2="131" stroke="currentColor" opacity=".3"/>${bars}<text x="24" y="152" font-size="11">较早</text><text x="624" y="152" font-size="11" text-anchor="end">较近</text></svg><figcaption>实际 Token 峰值 ${n282(peak)} · ${rows.length-known.length} 轮用量未完整记录</figcaption></figure><p class="fine">已测回合耗时：平均 ${known282(mean)?(mean/1000).toFixed(2)+' 秒':'未知'} / 中位 ${known282(median)?(median/1000).toFixed(2)+' 秒':'未知'}；失败 ${failed} / 已结束 ${completed+failed}${completed+failed?'（'+(100*failed/(completed+failed)).toFixed(1)+'%）':''}。节省率：尚无同场景实测基线。</p>`;
+}
+async function openRuntimeTurn282(id){
+ const owner=state?.identity?.id;if(owner!==runtime282.owner)return;runtime282.selected=id;$('runtimeDetail282').innerHTML='<p>正在读取此回合的已保存记录…</p>';applyRuntimeFilters282();
+ const data=await api('/api/pmm282/history?turn_id='+encodeURIComponent(id));
+ if(owner!==state?.identity?.id||runtime282.selected!==id)return;
+ if(!data.run)throw new Error('此回合不存在或不属于当前角色');runtime282.detail=data;
+ $('runtimeDetail282').innerHTML=runtimeDetailHTML282(data);
+}
+function stageNode282(title,status,content){return `<details class="route-node282"><summary><strong>${esc(title)}</strong><span>${esc(status)}</span></summary>${content}</details>`;}
+function componentNode282(key,component,calls){
+ const names={affect:'本地情绪与慢心境',neural:'本地人格前向',reasoner:'A 事件评价',negotiation:'B 内部讨论'};const local=['affect','neural'].includes(key);
+ if(!component)return stageNode282(names[key],'未记录','<p class="fine">此回合未保存该组件执行信息。</p>');
+ const state=component.executed?status282(component.status):'未调用',cost=local&&component.executed?'本地运算 · 0 API Token':calls.length?`实际请求 ${calls.length} 次 · Token ${n282(aggregate282(calls).total_tokens)}`:'未记录额外API请求';
+ return stageNode282(names[key],state,`<p>${cost}</p><p>${esc(component.reason||component.execution||component.input_summary?.reason||'未记录触发说明')}</p><p class="fine">耗时 ${known282(component.elapsed_ms)?component.elapsed_ms.toFixed(1)+' ms':'未知'}；配置位置：模型设置 → 心理模型 PMM。</p>`);
+}
+function retrievalEvidenceHTML282(r){return refs282(r.retrieved_refs)+(r.retrieved_evidence?.length?'<details><summary>查看本轮实际检索证据</summary>'+r.retrieved_evidence.map(m=>`<article><p class="record-id">${esc(m.id)} · ${esc(m.kind)} · ${esc(m.scope)}</p><blockquote>${esc(m.evidence||m.content||'无正文')}</blockquote></article>`).join('')+'</details>':'');}
+function deliberationHTML282(d){
+ if(!d||!Array.isArray(d.perspectives)||!Array.isArray(d.proposals))return '<p class="empty">此回合未保存新版综合方案讨论。旧版回合保留原始记录。</p>';
+ const perspectives=Array.isArray(d.perspectives)?d.perspectives:[],proposals=Array.isArray(d.proposals)?d.proposals:[],support=d.support||{};
+ return `<p>${esc(({local:'本地综合方案',local_only:'本地综合方案',local_plus_B:'本地方案与B深化',B_failed_local:'B未完成，采用本地方案',local_fallback:'B未完成，采用本地方案'})[d.discussion_mode]||d.discussion_mode||'未记录讨论模式')} · ${d.unresolved_disagreement?'保留未解决分歧':'未记录实质分歧'}</p><p class="fine">B 实际状态：${esc(({completed:'已完成',failed:'调用失败',not_called:'本轮未调用'})[d.b_status]||d.b_status||'未记录')}${d.b_error_type?' · '+esc(d.b_error_type):''}</p><p>${esc(d.selection_reason||'未记录选择理由')}</p><div class="perspectives282">${perspectives.map(p=>`<article><h4>${esc(p.hypothesis||p.label||p.id)}</h4><p>${esc(p.goal||'未记录本立场目标')}</p><p class="fine">支持方案：${list282(p.proposal_ids).map(esc).join('、')||'未记录'} · 激活权重 ${known282(p.weight)?p.weight.toFixed(3):'未知'}</p>${refs282(p.evidence_refs)}${p.expected_consequences?`<p>预期后果：${list282(p.expected_consequences).map(esc).join('；')}</p>`:''}${p.limitations?`<p class="fine">不确定处：${list282(p.limitations).map(esc).join('；')}</p>`:''}</article>`).join('')}</div><h4>具体应对方案</h4><p class="fine">相对支持度未经心理概率校准；硬约束先于方案比较。</p>${proposals.map(p=>{const value=typeof support[p.id]==='number'?support[p.id]:support.values?.[p.id],selected=p.id===d.selected_proposal_id;return `<article class="proposal282 ${selected?'selected':''}"><div class="row spread"><strong>${selected?'已选 · ':''}${esc(p.content_goal||p.id)}</strong><span>${known282(value)?(value*100).toFixed(1)+'%':'支持度未记录'}</span></div>${known282(value)?`<progress aria-label="${esc(p.id)} 相对支持度" max="1" value="${Math.min(1,value)}"></progress>`:''}<p>${esc(p.task_handling||'任务处理未记录')}</p><p>关系策略：${esc(p.social_strategy||'未记录')}</p><p>知识与记忆：${esc(p.knowledge_policy||'未记录')}</p><p class="fine">表达：${list282(p.expression_hints).map(esc).join('；')||'未指定'} · 硬约束：${esc(p.hard_constraint_status||'未记录')}</p>${list282(p.information_gaps).length?`<p>必要信息缺口：${list282(p.information_gaps).map(esc).join('；')}</p>`:''}</article>`;}).join('')}${Array.isArray(d.rounds)&&d.rounds.length?'<details><summary>逐轮内部讨论（'+d.rounds.length+' 轮）</summary>'+d.rounds.map((round,index)=>'<article><h5>第 '+(index+1)+' 轮</h5><pre>'+esc(JSON.stringify(round,null,2))+'</pre></article>').join('')+'</details>':''}<details><summary>证据、原始效用与立场贡献</summary><pre>${esc(JSON.stringify({shared_state_ref:d.shared_state_ref,evidence_registry:d.evidence_registry,factor_registry:d.factor_registry,utility_matrix:d.utility_matrix,contributions:d.contributions,support_method:d.support_method||d.support?.method},null,2))}</pre></details>`;
+}
+function callHTML282(c){
+ const parts=Array.isArray(c.prompt_sections)?c.prompt_sections:[],max=Math.max(1,...parts.map(s=>known282(s.estimate_tokens)?s.estimate_tokens:0));
+ return `<details class="call282"><summary><span>${esc(roleNames282[c.component_role]||c.component_role||'角色未记录')} · ${esc(phaseNames282[c.task_name]||c.task_name||c.phase_id||'阶段未记录')}</span><strong>${n282(c.total_tokens)} Token</strong></summary><p>${esc(c.model||'模型未记录')} · ${esc(c.protocol||c.provider||'协议未记录')} · ${esc(status282(c.status))}</p><p>输入 ${n282(c.prompt_tokens)} / 输出 ${n282(c.completion_tokens)} / 缓存命中 ${n282(c.cache_hit_tokens)} / reasoning ${n282(c.reasoning_tokens)}</p><p class="fine">耗时 ${known282(c.duration_ms)?c.duration_ms.toFixed(1)+' ms':'未知'} · 尝试 ${known282(c.request_attempt)?c.request_attempt+1:'未知'} · ${esc(c.retry_reason||'无重试原因')} · ${esc(c.trigger_reason||'调用原因未记录')}</p><p class="fine">按当前价目折算：${known282(c.cost)&&c.currency?esc(c.currency)+' '+c.cost.toLocaleString('zh-CN',{maximumSignificantDigits:8}):'未知'} · ${esc(c.cost_reason||c.reason||'')}${c.price_revision!=null?' · 价目修订 '+esc(c.price_revision):''}</p><p class="record-id">调用 ${esc(c.call_id)}${c.parent_call_id?' · 父调用 '+esc(c.parent_call_id):''}</p><h5>Prompt 组成（估算）</h5>${parts.map(s=>`<div class="section-bar282"><div><span>${esc(sectionName282(s.section_id))}</span><strong>${n282(s.estimate_tokens)}</strong></div>${known282(s.estimate_tokens)?`<progress max="${max}" value="${s.estimate_tokens}" aria-label="${esc(s.section_id)} 估算Token"></progress>`:''}<small>${esc(s.section_id)} · ${n282(s.chars)} 字符 / ${n282(s.bytes)} 字节 · ${esc(s.tokenizer_id||'估算器未记录')}</small></div>`).join('')||'<p class="fine">该调用没有组成估算记录。</p>'}<p class="fine">估算输入小计 ${n282(c.estimated_prompt_tokens)}；供应商实际输入 ${n282(c.prompt_tokens)}；实际减估算 ${typeof c.actual_minus_section_estimate==='number'?esc(c.actual_minus_section_estimate):'未知'}。估算与实际口径不同，差值不能全部解释为协议开销。</p>${c.budget_exceeded||c.soft_warning?'<p class="warning">超过本阶段预算目标；没有据此静默截断原文。</p>':''}</details>`;
+}
+function sectionName282(id){const key=String(id||'').split('.').pop();return ({instructions:'任务指令',self:'当前有效人设',profile:'必要角色资料',persona_view_revision:'同源人设版本',decision:'本轮决策',response_policy:'具体应对方案',style:'表达风格',interaction_plan:'当前交流计划',emotion:'当前情绪',relation:'当前关系',memories:'相关记忆',history:'必要历史',event_packet:'原文、事件分析与引用',base:'综合立场与方案',user:'原始消息与上下文',persona:'人设',checker:'检查契约'})[key]||id;}
+function runtimeDetailHTML282(data){
+ const r=data.run,calls=Array.isArray(data.calls)?data.calls:[],co=r.components||r.cognitive_snapshot?.pmm28?.components||{},route=r.cognitive_route||{},d=r.deliberation;
+ const roleCalls=role=>calls.filter(c=>c.component_role===role),inspection=r.candidate_inspection||{},raw=r.raw_input??r.input??r.event_packet?.raw_message?.text;
+ const nodes=[stageNode282('原文与事件分析',raw!=null?'已接收':'原文未记录',`${raw!=null?'<blockquote>'+esc(raw)+'</blockquote>':''}<p>${esc(r.event_summary||'未记录摘要')}</p><details><summary>结构化分析与来源</summary><pre>${esc(JSON.stringify(r.event_analysis||r.event_packet?.event_analysis||r.context_refs||{},null,2))}</pre></details>`),stageNode282('认知路由',route.level||route.route_level||'未记录',`<p>${list282(route.trigger_reasons||route.reason_codes).map(esc).join('；')||'触发原因未记录'}</p><pre>${esc(JSON.stringify(route,null,2))}</pre>`),stageNode282('相关记忆检索',Array.isArray(r.retrieved_refs)?r.retrieved_refs.length+' 条来源':'未记录',retrievalEvidenceHTML282(r)),componentNode282('affect',co.affect,[]),componentNode282('neural',co.neural,[]),componentNode282('reasoner',co.reasoner,roleCalls('PMM-A')),componentNode282('negotiation',co.negotiation,roleCalls('PMM-B')),stageNode282('候选生成与校验',dispositions282[inspection.disposition]||r.candidate_status||'未记录',`<p>是否已生成：${esc(r.candidate_status||'未记录')} · 处置：${esc(dispositions282[inspection.disposition]||inspection.disposition||'未记录')}</p><p>${esc(inspection.trigger_reason||'无额外异常复核原因')}</p><pre>${esc(JSON.stringify(inspection,null,2))}</pre>`),stageNode282('发送与已确认表达',status282(r.delivery_status),`<p>记忆提交：${esc(r.memory_commit_status||'未记录')}</p>${r.confirmed_reply?'<blockquote>'+esc(r.confirmed_reply)+'</blockquote>':'<p class="fine">此回合没有可展示的已确认表达；候选不等于已送达。</p>'}${r.delivery_status==='DELIVERY_UNKNOWN'?'<p class="warning">回执未知，不能盲目重发；到后台诊断的执行记录核对实际回执。</p>':''}`)];
+ if(r.prospective_appraisal){
+  const a=r.prospective_appraisal,recovery=a.format_recovery||{},failed=a.status==='failed';
+  const label=failed?'未通过 · 保留待处理':recovery.local_normalization?'本地格式整理后通过':recovery.attempted?'一次格式修复后通过':'已通过';
+  const reason={INVALID_JSON:'返回正文无法解析为 JSON',INVALID_APPRAISAL:'字段或原文证据未通过验证',ASSESSMENT_TIMEOUT:'已超过本次认知评估预算'}[a.failure_code]||a.failure_code;
+  nodes.splice(1,0,stageNode282('事前认知评估',label,`<p>${esc(reason||a.decision?.reason||'认知评估已记录')}</p><p>${recovery.attempted?'已尝试一次小上下文 JSON 格式修复':'未进行格式修复'} · ${known282(a.duration_ms)?esc(a.duration_ms)+' ms':'耗时未记录'}</p><p class="fine">评估通过后仍须遵循行动决策，不自动授权回复。修复后字段或原文引用不符时继续保留待处理。</p><pre>${esc(JSON.stringify({decision:a.decision?.action,attempts:recovery.attempts||[],context_compilation:a.context_compilation,persona_view_revision:a.persona_view_revision},null,2))}</pre>`));
+ }
+ if(inspection.role_consistency){
+  const c=inspection.role_consistency,labels={passed:'已核对本轮相关资料',not_required:'本轮未触发资料核对',required:'等待核对',unavailable:'检查未完成',unresolved:'疑点未解决',repair_required:'需要修复表达',reviewed_without_matching_facts:'已检查表达，未找到匹配资料'};
+  nodes.splice(2,0,stageNode282('人设一致性覆盖',labels[c.status]||'未记录',`<p>核对 ${esc((c.entry_ids||[]).length)} 条已返回资料。送达状态不代表人设核对结果。</p>${c.limited?'<p>检索达到本轮资料预算，仅覆盖已返回部分。</p>':''}`));
+ }
+ if(r.prompt_compilation?.persona_selection){
+  const s=r.prompt_compilation.persona_selection;
+  nodes.splice(2,0,stageNode282('人设资料选取',`${s.included_count??'未知'} 条入选`, `<p>当前版本：${esc(s.source_version_id||r.persona_version_id||'未记录')}</p><p>涉及类别：${list282(s.included_categories).map(k=>esc(personaCategoryNames282[k]||k)).join('、')||'无'}</p><p>未选入 ${esc(s.omitted_count??'未知')} 条。未选入不代表删除；完整资料保留在人设版本中。</p><details><summary>选取依据</summary><pre>${esc(JSON.stringify(s,null,2))}</pre></details>`));
+ }
+ const ed=r.expressive_drive||co.expressive_drive?.payload;
+ if(ed){
+  const intent=ed.expressive_intent||ed.dominant_intent||'未记录',st=ed.status||ed.motive_status||'未记录';
+  nodes.splice(Math.min(nodes.length,4),0,stageNode282('表达欲动态中介',`${intent} · ${st}`,`<p>Activation ${known282(ed.activation)?ed.activation.toFixed(3):'未知'} · Urgency ${known282(ed.urgency)?ed.urgency.toFixed(3):'未知'} · Persistence ${known282(ed.persistence)?ed.persistence.toFixed(3):'未知'}</p><p>当前未竟动机：${esc(ed.active_motive?.topic_or_goal||'无')}（未完成度 ${known282(ed.unfinished_degree)?ed.unfinished_degree.toFixed(3):'0'}）</p><details><summary>表达欲结构化诊断</summary><pre>${esc(JSON.stringify(ed,null,2))}</pre></details>`));
+ }
+ return `<div class="row spread"><h3>${esc(status282(r.status))}</h3><time>${stamp282(r.started_at)}</time></div><p class="record-id">${esc(r.turn_id)} · ${esc(r.trace_id||'Trace 未记录')}</p><p>本轮人设版本：${esc(r.persona_version_id||r.persona_view_version||r.persona_view_id||r.prospective_appraisal?.persona_view_revision||'未记录')}</p>${tokenCards282(data.summary||r.token_summary||aggregate282(calls),calls)}<h4>实际执行路径</h4><div class="route282">${nodes.join('')}</div><h4>同一主体的综合立场与方案</h4>${deliberationHTML282(d)}<h4>阶段用量</h4>${stageTokensHTML282(calls,co)}<h4>逐次模型请求与输入组成</h4>${calls.map(callHTML282).join('')||'<p class="fine">此回合未记录实际API用量，不能按0显示。</p>'}`;
+}
+function stageTokensHTML282(calls,components){
+ const groups=new Map();for(const c of calls){const key=c.task_name||c.phase_id||'未记录阶段';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(c);}
+ const rows=[...groups].map(([name,values])=>({name,summary:aggregate282(values)})),max=Math.max(1,...rows.map(v=>v.summary.total_tokens||0));
+ return rows.map(({name,summary})=>`<div class="section-bar282"><div><span>${esc(phaseNames282[name]||name)}</span><strong>${n282(summary.total_tokens)} Token · ${summary.calls} 次请求</strong></div>${known282(summary.total_tokens)?`<progress aria-label="${esc(name)} 实际Token" max="${max}" value="${summary.total_tokens}"></progress>`:'<p class="fine">供应商用量不完整</p>'}</div>`).join('')+['affect','neural'].map(k=>`<p class="fine">${k==='affect'?'本地情绪与慢心境':'本地人格前向'}：${components[k]?.executed?'已执行 · 0 API Token':components[k]?'未执行，'+esc(components[k].reason||'原因未记录'):'执行状态未记录'}</p>`).join('');
+}
+function exportRows282(calls){const fields=['call_id','turn_id','trace_id','phase_id','component_role','task_name','trigger_reason','model','protocol','request_attempt','retry_reason','parent_call_id','started_at','ended_at','duration_ms','prompt_tokens','completion_tokens','total_tokens','cache_hit_tokens','cache_miss_tokens','reasoning_tokens','usage_source','status','response_disposition','cost','cost_decimal','currency','cost_status','cost_reason','price_revision'];return calls.map(c=>Object.fromEntries(fields.map(k=>[k,c[k]??null])));}
+function exportRuns282(runs){return runs.map(r=>({turn_id:r.turn_id,started_at:r.started_at,status:r.status,delivery_status:r.delivery_status,candidate_status:r.candidate_status,route_level:r.cognitive_route?.level||r.cognitive_route?.route_level||null,discussion_mode:r.deliberation?.discussion_mode||null,selected_proposal_id:r.deliberation?.selected_proposal_id||null,support:Object.fromEntries(Object.entries(r.deliberation?.support||{}).filter(([,v])=>known282(v)))}));}
+function csv282(rows){const fields=Object.keys(rows[0]||{call_id:null});const cell=v=>{const text=v==null?'':String(v);return '"'+(/^[=+\-@\t\r]/.test(text)?"'":'')+text.replace(/"/g,'""')+'"';};return '\ufeff'+fields.map(cell).join(',')+'\r\n'+rows.map(r=>fields.map(k=>cell(r[k])).join(',')).join('\r\n');}
+function download282(filename,data,type){const url=URL.createObjectURL(new Blob([data],{type})),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+const priceFields282=[['input','普通输入'],['output','输出'],['cache_read','缓存读取'],['cache_write','缓存写入']];
+function renderTokenPrices282(){
+ const text=(index,key,label,value)=>`<input data-price-row282="${index}" data-price-key282="${key}" aria-label="第 ${index+1} 条 ${label}" value="${esc(value??'')}" ${['provider','model','currency'].includes(key)?'type="text"':'type="number" min="0" step="any"'}>`;
+ $('tokenPriceRows282').innerHTML=tokenPrices282.entries.map((row,index)=>`<fieldset class="price-row282"><legend>价目 ${index+1}</legend><div class="price-grid282"><label>协议标识${text(index,'provider','协议标识',row.provider)}</label><label>准确模型名${text(index,'model','准确模型名',row.model)}</label><label>币种${text(index,'currency','币种',row.currency)}</label>${priceFields282.map(([key,label])=>`<label>${label} / 百万 Token${text(index,key,label,row[key])}</label>`).join('')}<label>失败请求计费<select data-price-row282="${index}" data-price-key282="failed_request_billing" aria-label="第 ${index+1} 条失败请求计费">${[['unknown','未知'],['bill_usage','按返回用量计算'],['not_billed','服务商明确不计费']].map(([key,label])=>`<option value="${key}" ${row.failed_request_billing===key?'selected':''}>${label}</option>`).join('')}</select></label></div><button type="button" data-price-delete282="${index}">移除此价目</button></fieldset>`).join('')||'<p class="fine">尚未配置价目；请求费用显示未知。</p>';
+ $('tokenPricesStatus282').textContent=tokenPrices282.owner?`当前角色价目修订 ${tokenPrices282.price_revision}。修改后点击保存。`:'请先读取价目。';
+ $('tokenPricesSave282').disabled=tokenPrices282.owner!==state?.identity?.id;
+}
+function readTokenPriceRows282(){
+ const rows=tokenPrices282.entries.map(row=>({...row}));for(const input of document.querySelectorAll('[data-price-row282]')){const key=input.dataset.priceKey282,value=input.value.trim();rows[Number(input.dataset.priceRow282)][key]=priceFields282.some(([field])=>field===key)?value||null:value||null;}return rows;
+}
+async function loadTokenPrices282(){
+ const owner=state?.identity?.id;if(!owner)return;const data=await api('/api/token-prices');if(owner!==state?.identity?.id)return;
+ if(!Array.isArray(data.entries))throw new Error('价目响应格式无效');tokenPrices282={owner,price_revision:data.price_revision,entries:data.entries};renderTokenPrices282();
+}
+async function saveTokenPrices282(){
+ const owner=state?.identity?.id;if(owner!==tokenPrices282.owner)throw new Error('请先读取当前角色价目。');
+ const data=await api('/api/token-prices',{subject_id:owner,expected_revision:tokenPrices282.price_revision,entries:readTokenPriceRows282()});if(owner!==state?.identity?.id)return;
+ tokenPrices282={owner,price_revision:data.price_revision,entries:data.entries};renderTokenPrices282();await refreshRuntime282();$('tokenPricesStatus282').textContent='价目已保存，历史用量按当前价目重新折算；原始用量不变。';
+}
+async function loadPersonaViews282(){
+ const owner=state?.identity?.id;if(!owner)return;$('personaViewsStatus282').textContent='正在读取当前角色人设版本…';const result=await api('/api/persona/views');
+ if(owner!==state?.identity?.id)return;if(!Array.isArray(result.versions))throw new Error('人设版本响应格式错误');
+ personaViews282={owner,current_id:result.current_id,versions:result.versions,selected:personaViews282.owner===owner?personaViews282.selected:null};renderPersonaViews282();
+ if(personaViews282.selected&&personaViews282.versions.some(v=>v.id===personaViews282.selected))await openPersonaView282(personaViews282.selected);
+}
+function renderPersonaViews282(){
+ $('personaViewsStatus282').textContent=`当前使用 ${personaViews282.current_id||'未编译'} · 共 ${personaViews282.versions.length} 个保留版本。查看历史不会改变当前版本。`;
+ $('personaVersionsList282').innerHTML=personaViews282.versions.map(v=>{const current=v.is_current||v.id===personaViews282.current_id;return `<article class="persona-version282"><div class="row spread"><label><input type="checkbox" data-persona-view-select282="${esc(v.id)}" ${current?'disabled':''}> 版本 ${esc(v.version??v.id)} ${current?'<span class="tag">当前有效 · 生成与校验使用</span>':''}</label><button type="button" data-persona-view282="${esc(v.id)}">查看 JSON</button>${!current&&v.can_delete!==false?`<button type="button" data-persona-view-delete282="${esc(v.id)}">删除历史</button>`:''}</div><p class="fine">原角色修订 ${esc(v.source_profile_revision??'未知')} · ${stamp282(v.compiled_at)}</p><p class="record-id">${esc(v.source_digest||'摘要未记录')}</p></article>`;}).join('')||'<p class="empty">尚无已编译人设版本。</p>';
+ $('personaVersionsDelete282').disabled=!personaViews282.versions.some(v=>!v.is_current&&v.id!==personaViews282.current_id&&v.can_delete!==false);
+}
+const personaCategoryNames282={identity_background:'身份与背景',personality_values:'性格与价值观',experiences:'经历',key_events:'关键事件',relationships:'关系',expression:'表达习惯',boundaries:'边界与禁忌',unclassified:'待归类'};
+function personaCatalogHTML282(catalog,category='all'){
+ const entries=Array.isArray(catalog?.entries)?catalog.entries:[],groups=catalog?.categories||{};
+ const categoriesOf=row=>Object.keys(groups).filter(key=>Array.isArray(groups[key])&&groups[key].includes(row.id));
+ const rows=category==='all'?entries:entries.filter(row=>categoriesOf(row).includes(category));
+ const sourceNames={owner_setting:'作者设定',owner_reviewed:'已审核习惯',confirmed_personality_reference:'已确认人格资料'};
+ const methodNames={explicit_heading_and_lexical_hints:'原文标题与文字线索',local_lexical_hints:'文字线索',source_field:'原资料字段',unclassified:'尚无法归类',existing_typed_source:'原有已确认资料'};
+ return `<p class="fine">共 ${entries.length} 条来源资料。正文按条目保存，多个分类引用同一条目。按原文标题和文字线索整理，无法确定的内容保留为待归类；作者设定中的经历不代表双方真实发生过的会话。</p><label>按类别查看 <select id="personaCategory282"><option value="all" ${category==='all'?'selected':''}>全部条目</option>${Object.keys(personaCategoryNames282).map(key=>`<option value="${key}" ${category===key?'selected':''}>${personaCategoryNames282[key]}（${(groups[key]||[]).length}）</option>`).join('')}</select></label><div>${rows.map(row=>{const method=row.classification?.method||row.classification_method||row.method;return `<article class="persona-entry282"><p>${categoriesOf(row).map(key=>`<span class="tag">${esc(personaCategoryNames282[key]||key)}</span>`).join(' ')}</p><blockquote>${esc(row.text||(row.representation==='reference'?'引用已确认的人格或习惯资料，原始数值保留在来源记录中。':''))}</blockquote><p class="fine">来源：${esc(sourceNames[row.source_type]||row.source_type||'未记录')} · 分类依据：${esc(methodNames[method]||method||'见原始记录')} · 适用范围：${esc(row.scope&&row.scope!=='*'?row.scope:'角色通用资料')}</p><details><summary>原文位置与条目记录</summary><pre>${esc(JSON.stringify(row,null,2))}</pre></details></article>`;}).join('')||'<p class="fine">此类别没有资料。</p>'}</div>`;
+}
+function renderPersonaCategory282(catalog,category='all'){
+ $('personaCatalog282').innerHTML=personaCatalogHTML282(catalog,category);
+ $('personaCategory282').onchange=event=>renderPersonaCategory282(catalog,event.target.value);
+}
+async function openPersonaView282(id){
+ const owner=state?.identity?.id;personaViews282.selected=id;const result=await api('/api/persona/views?version_id='+encodeURIComponent(id));
+ if(owner!==state?.identity?.id||personaViews282.selected!==id)return;
+ const current=result.is_current||result.view?.id===personaViews282.current_id;
+ const view=result.view,source=view.source_payload?{version_id:view.version_id,source_revision:view.source_revision,source_digest:view.source_digest,source:view.source_payload}:view;
+ const projection=v=>Object.fromEntries(Object.entries(v||{}).filter(([key])=>key!=='role_catalog'));
+ const derived=view.source_payload?`<details><summary>查看生成与校验各自使用的内容</summary><p class="fine">两者由上面同一份角色资料生成；每次调用仅选用对应视图。</p><pre>${esc(JSON.stringify({generator_view:projection(view.generator_view),checker_view:projection(view.checker_view)},null,2))}</pre></details>`:'';
+ const raw=`<pre class="persona-json282">${esc(JSON.stringify(source,null,2))}</pre>`;
+ $('personaVersionDetail282').innerHTML=`<h4>${current?'当前有效人设':'历史人设 · 仅查看'}</h4><p class="fine">${current?'生成器和校验器读取此最新版本。':'当前使用版本不变，生成器和校验器不会读取此历史快照。'}</p>${view.role_catalog?'<div id="personaCatalog282"></div><details><summary>原始填写资料与版本来源</summary>'+raw+'</details>':raw}${derived}`;
+ if(view.role_catalog)renderPersonaCategory282(view.role_catalog);
+}
+async function deletePersonaViews282(ids){
+ const owner=state?.identity?.id;if(owner!==personaViews282.owner)throw new Error('角色已切换，请重新读取版本记录。');
+ if(!ids.length)throw new Error('请先勾选要删除的历史记录。');
+ if(ids.some(id=>id===personaViews282.current_id||personaViews282.versions.find(v=>v.id===id)?.is_current))throw new Error('当前有效人设不能作为历史记录删除。');
+ if(ids.some(id=>!personaViews282.versions.some(v=>v.id===id&&v.can_delete!==false)))throw new Error('所选历史已变化，请刷新版本记录。');
+ await api('/api/persona/views/delete',{version_ids:ids,subject_id:owner});if(owner!==state?.identity?.id)return;
+ if(ids.includes(personaViews282.selected)){personaViews282.selected=null;$('personaVersionDetail282').innerHTML='<p class="fine">所查看的历史记录已删除，当前有效人设没有变化。</p>';}
+ await loadPersonaViews282();notice('已删除所选人设历史记录；当前人设保持不变。');
+}
+// END UI282 pure formatters and API actions.
+$('runtimeRefresh282').onclick=guard(()=>refreshRuntime282(false));
+$('tokenPricesLoad282').onclick=guard(loadTokenPrices282);
+$('tokenPricesAdd282').onclick=guard(()=>{if(tokenPrices282.owner!==state?.identity?.id)throw new Error('请先读取当前角色价目。');tokenPrices282.entries=readTokenPriceRows282();tokenPrices282.entries.push({provider:'',model:'',currency:'',input:null,output:null,cache_read:null,cache_write:null,failed_request_billing:'unknown'});renderTokenPrices282();});
+$('tokenPricesForm282').onsubmit=guard(async e=>{e.preventDefault();await saveTokenPrices282();});
+document.addEventListener('click',guard(e=>{const b=e.target.closest('button');if(!b||b.dataset.priceDelete282===undefined)return;tokenPrices282.entries=readTokenPriceRows282();tokenPrices282.entries.splice(Number(b.dataset.priceDelete282),1);renderTokenPrices282();}));
+$('runtimeMore282').onclick=guard(async()=>{$('runtimeRange282').value='all';await refreshRuntime282(true);});
+$('runtimeFilters282').onsubmit=guard(async e=>{e.preventDefault();if(dateQuery282()!==runtime282.dateQuery)await refreshRuntime282(false);else applyRuntimeFilters282();});
+$('runtimeExportJSON282').onclick=guard(()=>download282('HuaiAn_Token_History.json',JSON.stringify({schema:'runtime-export/2.8.2',runs:exportRuns282(runtime282.filteredRuns),calls:exportRows282(runtime282.filteredCalls),summary:aggregate282(runtime282.filteredCalls)},null,2),'application/json'));
+$('runtimeExportCSV282').onclick=guard(()=>download282('HuaiAn_Token_Calls.csv',csv282(exportRows282(runtime282.filteredCalls)),'text/csv;charset=utf-8'));
+$('personaViewsRefresh282').onclick=guard(loadPersonaViews282);
+$('personaVersionsDelete282').onclick=guard(()=>deletePersonaViews282([...document.querySelectorAll('[data-persona-view-select282]')].filter(n=>n.checked&&!n.disabled).map(n=>n.dataset.personaViewSelect282)));
+document.addEventListener('click',guard(async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.runtimeTurn282)await openRuntimeTurn282(b.dataset.runtimeTurn282);if(b.dataset.personaView282)await openPersonaView282(b.dataset.personaView282);if(b.dataset.personaViewDelete282)await deletePersonaViews282([b.dataset.personaViewDelete282]);if(b.dataset.tab==='profiles-settings')await loadPersonaViews282();}));
+
+
+// ============================================================================
+// HuaiAn Dreamer UI 3.0 Controller: Character Space & Cultivation Studio
+// Dual-Port (User Character Space ⇄ Developer Research Workbench) + Dual-Theme
+// ============================================================================
+function ui3ById(id) {
+  try { return document.getElementById(id); } catch (_) { return null; }
+}
+let ui3CurrentPage = 'ui3PageHome';
+let ui3SelectedConstructId = 'hexaco.x.social_boldness';
+let ui3SelectedGraphNodeId = null;
+let ui3MemoryViewMode = 'graph';
+let ui3StudioPreviewData = null;
+
+const ui3IntentLabels = {
+  LISTEN: ['倾听等待 (LISTEN)', '对方话轮尚未结束或无需打断，优先安静倾听', 'sage'],
+  BACKCHANNEL: ['轻声附和 (BACKCHANNEL)', '简短自然回应，把继续讲述的空间留给对方', 'indigo'],
+  TAKE_TURN: ['主动接话 (TAKE_TURN)', '表达欲与回应义务充分激活，准备完整回应', 'accent'],
+  DEFER: ['暂存待机 (DEFER)', '已有明确想说的念头，但因时机或克制暂缓表达', 'amber'],
+  CLOSE: ['自然收束 (CLOSE)', '当前交流已充分或对方准备结束，自然收尾不强行追问', 'sage'],
+  INITIATE: ['主动发起 (INITIATE)', '基于具体未竟表达动机，在合适窗口准备主动关怀或续接话题', 'plum'],
+};
+
+const ui3SourceLabels = {
+  owner_seed: ['主人初始设定', 'accent'],
+  owner_rule: ['主人规则设定', 'accent'],
+  promoted: ['经审核证据晋升', 'sage'],
+  reviewed_owner_evidence: ['经审核证据', 'sage'],
+  model_estimate: ['模型经验估计', 'indigo'],
+  uncalibrated_engineering: ['未校准工程估计', 'amber'],
+  uncalibrated_engineering_initial: ['工程初始先验', 'amber'],
+  prior: ['工程先验', 'amber'],
+  unknown: ['未知（尚无证据）', ''],
+};
+
+function ui3SourceBadge(sourceType, isNull = false) {
+  if (isNull || !sourceType || sourceType === 'unknown') {
+    return '<span class="ui3-badge">未知 · 尚无测量证据</span>';
+  }
+  const [label, cls] = ui3SourceLabels[sourceType] || [String(sourceType), 'indigo'];
+  return `<span class="ui3-badge ${cls}">${esc(label)}</span>`;
+}
+
+function switchUI3Port(port) {
+  if (typeof document !== 'undefined' && document.body && document.body.classList) {
+    document.body.classList.toggle('ui-port-user', port !== 'developer');
+    document.body.classList.toggle('ui-port-developer', port === 'developer');
+  }
+  if (port !== 'developer' && state) {
+    renderUI3();
+  }
+}
+
+function toggleUI3Theme() {
+  if (typeof document === 'undefined' || !document.body) return;
+  const cur = document.body.getAttribute('data-ui3-theme') || 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.body.setAttribute('data-ui3-theme', next);
+  if ($('ui3ThemeToggle')) {
+    $('ui3ThemeToggle').textContent = next === 'dark' ? '☀ 晨雾浅色' : '☾ 槐安夜境';
+  }
+}
+
+function showUI3Page(pageId, subtabId) {
+  ui3CurrentPage = pageId;
+  document.querySelectorAll('.ui3-section').forEach(sec => {
+    sec.classList.toggle('active', sec.id === pageId);
+  });
+  document.querySelectorAll('[data-ui3-page]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.ui3Page === pageId);
+  });
+  if (subtabId) {
+    const targetPanel = $(subtabId);
+    if (targetPanel && targetPanel.parentElement) {
+      targetPanel.parentElement.querySelectorAll('.ui3-subpanel').forEach(p => {
+        p.classList.toggle('active', p.id === subtabId);
+      });
+    }
+    document.querySelectorAll('[data-ui3-inner-tab],[data-ui3-timeline-tab],[data-ui3-mem-tab],[data-ui3-set-tab]').forEach(b => {
+      const val = b.dataset.ui3InnerTab || b.dataset.ui3TimelineTab || b.dataset.ui3MemTab || b.dataset.ui3SetTab;
+      if (val && $(val)?.parentElement === targetPanel?.parentElement) {
+        b.classList.toggle('active', val === subtabId);
+      }
+    });
+  }
+  if (state) renderUI3();
+}
+
+function renderUI3AffectCircumplexSVG(fast, slow, movement, compact = false) {
+  const size = compact ? 240 : 320;
+  const pad = 28;
+  const plotW = size - pad * 2;
+  const cx = pad + plotW / 2;
+  const cy = pad + plotW * 0.75; // arousal=0.25 resting center
+
+  const mapX = v => pad + ((Math.max(-1, Math.min(1, Number(v))) + 1) / 2) * plotW;
+  const mapY = a => pad + (1 - Math.max(0, Math.min(1, Number(a)))) * plotW;
+
+  const hasFast = fast && fast.known && typeof fast.valence === 'number' && typeof fast.arousal === 'number';
+  const hasSlow = slow && slow.known && typeof slow.valence === 'number' && typeof slow.arousal === 'number';
+
+  const fx = hasFast ? mapX(fast.valence) : cx;
+  const fy = hasFast ? mapY(fast.arousal) : cy;
+  const sx = hasSlow ? mapX(slow.valence) : cx;
+  const sy = hasSlow ? mapY(slow.arousal) : cy;
+
+  const dx = movement && typeof movement.dx_valence === 'number' ? movement.dx_valence : 0;
+  const dy = movement && typeof movement.dy_arousal === 'number' ? movement.dy_arousal : 0;
+  const prevX = hasFast ? mapX(fast.valence - dx) : fx;
+  const prevY = hasFast ? mapY(fast.arousal - dy) : fy;
+
+  return `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="二维愉悦度与唤醒度情绪空间">
+    <rect x="${pad}" y="${pad}" width="${plotW}" height="${plotW}" rx="12" fill="rgba(128,120,105,0.05)" stroke="rgba(128,120,105,0.22)" />
+    <line x1="${cx}" y1="${pad}" x2="${cx}" y2="${pad + plotW}" stroke="rgba(128,120,105,0.25)" stroke-dasharray="4 4" />
+    <line x1="${pad}" y1="${pad + plotW / 2}" x2="${pad + plotW}" y2="${pad + plotW / 2}" stroke="rgba(128,120,105,0.25)" stroke-dasharray="4 4" />
+    <text x="${pad + 8}" y="${pad + 16}" font-size="10" fill="currentColor" opacity="0.55">高唤醒 · 紧张/警觉</text>
+    <text x="${pad + plotW - 8}" y="${pad + 16}" font-size="10" text-anchor="end" fill="currentColor" opacity="0.55">高唤醒 · 欣快/投入</text>
+    <text x="${pad + 8}" y="${pad + plotW - 8}" font-size="10" fill="currentColor" opacity="0.55">低唤醒 · 疲惫/低落</text>
+    <text x="${pad + plotW - 8}" y="${pad + plotW - 8}" font-size="10" text-anchor="end" fill="currentColor" opacity="0.55">低唤醒 · 平静/舒缓</text>
+    ${hasSlow ? `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="15" fill="rgba(63,88,140,0.16)" stroke="#3f588c" stroke-width="2" stroke-dasharray="3 2" />
+    <text x="${sx.toFixed(1)}" y="${(sy + 26).toFixed(1)}" font-size="10" text-anchor="middle" fill="#3f588c">慢心境</text>` : ''}
+    ${hasFast && (Math.abs(dx) > 0.005 || Math.abs(dy) > 0.005) ? `<line x1="${prevX.toFixed(1)}" y1="${prevY.toFixed(1)}" x2="${fx.toFixed(1)}" y2="${fy.toFixed(1)}" stroke="#b45638" stroke-width="2" />` : ''}
+    ${hasFast ? `<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="8" fill="#b45638" stroke="#fff" stroke-width="2" />
+    <text x="${fx.toFixed(1)}" y="${(fy - 12).toFixed(1)}" font-size="10" font-weight="600" text-anchor="middle" fill="#b45638">快情绪</text>` : `<text x="${cx}" y="${pad + plotW / 2}" font-size="12" text-anchor="middle" fill="currentColor" opacity="0.6">尚未积累事件情绪坐标（未知）</text>`}
+  </svg>`;
+}
+
+function renderUI3HexacoRadarSVG(domains) {
+  const size = 270, cx = 135, cy = 135, rMax = 92;
+  const pts = [];
+  const axes = domains.map((d, i) => {
+    const angle = (-Math.PI / 2) + (i * 2 * Math.PI / domains.length);
+    const xEnd = cx + rMax * Math.cos(angle);
+    const yEnd = cy + rMax * Math.sin(angle);
+    const xLbl = cx + (rMax + 24) * Math.cos(angle);
+    const yLbl = cy + (rMax + 24) * Math.sin(angle);
+    const val = typeof d.estimate === 'number' ? Math.max(0, Math.min(1, d.estimate)) : null;
+    if (val !== null) {
+      pts.push(`${(cx + rMax * val * Math.cos(angle)).toFixed(1)},${(cy + rMax * val * Math.sin(angle)).toFixed(1)}`);
+    }
+    return { d, angle, xEnd, yEnd, xLbl, yLbl, val };
+  });
+  return `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="HEXACO 六领域结构概览">
+    ${[0.25, 0.5, 0.75, 1.0].map(level => `<circle cx="${cx}" cy="${cy}" r="${(rMax * level).toFixed(1)}" fill="none" stroke="rgba(128,120,105,0.18)" stroke-dasharray="${level === 0.5 ? '3 3' : 'none'}" />`).join('')}
+    ${axes.map(a => `<line x1="${cx}" y1="${cy}" x2="${a.xEnd.toFixed(1)}" y2="${a.yEnd.toFixed(1)}" stroke="rgba(128,120,105,0.22)" />
+      <text x="${a.xLbl.toFixed(1)}" y="${(a.yLbl + 4).toFixed(1)}" font-size="11" font-weight="600" text-anchor="middle" fill="currentColor">${esc(a.d.code)}·${esc(a.d.name_zh.split('—')[0])}</text>`).join('')}
+    ${pts.length === domains.length ? `<polygon points="${pts.join(' ')}" fill="rgba(46,111,94,0.20)" stroke="#2e6f5e" stroke-width="2" />` : ''}
+    ${axes.map(a => a.val !== null ? `<circle cx="${(cx + rMax * a.val * Math.cos(a.angle)).toFixed(1)}" cy="${(cy + rMax * a.val * Math.sin(a.angle)).toFixed(1)}" r="4.5" fill="#2e6f5e" stroke="#fff" stroke-width="1.5" />` : `<circle cx="${(cx + rMax * 0.5 * Math.cos(a.angle)).toFixed(1)}" cy="${(cy + rMax * 0.5 * Math.sin(a.angle)).toFixed(1)}" r="3.5" fill="none" stroke="rgba(128,120,105,0.5)" stroke-dasharray="2 2" />`).join('')}
+  </svg>`;
+}
+
+function renderUI3SchwartzCircleSVG(values) {
+  const size = 280, cx = 140, cy = 140, rMax = 92, rInner = 22;
+  const n = values.length || 19;
+  const quadColors = {
+    openness_to_change: '#b45638',
+    self_enhancement: '#b87b28',
+    conservation: '#3f588c',
+    self_transcendence: '#2e6f5e',
+  };
+  const wedges = values.map((v, i) => {
+    const a0 = (-Math.PI / 2) + (i * 2 * Math.PI / n);
+    const a1 = (-Math.PI / 2) + ((i + 0.86) * 2 * Math.PI / n);
+    const amid = (a0 + a1) / 2;
+    const known = typeof v.estimate === 'number';
+    const r = known ? rInner + (rMax - rInner) * Math.max(0.08, Math.min(1, v.estimate)) : rInner + (rMax - rInner) * 0.35;
+    const x1 = cx + r * Math.cos(a0), y1 = cy + r * Math.sin(a0);
+    const x2 = cx + r * Math.cos(a1), y2 = cy + r * Math.sin(a1);
+    const xi1 = cx + rInner * Math.cos(a0), yi1 = cy + rInner * Math.sin(a0);
+    const xi2 = cx + rInner * Math.cos(a1), yi2 = cy + rInner * Math.sin(a1);
+    const lx = cx + (rMax + 20) * Math.cos(amid), ly = cy + (rMax + 20) * Math.sin(amid);
+    const col = quadColors[v.quadrant] || '#3f588c';
+    const dPath = `M ${xi1.toFixed(1)} ${yi1.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r.toFixed(1)} ${r.toFixed(1)} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L ${xi2.toFixed(1)} ${yi2.toFixed(1)} Z`;
+    return `<g>
+      <path d="${dPath}" fill="${known ? col : 'none'}" fill-opacity="${known ? '0.68' : '0'}" stroke="${col}" stroke-width="1.2" ${known ? '' : 'stroke-dasharray="2 2" opacity="0.45"'} />
+      <text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" font-size="8.5" text-anchor="middle" fill="currentColor" opacity="0.82">${esc(v.label.slice(0, 4))}</text>
+    </g>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Schwartz 19项价值环">
+    <circle cx="${cx}" cy="${cy}" r="${rMax}" fill="none" stroke="rgba(128,120,105,0.18)" />
+    <circle cx="${cx}" cy="${cy}" r="${rInner}" fill="none" stroke="rgba(128,120,105,0.25)" />
+    ${wedges}
+  </svg>`;
+}
+
+function renderUI3Home() {
+  if (!state || !state.profile) return;
+  const p = state.profile;
+  const ov = state.ui3_overview || {};
+  const ed = state.expressive_drive || {};
+  const streams = ov.expressive_drive_detail?.streams || ed.streams || [];
+  const topStream = streams[0] || {
+    activation: 0.45,
+    urgency: 0.35,
+    persistence: 0.48,
+    expressive_intent: 'LISTEN',
+    baseline: { activation: 0.45, urgency: 0.35, persistence: 0.48 },
+  };
+  const unfinished = ov.expressive_drive_detail?.unfinished_motives || [];
+  const qqCfg = state.config?.qq || {};
+  const modelsOk = modelsConfigured();
+
+  if ($('ui3PersonaSelect')) {
+    $('ui3PersonaSelect').innerHTML = (state.personas?.items || []).map(item =>
+      `<option value="${esc(item.id)}" ${item.id === state.identity.id ? 'selected' : ''}>${esc(item.id === p.id ? p.name : item.name)}</option>`
+    ).join('');
+  }
+  if ($('ui3ConnBadge')) {
+    $('ui3ConnBadge').className = 'ui3-badge ' + (modelsOk ? 'ok' : 'warn');
+    $('ui3ConnBadge').textContent = modelsOk ? `已连接 · ${state.config.model || '本地模型'}` : '待配置模型连接';
+  }
+
+  // A. Identity Hero
+  const firstChar = (p.name || '槐').trim().slice(0, 1);
+  const seedPreview = (p.character?.initial_personality || p.seed || '尚未填写初始角色背景设定，可在连接与设置中补充，或通过成长工作室从聊天记录蒸馏。').slice(0, 140);
+  $('ui3IdentityHero').innerHTML = `
+    <div class="ui3-avatar-wrap" aria-hidden="true">
+      <span>${esc(firstChar)}</span>
+      <i class="ui3-avatar-status-dot" title="本地服务在线"></i>
+    </div>
+    <div>
+      <span class="ui3-kicker">ACTIVE PERSONA · 当前角色空间</span>
+      <h1 style="margin:2px 0 6px;font-size:24px">${esc(p.name)} <small style="font-size:13px;font-weight:500;color:var(--ui3-text-muted)">自称「${esc(p.character?.self_reference || '我')}」</small></h1>
+      <p class="ui3-sub" style="margin:0">${esc(seedPreview)}${seedPreview.length >= 140 ? '…' : ''}</p>
+      <div class="ui3-hero-meta">
+        <span class="ui3-badge indigo">人格修订 v${esc(p.revision)} · 长期特征 v${esc(p.trait_profile?.version ?? 0)}</span>
+        <span class="ui3-badge ${qqCfg.enabled ? 'ok' : ''}">QQ 渠道：${qqCfg.enabled ? ('已启用 · 机器人 ' + esc(qqCfg.self_id || '未填号码')) : '未开启自动回复'}</span>
+        <span class="ui3-badge ${modelsOk ? 'ok' : 'warn'}">对话模型：${esc(state.config?.model || '待配置')} · PMM：${esc(modeName(state.model?.mode))}</span>
+        <span class="ui3-badge">累计互动 ${esc(state.state?.turn_count ?? 0)} 轮 · 记忆 ${esc(state.memory_count ?? 0)} 条</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+      <button type="button" class="ui3-pill-btn primary" id="ui3HeroEditCharBtn">编辑角色设定</button>
+      <button type="button" class="ui3-pill-btn" data-ui3-jump="ui3PageStudio">进入成长工作室 →</button>
+    </div>
+  `;
+  const heroEditBtn = ui3ById('ui3HeroEditCharBtn');
+  if (heroEditBtn) heroEditBtn.onclick = () => $('editCharacter')?.click();
+
+  // F. Pending Actions (only shown if real items exist)
+  const pendingItems = ov.pending_actions || [];
+  if (pendingItems.length > 0) {
+    $('ui3PendingActionsWrap').hidden = false;
+    $('ui3PendingActionsList').innerHTML = pendingItems.map(item => `
+      <div class="ui3-card-compact">
+        <span class="ui3-badge ${item.severity === 'warning' ? 'warn' : 'indigo'}">${esc(item.kind.toUpperCase())}</span>
+        <h3 style="font-size:15px;margin:8px 0 4px">${esc(item.title)}</h3>
+        <p class="ui3-sub" style="font-size:12px">${esc(item.detail)}</p>
+        <button type="button" class="ui3-pill-btn" style="margin-top:10px" data-ui3-jump="${esc(item.target_view)}">前往处理 →</button>
+      </div>
+    `).join('');
+  } else {
+    $('ui3PendingActionsWrap').hidden = true;
+    $('ui3PendingActionsList').innerHTML = '';
+  }
+
+  // B1. Emotion Centerpiece
+  const aff2d = ov.affect_2d || {};
+  const fast = aff2d.fast_emotion || {};
+  const slow = aff2d.slow_mood || {};
+  const mov = aff2d.movement || {};
+  const fastDesc = fast.known
+    ? `当前快情绪效价 ${fast.valence.toFixed(2)}（${fast.valence > 0.15 ? '偏愉悦温暖' : fast.valence < -0.15 ? '偏低落紧绷' : '平和中性'}），唤醒度 ${fast.arousal.toFixed(2)}，主导感 ${(fast.dominance ?? 0.5).toFixed(2)}。`
+    : '当前尚无触发快情绪的近期事件，处于平静未激活基线。';
+  const slowDesc = slow.known
+    ? `慢心境基调效价 ${slow.valence.toFixed(2)}，唤醒度 ${slow.arousal.toFixed(2)}。`
+    : '慢心境保持中性工程先验。';
+
+  $('ui3HomeEmotionCenter').innerHTML = `
+    <div style="display:grid;grid-template-columns:minmax(180px,230px) minmax(0,1fr);gap:16px;align-items:center">
+      <div class="ui3-viz-box">${renderUI3AffectCircumplexSVG(fast, slow, mov, true)}</div>
+      <div>
+        <div style="margin-bottom:10px">
+          <span class="ui3-badge accent">快情绪 · 即时反应</span>
+          <span class="ui3-badge indigo" style="margin-left:6px">慢心境 · 长期基调</span>
+        </div>
+        <p style="font-size:14px;line-height:1.65;margin:0 0 8px"><strong>${esc(fastDesc)}</strong></p>
+        <p class="ui3-sub" style="margin:0 0 10px">${esc(slowDesc)} 最近状态变化：${esc(mov.latest_summary || '无')}</p>
+        <div class="ui3-trait-row">
+          <div class="ui3-trait-top"><span>压力负荷 (Stress)</span><strong>${typeof fast.stress === 'number' ? fast.stress.toFixed(3) : '未知'}</strong></div>
+          <div class="ui3-bar-track"><div class="ui3-bar-fill warm" style="width:${typeof fast.stress === 'number' ? (fast.stress * 100).toFixed(1) : 0}%"></div></div>
+        </div>
+        <div class="ui3-trait-row" style="margin-bottom:0">
+          <div class="ui3-trait-top"><span>互动投入度 (Engagement)</span><strong>${typeof fast.engagement === 'number' ? fast.engagement.toFixed(3) : '未知'}</strong></div>
+          <div class="ui3-bar-track"><div class="ui3-bar-fill" style="width:${typeof fast.engagement === 'number' ? (fast.engagement * 100).toFixed(1) : 0}%"></div></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // B2. Expressive Drive Centerpiece
+  const [intentTitle, intentDesc, intentCls] = ui3IntentLabels[topStream.expressive_intent] || [topStream.expressive_intent || 'LISTEN', '', 'sage'];
+  const actVal = Number(topStream.activation ?? 0.45);
+  const urgVal = Number(topStream.urgency ?? 0.35);
+  const persVal = Number(topStream.persistence ?? 0.48);
+  $('ui3HomeDriveCenter').innerHTML = `
+    <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <span class="ui3-badge ${intentCls}" style="font-size:12px;padding:5px 12px">当前话轮意图：${esc(intentTitle)}</span>
+      <span class="ui3-badge">未完成表达动机：${unfinished.length} 项</span>
+    </div>
+    <p class="ui3-sub" style="margin:0 0 14px">${esc(intentDesc)}</p>
+    <div class="ui3-trait-row">
+      <div class="ui3-trait-top"><span>想表达程度 (Activation · 内部表达能量)</span><strong>${actVal.toFixed(3)}</strong></div>
+      <div class="ui3-bar-track"><div class="ui3-bar-fill warm" style="width:${(actVal * 100).toFixed(1)}%"></div></div>
+    </div>
+    <div class="ui3-trait-row">
+      <div class="ui3-trait-top"><span>立即接话倾向 (Urgency · 话轮紧迫感)</span><strong>${urgVal.toFixed(3)}</strong></div>
+      <div class="ui3-bar-track"><div class="ui3-bar-fill plum" style="width:${(urgVal * 100).toFixed(1)}%"></div></div>
+    </div>
+    <div class="ui3-trait-row">
+      <div class="ui3-trait-top"><span>话题挂念持续度 (Persistence · 跨时间保持)</span><strong>${persVal.toFixed(3)}</strong></div>
+      <div class="ui3-bar-track"><div class="ui3-bar-fill" style="width:${(persVal * 100).toFixed(1)}%"></div></div>
+    </div>
+    <details style="margin-top:10px;font-size:12px;color:var(--ui3-text-sec)">
+      <summary style="cursor:pointer;font-weight:600">展开查看人格表达基线 b(θ) 与流修订号</summary>
+      <p style="margin:6px 0 0">人格表达基线：Activation=${fmt(topStream.baseline?.activation)} · Urgency=${fmt(topStream.baseline?.urgency)} · Persistence=${fmt(topStream.baseline?.persistence)} · 状态修订 v${esc(topStream.state_revision ?? 0)}</p>
+    </details>
+  `;
+
+  // D. Unfinished Expressive Motives
+  $('ui3HomeUnfinishedList').innerHTML = unfinished.length ? unfinished.slice(0, 4).map(m => {
+    const ie = m.intended_expression || {};
+    const topic = m.content_anchor?.topic || '未命名表达议题';
+    const goal = ie.intended_goal || m.content_anchor?.summary || '';
+    const unsentSteps = ie.unsent_plan_steps || [];
+    return `<div class="ui3-card-compact" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <span class="ui3-badge plum">内部未完成表达动机 · 尚未发送</span>
+        <span class="ui3-badge">${esc(m.status)} · 激活度 ${Number(m.activation || 0).toFixed(2)}</span>
+      </div>
+      <h4 style="margin:4px 0;font-size:14px">主题：${esc(topic)}</h4>
+      <p class="ui3-sub" style="font-size:12.5px;margin:4px 0"><strong>主体想表达的目标：</strong>${esc(goal)}</p>
+      ${unsentSteps.length ? `<p class="ui3-sub" style="font-size:12px;margin:4px 0"><strong>待续接步骤 (${unsentSteps.length})：</strong>${esc(unsentSteps.map(s => s.intended_point || s.purpose).join(' / '))}</p>` : ''}
+      <p class="ui3-sub" style="font-size:11.5px;color:var(--ui3-text-muted)">关联对象：${esc(m.person_id || m.scope)} · 暂缓原因：${esc(m.defer_reason || '等待合适话轮窗口')} · 更新于 ${date(m.updated_at)}</p>
+    </div>`;
+  }).join('') : '<p class="ui3-sub">当前没有搁置或待续接的未完成表达动机；角色表达状态已充分结算。</p>';
+
+  // C. Recent Experiences
+  const recentMems = (memories || []).slice(0, 3);
+  const recentEvs = (events || []).filter(e => ['turn', 'social_sent', 'trait_evidence_promoted', 'expression_partial'].includes(e.kind)).slice(0, 3);
+  const combinedExp = [
+    ...recentMems.map(m => ({
+      at: m.updated_at || m.created_at || 0,
+      badge: `记忆形成 · ${m.kind}`,
+      title: (m.content || '').replace(/\n/g, ' ').slice(0, 72),
+      sub: `范围：${m.scope || '通用'} · 重要度 ${Number(m.importance || 0.5).toFixed(2)}`,
+      jumpPage: 'ui3PageMemory',
+    })),
+    ...recentEvs.map(e => ({
+      at: e.created_at || 0,
+      badge: `事件记录 · ${eventLabel(e.kind)}`,
+      title: e.payload?.reply ? `回复：${String(e.payload.reply).slice(0, 64)}` : `完成 ${eventLabel(e.kind)} 状态更新`,
+      sub: date(e.created_at || 0),
+      jumpPage: 'ui3PageTimeline',
+    })),
+  ].sort((a, b) => b.at - a.at).slice(0, 5);
+
+  $('ui3HomeRecentList').innerHTML = combinedExp.length ? `<div class="ui3-timeline-list">${combinedExp.map(item => `
+    <div class="ui3-timeline-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">
+        <span class="ui3-badge sage">${esc(item.badge)}</span>
+        <button type="button" class="ui3-pill-btn" style="padding:2px 9px;font-size:11px" data-ui3-jump="${esc(item.jumpPage)}">查看详情 →</button>
+      </div>
+      <p style="margin:4px 0;font-size:13px;font-weight:550">${esc(item.title)}</p>
+      <span style="font-size:11.5px;color:var(--ui3-text-muted)">${esc(item.sub)}</span>
+    </div>
+  `).join('')}</div>` : '<p class="ui3-sub">尚无历史互动或记忆记录。可从“成长工作室”导入聊天记录蒸馏，或在“时光与对话”中开启测试会话。</p>';
+}
+
+function renderUI3InnerWorld() {
+  if (!state || !state.profile) return;
+  const ov = state.ui3_overview || {};
+  const hexDomains = ov.hexaco_domains || [];
+  const schwartz = ov.schwartz_values || [];
+  const interp2d = ov.interpersonal_2d || {};
+  const tSnap = state.trait_snapshot || {};
+
+  // 2.1 Layer 1: HEXACO 6 Domains
+  $('ui3HexacoRadarBox').innerHTML = `
+    <div style="display:grid;grid-template-columns:minmax(200px,260px) minmax(0,1fr);gap:16px;align-items:center">
+      <div class="ui3-viz-box">${renderUI3HexacoRadarSVG(hexDomains)}</div>
+      <div>
+        ${hexDomains.map(d => `
+          <div class="ui3-trait-row">
+            <div class="ui3-trait-top">
+              <span><strong>${esc(d.code)} · ${esc(d.name_zh)}</strong> <small style="color:var(--ui3-text-muted)">(${d.known_facet_count}/${d.total_facet_count} 已知分面)</small></span>
+              <strong>${typeof d.estimate === 'number' ? d.estimate.toFixed(3) : '未知'}</strong>
+            </div>
+            <div class="ui3-bar-track"><div class="ui3-bar-fill" style="width:${typeof d.estimate === 'number' ? (d.estimate * 100).toFixed(1) : 0}%"></div></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  // 2.1 Layer 2A: Schwartz Value Circle & Attachment 2D Space
+  const att = interp2d.attachment_space || {};
+  const ic = interp2d.interpersonal_circumplex || {};
+  const attX = typeof att.seeking_closeness === 'number' ? 24 + att.seeking_closeness * 152 : 100;
+  const attY = typeof att.anxiety === 'number' ? 24 + (1 - att.anxiety) * 152 : 100;
+  $('ui3ValuesAndAttachmentBox').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start">
+      <div class="ui3-viz-box">
+        <strong style="font-size:12px;margin-bottom:6px">Schwartz 19 项价值环</strong>
+        ${renderUI3SchwartzCircleSVG(schwartz)}
+      </div>
+      <div class="ui3-viz-box">
+        <strong style="font-size:12px;margin-bottom:6px">依恋与人际二维空间</strong>
+        <svg viewBox="0 0 200 200" role="img" aria-label="依恋焦虑与亲近需求二维空间">
+          <rect x="24" y="24" width="152" height="152" rx="10" fill="rgba(128,120,105,0.05)" stroke="rgba(128,120,105,0.22)" />
+          <line x1="100" y1="24" x2="100" y2="176" stroke="rgba(128,120,105,0.24)" stroke-dasharray="3 3" />
+          <line x1="24" y1="100" x2="176" y2="100" stroke="rgba(128,120,105,0.24)" stroke-dasharray="3 3" />
+          <text x="100" y="17" font-size="9" text-anchor="middle" fill="currentColor" opacity="0.65">高关系焦虑 (hexaco.e.anxiety)</text>
+          <text x="100" y="191" font-size="9" text-anchor="middle" fill="currentColor" opacity="0.65">低焦虑 · 安全稳定</text>
+          <text x="28" y="96" font-size="8.5" fill="currentColor" opacity="0.6">独立疏离</text>
+          <text x="172" y="96" font-size="8.5" text-anchor="end" fill="currentColor" opacity="0.6">高联结依恋</text>
+          ${att.known ? `<circle cx="${attX.toFixed(1)}" cy="${attY.toFixed(1)}" r="7" fill="#78477a" stroke="#fff" stroke-width="2" />` : `<text x="100" y="104" font-size="10" text-anchor="middle" fill="currentColor" opacity="0.55">依恋坐标未知 (待设定或蒸馏)</text>`}
+        </svg>
+        <p class="ui3-sub" style="font-size:11.5px;margin-top:8px">
+          焦虑倾向 (<code>hexaco.e.anxiety</code>)：<strong>${typeof att.anxiety === 'number' ? att.anxiety.toFixed(3) : '未知'}</strong> ·
+          依恋支持 (<code>dependence/sentimentality</code>)：<strong>${typeof att.seeking_closeness === 'number' ? att.seeking_closeness.toFixed(3) : '未知'}</strong><br>
+          人际能动 (<code>social.agency</code>)：<strong>${typeof ic.agency === 'number' ? ic.agency.toFixed(3) : '未知'}</strong> ·
+          人际亲和 (<code>social.communion</code>)：<strong>${typeof ic.communion === 'number' ? ic.communion.toFixed(3) : '未知'}</strong>
+        </p>
+      </div>
+    </div>
+  `;
+
+  // 2.1 Layer 2B: Full Construct Spectrum List
+  const groupFilter = $('ui3ConstructGroupFilter')?.value || 'all';
+  const allConstructs = [];
+  const regMap = Object.fromEntries((state.psychology_registry || []).map(f => [f.id, f]));
+  const dispMap = Object.fromEntries((Array.isArray(state.disposition_registry) ? state.disposition_registry : (state.disposition_registry?.fields || state.disposition_registry?.items || [])).map(d => [d.id, d]));
+
+  const pushGroup = (groupKey, groupTitle, mapObj) => {
+    if (groupFilter !== 'all' && groupFilter !== groupKey) return;
+    for (const [cid, info] of Object.entries(mapObj || {})) {
+      const meta = regMap[cid] || dispMap[cid] || { name_zh: cid, id: cid };
+      allConstructs.push({
+        id: cid,
+        name_zh: meta.name_zh || cid,
+        groupKey,
+        groupTitle,
+        estimate: info?.estimate ?? null,
+        uncertainty: info?.uncertainty ?? 1.0,
+        source_type: info?.source_type || 'unknown',
+      });
+    }
+  };
+  pushGroup('HEXACO', 'HEXACO 25 面向', tSnap.hexaco_facets);
+  pushGroup('VALUES', 'Schwartz 19 价值', tSnap.value_priorities);
+  pushGroup('AFFECTIVE', '情绪调节与基底习惯', tSnap.affective_disposition);
+  pushGroup('INTERPERSONAL', '人际倾向', tSnap.interpersonal_dispositions);
+  pushGroup('STYLE', '语言与互动风格', tSnap.behavioral_dispositions);
+
+  $('ui3ConstructsSpectrumList').innerHTML = `<div class="ui3-grid-3">${allConstructs.map(c => {
+    const known = typeof c.estimate === 'number';
+    const isSel = c.id === ui3SelectedConstructId;
+    return `<div class="ui3-trait-row" style="cursor:pointer;border-color:${isSel ? 'var(--ui3-accent)' : 'var(--ui3-border)'}" data-ui3-select-construct="${esc(c.id)}">
+      <div class="ui3-trait-top">
+        <span><strong>${esc(c.name_zh)}</strong> <small style="color:var(--ui3-text-muted)">${esc(c.id)}</small></span>
+        <strong>${known ? c.estimate.toFixed(3) : '未知'}</strong>
+      </div>
+      <div class="ui3-bar-track" style="margin-bottom:6px">
+        <div class="ui3-bar-fill ${c.groupKey === 'AFFECTIVE' ? 'plum' : c.groupKey === 'VALUES' ? 'warm' : ''}" style="width:${known ? (c.estimate * 100).toFixed(1) : 0}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        ${ui3SourceBadge(c.source_type, !known)}
+        <span style="font-size:11px;color:var(--ui3-text-muted)">不确定性 ${(Number(c.uncertainty ?? 1)).toFixed(2)}</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+
+  // 2.1 Layer 3: Selected Construct Provenance & Evidence
+  const selC = allConstructs.find(x => x.id === ui3SelectedConstructId) || allConstructs[0];
+  if (selC) {
+    const manualSeed = (tSnap.manual_seed || {})[selC.id];
+    const dispEntry = (state.profile.trait_profile?.dispositions || {})[selC.id] || {};
+    const obsList = ((state.profile.trait_profile?.disposition_observations || {})[selC.id] || []).slice(-5);
+    const promos = (state.profile.trait_profile?.promotion_history || []).filter(h => h.feature_id === selC.id || (h.changes && h.changes[selC.id]));
+    const lastPromo = promos[promos.length - 1] || null;
+    $('ui3ConstructProvenanceDetail').innerHTML = `
+      <div class="ui3-card-compact">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
+          <div>
+            <span class="ui3-kicker">${esc(selC.groupTitle)}</span>
+            <h3 style="margin:2px 0">${esc(selC.name_zh)} (<code>${esc(selC.id)}</code>)</h3>
+          </div>
+          <button type="button" class="ui3-pill-btn" data-ui3-edit-seed="${esc(selC.id)}">修改主人设定值</button>
+        </div>
+        <div class="ui3-grid-2" style="gap:10px;margin-bottom:10px">
+          <div class="ui3-trait-row" style="margin:0"><span class="ui3-sub">1. 用户设定初始值 (owner_seed)</span><br><strong>${manualSeed?.value != null ? Number(manualSeed.value).toFixed(3) : (selC.source_type === 'owner_seed' && selC.estimate != null ? selC.estimate.toFixed(3) : '未单独设定')}</strong></div>
+          <div class="ui3-trait-row" style="margin:0"><span class="ui3-sub">2. 系统当前估计值</span><br><strong>${selC.estimate != null ? selC.estimate.toFixed(3) : '未知 (null)'}</strong> ${ui3SourceBadge(selC.source_type, selC.estimate == null)}</div>
+          <div class="ui3-trait-row" style="margin:0"><span class="ui3-sub">3. 当前情境表现</span><br><strong>${selC.estimate != null ? '已参与当前情境解码与表达欲基线 b(θ) 计算' : '因数值未知，通过掩码屏蔽，不强行插补 0.5'}</strong></div>
+          <div class="ui3-trait-row" style="margin:0"><span class="ui3-sub">5. 最近一次经审核更新</span><br><strong>${lastPromo ? `${date(lastPromo.at || lastPromo.promoted_at || 0)} · 版本 v${esc(lastPromo.version ?? '')}` : '暂无晋升记录'}</strong></div>
+        </div>
+        <div class="ui3-trait-row">
+          <div class="ui3-trait-top"><span>4. 支持与反对的历史证据 (${obsList.length} 条近期观测)</span></div>
+          ${obsList.length ? obsList.map(o => `<p class="ui3-sub" style="font-size:12px;margin:4px 0">· 观测值 ${Number(o.value ?? o.estimate ?? 0.5).toFixed(2)} · 来源事件 <code>${esc(o.event_id || o.source_id || '已记录')}</code> ${o.quote ? `「${esc(String(o.quote).slice(0, 60))}」` : ''}</p>`).join('') : '<p class="ui3-sub" style="font-size:12px;margin:2px 0">暂无记录（尚未积累针对该构念的独立正反历史证据）</p>'}
+        </div>
+        <div class="ui3-trait-row" style="margin-bottom:0">
+          <div class="ui3-trait-top"><span>6. 在实际认知或决策中的影响</span></div>
+          <p class="ui3-sub" style="font-size:12px;margin:2px 0">${selC.estimate != null ? '作为长期人格条件输入 PMM 状态解码器、情绪反应调节头与 Expressive Drive 基线矩阵 W_θ。' : '暂无记录（当前構念为未知状态，未对决策施加偏移）。'}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  // 2.1 Layer 4: Longitudinal Personality Revisions
+  const promoHist = (state.profile.trait_profile?.promotion_history || []).slice().reverse();
+  const revFiles = (personaRevisions || []).slice(0, 8);
+  $('ui3TraitLongitudinalHistory').innerHTML = `
+    <div style="max-height:380px;overflow:auto">
+      ${promoHist.length ? promoHist.map(h => `
+        <div class="ui3-trait-row">
+          <div class="ui3-trait-top">
+            <span class="ui3-badge sage">经审核晋升 · 版本 v${esc(h.version ?? '')}</span>
+            <small>${h.at ? date(h.at) : ''}</small>
+          </div>
+          <p class="ui3-sub" style="font-size:12px;margin:4px 0">构念 <code>${esc(h.feature_id || '多项构念')}</code>：${fmt(h.before)} → <strong>${fmt(h.after)}</strong>（证据数：${esc(h.evidence_count ?? (h.records || []).length)}）</p>
+        </div>
+      `).join('') : '<p class="ui3-sub">尚无经审核晋升的长期人格参数变更记录。</p>'}
+      <h4 style="font-size:13px;margin:14px 0 8px">已保存的人格恢复点 (${revFiles.length})</h4>
+      ${revFiles.length ? revFiles.map(r => `
+        <div class="ui3-trait-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div>
+            <strong style="font-size:13px">${esc(r.label || r.id)}</strong>
+            <div style="font-size:11px;color:var(--ui3-text-muted)">修订 v${esc(r.revision ?? '')} · ${r.created_at ? date(r.created_at) : ''}</div>
+          </div>
+          <button type="button" class="ui3-pill-btn" data-ui3-rollback-rev="${esc(r.id)}">回滚到此版本</button>
+        </div>
+      `).join('') : '<p class="ui3-sub">尚无手动保存的恢复点。</p>'}
+    </div>
+  `;
+
+  // 2.2 Dynamic Emotion Space
+  const aff2d = ov.affect_2d || {};
+  const fast = aff2d.fast_emotion || {};
+  const slow = aff2d.slow_mood || {};
+  const mov = aff2d.movement || {};
+  $('ui3Emotion2DSpaceBox').innerHTML = `
+    <div style="display:grid;grid-template-columns:minmax(220px,290px) minmax(0,1fr);gap:16px;align-items:center">
+      <div class="ui3-viz-box">${renderUI3AffectCircumplexSVG(fast, slow, mov, false)}</div>
+      <div>
+        <div class="ui3-trait-row">
+          <span class="ui3-badge accent">快情绪 (Fast Emotion)</span>
+          <p class="ui3-sub" style="font-size:12.5px;margin:6px 0 0">
+            愉悦度 Valence：<strong>${typeof fast.valence === 'number' ? fast.valence.toFixed(3) : '未知'}</strong> [-1..1]<br>
+            唤醒度 Arousal：<strong>${typeof fast.arousal === 'number' ? fast.arousal.toFixed(3) : '未知'}</strong> [0..1]<br>
+            主导感 Dominance：<strong>${typeof fast.dominance === 'number' ? fast.dominance.toFixed(3) : '未知'}</strong> [0..1]<br>
+            压力 Stress：<strong>${typeof fast.stress === 'number' ? fast.stress.toFixed(3) : '未知'}</strong> · 投入度 Engagement：<strong>${typeof fast.engagement === 'number' ? fast.engagement.toFixed(3) : '未知'}</strong>
+          </p>
+        </div>
+        <div class="ui3-trait-row">
+          <span class="ui3-badge indigo">慢心境 (Slow Mood)</span>
+          <p class="ui3-sub" style="font-size:12.5px;margin:6px 0 0">
+            心境效价：<strong>${typeof slow.valence === 'number' ? slow.valence.toFixed(3) : '未知'}</strong> ·
+            心境唤醒：<strong>${typeof slow.arousal === 'number' ? slow.arousal.toFixed(3) : '未知'}</strong> ·
+            心境主导：<strong>${typeof slow.dominance === 'number' ? slow.dominance.toFixed(3) : '未知'}</strong>
+          </p>
+        </div>
+        <div class="ui3-card-compact" style="font-size:11.5px;color:var(--ui3-text-sec)">
+          <strong>正式展示投影规则：</strong>横轴 X = (Valence + 1) / 2 ∈ [0, 1]（中心点 0.0），纵轴 Y = 1 - Arousal ∈ [0, 1]（静息中心 0.25）。仅表示内部模拟状态，不等同于已证实的主观体验。
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 2.2 B: 24 Emotion Categories
+  const details24 = state.emotion_details || [];
+  $('ui3Emotion24Grid').innerHTML = `<div class="ui3-grid-3" style="max-height:360px;overflow:auto">${details24.map(item => {
+    const val = item.value;
+    const known = typeof val === 'number' && Number.isFinite(val);
+    return `<div class="ui3-trait-row" style="margin:0">
+      <div class="ui3-trait-top">
+        <span><strong>${esc(item.name_zh || item.id)}</strong></span>
+        <strong>${known ? val.toFixed(3) : '未知'}</strong>
+      </div>
+      <div class="ui3-bar-track"><div class="ui3-bar-fill ${known && val > 0.55 ? 'warm' : ''}" style="width:${known ? (val * 100).toFixed(1) : 0}%"></div></div>
+      <small style="font-size:10.5px;color:var(--ui3-text-muted)">${esc(item.status_label || (known ? '已激活' : '未校准/未知'))}</small>
+    </div>`;
+  }).join('')}</div>`;
+
+  // 2.2 C & D: Emotion Trajectory & Raw Researcher Drawer
+  const horizon = $('ui3EmotionHorizonFilter')?.value || 'all';
+  const nowSec = Date.now() / 1000;
+  const horizonCut = horizon === '6h' ? nowSec - 21600 : horizon === '24h' ? nowSec - 86400 : horizon === '7d' ? nowSec - 604800 : 0;
+  const traj = (aff2d.trajectory || []).filter(pt => !horizonCut || Number(pt.at || 0) >= horizonCut);
+  const causeLabels = {
+    inbound_event_reaction: ['真实事件触发', 'accent'],
+    time_propagation: ['现实时间传播', 'sage'],
+    regulation: ['情绪调节', 'indigo'],
+    internal_expression_feedback: ['表达行为反馈', 'plum'],
+    external_partner_response: ['外部回应评价', 'amber'],
+  };
+  $('ui3EmotionTrajectoryBox').innerHTML = `
+    ${traj.length ? `<div class="ui3-timeline-list" style="max-height:320px;overflow:auto;margin-bottom:14px">${traj.slice().reverse().map(pt => {
+      const [cLbl, cCls] = causeLabels[pt.cause_category] || [pt.cause_category || '状态更新', 'indigo'];
+      return `<div class="ui3-timeline-item">
+        <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <span class="ui3-badge ${cCls}">${esc(cLbl)}</span>
+          <small style="color:var(--ui3-text-muted)">${pt.at ? date(pt.at) : ''}</small>
+        </div>
+        <p style="margin:6px 0 2px;font-size:13px"><strong>${esc(pt.summary)}</strong></p>
+        <p class="ui3-sub" style="font-size:12px;margin:0">快情绪效价=${fmt(pt.valence)} · 唤醒=${fmt(pt.arousal)} · 主导=${fmt(pt.dominance)} | 慢心境效价=${fmt(pt.mood_valence)} · 事件 <code>${esc(pt.event_id || '—')}</code></p>
+      </div>`;
+    }).join('')}</div>` : '<p class="ui3-sub">当前时间范围内尚无情绪轨迹变化点。</p>'}
+    <details style="border:1px solid var(--ui3-border);border-radius:10px;padding:10px 14px;background:var(--ui3-surface-solid)">
+      <summary style="cursor:pointer;font-weight:600;font-size:13px">展开研究者原始情绪状态与动力学参数 (affect_state)</summary>
+      <pre style="font-size:11.5px;max-height:280px;overflow:auto;margin-top:8px">${esc(JSON.stringify(state.affect_state, null, 2))}</pre>
+    </details>
+  `;
+
+  // 2.3 Expressive Drive Sub-tab
+  const edDetail = ov.expressive_drive_detail || {};
+  const edStreams = edDetail.streams || [];
+  const primaryStream = edStreams[0] || { activation: 0.45, urgency: 0.35, persistence: 0.48, expressive_intent: 'LISTEN', baseline: {} };
+  const [dIntentLbl, dIntentDesc, dIntentCls] = ui3IntentLabels[primaryStream.expressive_intent] || [primaryStream.expressive_intent || 'LISTEN', '', 'sage'];
+
+  $('ui3DriveChannelsBox').innerHTML = `
+    <div style="margin-bottom:12px">
+      <span class="ui3-badge ${dIntentCls}" style="font-size:12.5px;padding:5px 12px">${esc(dIntentLbl)}</span>
+      <p class="ui3-sub" style="margin-top:6px">${esc(dIntentDesc)}</p>
+    </div>
+    <div class="ui3-trait-row">
+      <div class="ui3-trait-top"><span>Activation（当前想表达的程度）</span><strong>${fmt(primaryStream.activation)} <small style="color:var(--ui3-text-muted)">(基线 ${fmt(primaryStream.baseline?.activation)})</small></strong></div>
+      <div class="ui3-bar-track"><div class="ui3-bar-fill warm" style="width:${(Number(primaryStream.activation || 0) * 100).toFixed(1)}%"></div></div>
+    </div>
+    <div class="ui3-trait-row">
+      <div class="ui3-trait-top"><span>Urgency（是否倾向立即抢话轮/接话）</span><strong>${fmt(primaryStream.urgency)} <small style="color:var(--ui3-text-muted)">(基线 ${fmt(primaryStream.baseline?.urgency)})</small></strong></div>
+      <div class="ui3-bar-track"><div class="ui3-bar-fill plum" style="width:${(Number(primaryStream.urgency || 0) * 100).toFixed(1)}%"></div></div>
+    </div>
+    <div class="ui3-trait-row" style="margin-bottom:0">
+      <div class="ui3-trait-top"><span>Persistence（未完成话题在真实时间下的留存韧性）</span><strong>${fmt(primaryStream.persistence)} <small style="color:var(--ui3-text-muted)">(基线 ${fmt(primaryStream.baseline?.persistence)})</small></strong></div>
+      <div class="ui3-bar-track"><div class="ui3-bar-fill" style="width:${(Number(primaryStream.persistence || 0) * 100).toFixed(1)}%"></div></div>
+    </div>
+  `;
+
+  // 2.3 History Curve SVG
+  const edHist = edDetail.recent_history || [];
+  if (edHist.length >= 1) {
+    const w = 440, h = 170, pad = 24;
+    const ptsFor = key => edHist.map((item, idx) => {
+      const x = pad + (edHist.length === 1 ? (w - pad * 2) / 2 : (idx / (edHist.length - 1)) * (w - pad * 2));
+      const y = pad + (1 - Math.max(0, Math.min(1, Number(item[key] || 0)))) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    $('ui3DriveCurveBox').innerHTML = `
+      <div class="ui3-viz-box">
+        <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="表达欲三通道变化曲线">
+          <line x1="${pad}" y1="${pad}" x2="${w - pad}" y2="${pad}" stroke="rgba(128,120,105,0.18)" />
+          <line x1="${pad}" y1="${h / 2}" x2="${w - pad}" y2="${h / 2}" stroke="rgba(128,120,105,0.18)" stroke-dasharray="3 3" />
+          <line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="rgba(128,120,105,0.18)" />
+          <polyline fill="none" stroke="#b45638" stroke-width="2.2" points="${ptsFor('activation')}" />
+          <polyline fill="none" stroke="#78477a" stroke-width="2" stroke-dasharray="4 2" points="${ptsFor('urgency')}" />
+          <polyline fill="none" stroke="#2e6f5e" stroke-width="2" points="${ptsFor('persistence')}" />
+        </svg>
+        <div style="display:flex;gap:12px;font-size:11.5px;margin-top:6px">
+          <span style="color:#b45638">● Activation</span>
+          <span style="color:#78477a">● Urgency</span>
+          <span style="color:#2e6f5e">● Persistence</span>
+          <span style="color:var(--ui3-text-muted)">共 ${edHist.length} 次事件记录</span>
+        </div>
+      </div>
+    `;
+  } else {
+    $('ui3DriveCurveBox').innerHTML = '<p class="ui3-sub">尚无表达欲历史事件曲线数据。</p>';
+  }
+
+  // 2.3 Motives Detail List
+  const allMotives = edDetail.all_motives || [];
+  $('ui3DriveMotivesDetailList').innerHTML = allMotives.length ? `<div class="ui3-grid-2">${allMotives.map(m => {
+    const ie = m.intended_expression || {};
+    const ext = ie.external_stimulus || {};
+    const steps = ie.unsent_plan_steps || [];
+    const statusCls = m.status === 'satisfied' ? 'ok' : m.status === 'abandoned' ? '' : 'plum';
+    return `<div class="ui3-card-compact">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <span class="ui3-badge ${statusCls}">状态：${esc(m.status)} · 结果：${esc(m.delivery_outcome || 'pending')}</span>
+        <span class="ui3-badge"><code>${esc(m.motive_id)}</code></span>
+      </div>
+      <h4 style="margin:4px 0;font-size:14.5px">话题：${esc(m.content_anchor?.topic || '未命名')}</h4>
+      <p class="ui3-sub" style="font-size:12.5px;margin:4px 0"><strong>主体内部表达目标 (intended_goal)：</strong>${esc(ie.intended_goal || m.content_anchor?.summary || '—')}</p>
+      <p class="ui3-sub" style="font-size:12px;margin:4px 0"><strong>具体想说的要点/追问：</strong>${esc(ie.candidate_point_or_question || '—')}</p>
+      <p class="ui3-sub" style="font-size:12px;margin:4px 0"><strong>外部触发证据 (source_event_ids: ${esc((m.source_event_ids || []).join(', '))})：</strong>「${esc(ext.evidence_quote || m.content_anchor?.quote || '—')}」</p>
+      ${steps.length ? `<div class="ui3-trait-row" style="margin:6px 0"><strong style="font-size:12px">待续接/待用户回复步骤 (${steps.length})：</strong>${steps.map(s => `<div style="font-size:11.5px;margin-top:3px">· [${esc(s.step_id)}] (${esc(s.depends_on)} / ${esc(s.status)}): ${esc(s.intended_point || s.purpose)}</div>`).join('')}</div>` : ''}
+      <div style="font-size:11.5px;color:var(--ui3-text-muted);margin-top:6px">
+        对象：${esc(m.person_id || m.scope)} · Activation=${fmt(m.activation)} · Urgency=${fmt(m.urgency)} · Persistence=${fmt(m.persistence)} · 暂缓原因：${esc(m.defer_reason || '无')}
+      </div>
+    </div>`;
+  }).join('')}</div>` : '<p class="ui3-sub">尚无已记录的表达动机。</p>';
+}
+
+function renderUI3Timeline() {
+  if (!state) return;
+  const sessions = state.sessions || [];
+  if ($('ui3TimelineSessionSelect')) {
+    $('ui3TimelineSessionSelect').innerHTML = sessions.map(s =>
+      `<option value="${esc(s.id)}" ${s.id === sessionId ? 'selected' : ''}>${esc(s.title || s.id)} (${esc(s.scope)})</option>`
+    ).join('') || '<option value="">尚无会话</option>';
+  }
+  const curSession = sessions.find(s => s.id === sessionId) || sessions[0];
+  const isQQ = curSession && (curSession.scope.startsWith('private:qq:') || curSession.scope.startsWith('group:qq:'));
+  if ($('ui3SandboxSendBtn')) $('ui3SandboxSendBtn').disabled = Boolean(isQQ || busy);
+  if ($('ui3SandboxInput')) $('ui3SandboxInput').disabled = Boolean(isQQ || busy);
+  if ($('ui3SandboxHint')) {
+    $('ui3SandboxHint').textContent = isQQ
+      ? '当前所选为 QQ 历史会话（只读档案）。如需使用本机调试沙盒，请点击上方“＋ 新建本机测试会话”。'
+      : '当前为本机会话 (private:web:owner)，可发送测试消息验证 PMM 与表达欲运行链。';
+  }
+
+  const kw = ($('ui3TimelineSearchInput')?.value || '').trim().toLowerCase();
+  const dateFilter = ($('ui3TimelineDateInput')?.value || '').trim();
+  const matchFilter = (text, ts) => {
+    if (kw && !String(text || '').toLowerCase().includes(kw)) return false;
+    if (dateFilter && ts) {
+      const dStr = new Date(ts * 1000).toISOString().slice(0, 10);
+      if (dStr !== dateFilter) return false;
+    }
+    return true;
+  };
+
+  const filteredMsgs = (messages || []).filter(m => matchFilter(m.content, m.created_at));
+  $('ui3TimelineMessagesBox').innerHTML = filteredMsgs.length ? `<div class="ui3-timeline-list">${filteredMsgs.map(m => {
+    const isUser = m.role === 'user';
+    const isSilent = !m.content;
+    return `<div class="ui3-timeline-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <div>
+          <span class="ui3-badge ${isUser ? 'indigo' : isSilent ? 'amber' : 'ok'}">${isUser ? '对方来信' : isSilent ? '角色内部倾听/暂缓 · 未发消息' : esc(state.profile?.name || '角色回复') + ' · 已确认记录'}</span>
+          ${m.turn_id ? `<small style="color:var(--ui3-text-muted);margin-left:6px">回合 <code>${esc(m.turn_id.slice(0, 12))}</code></small>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <small style="color:var(--ui3-text-muted)">${m.created_at ? date(m.created_at) : ''}</small>
+          ${!isUser && m.turn_id ? `<button type="button" class="ui3-pill-btn" style="padding:2px 8px;font-size:11px" data-trace="${esc(m.turn_id)}">查看心理机制</button><button type="button" class="ui3-pill-btn" style="padding:2px 8px;font-size:11px" data-feedback="${esc(m.turn_id)}">校正表达</button>` : ''}
+        </div>
+      </div>
+      <div style="font-size:14px;line-height:1.65;white-space:pre-wrap">${esc(m.content || '（本轮选择倾听或暂缓表达，未向外部发送消息）')}</div>
+    </div>`;
+  }).join('')}</div>` : '<p class="ui3-sub">当前会话或筛选条件下没有匹配的消息记录。</p>';
+
+  // 7.2 Event Timeline
+  const evRows = (events || []).filter(e => matchFilter(JSON.stringify(e.payload || {}), e.created_at));
+  $('ui3TimelineEventsBox').innerHTML = evRows.length ? `<div class="ui3-timeline-list">${evRows.slice(0, 40).map(e => `
+    <div class="ui3-timeline-item">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span class="ui3-badge sage">${esc(eventLabel(e.kind))} (<code>${esc(e.kind)}</code>)</span>
+        <small style="color:var(--ui3-text-muted)">${e.created_at ? date(e.created_at) : ''}</small>
+      </div>
+      <p class="ui3-sub" style="font-size:12.5px;margin:6px 0">${esc(e.payload?.reply || e.payload?.reason || e.payload?.scope || '已完成事件记录')}</p>
+      <details style="font-size:11.5px;color:var(--ui3-text-sec)">
+        <summary style="cursor:pointer">查看原始证据与事件载荷</summary>
+        <pre style="max-height:200px;overflow:auto;margin-top:6px">${esc(JSON.stringify(e.payload, null, 2))}</pre>
+      </details>
+    </div>
+  `).join('')}</div>` : '<p class="ui3-sub">暂无匹配的事件时间线记录。</p>';
+
+  // 7.3 Historical Review
+  const memRows = (memories || []).filter(m => matchFilter(m.content, m.created_at));
+  $('ui3TimelineReviewBox').innerHTML = memRows.length ? `<div class="ui3-grid-2">${memRows.map(m => `
+    <div class="ui3-card-compact">
+      <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px">
+        <span class="ui3-badge indigo">${esc(m.kind)} · 重要度 ${Number(m.importance || 0.5).toFixed(2)}</span>
+        <small style="color:var(--ui3-text-muted)">${m.created_at ? date(m.created_at) : ''}</small>
+      </div>
+      <p style="font-size:13.5px;line-height:1.6;margin:6px 0;white-space:pre-wrap">${esc(m.content)}</p>
+      ${m.evidence ? `<blockquote style="margin:6px 0;padding:6px 10px;border-left:3px solid var(--ui3-accent);font-size:12px;color:var(--ui3-text-sec)">原始证据：${esc(m.evidence)}</blockquote>` : ''}
+    </div>
+  `).join('')}</div>` : '<p class="ui3-sub">尚无可确认的历史共同经历记录（系统不会生成未经证实的虚假共同回忆）。</p>';
+}
+
+function renderUI3MemoryAndRelations() {
+  if (!state) return;
+  const ov = state.ui3_overview || {};
+  const graph = ov.memory_relation_graph || { nodes: [], edges: [] };
+  const nodes = graph.nodes || [];
+  const edges = graph.edges || [];
+
+  // 8.2 Nomi-style Interactive SVG Graph
+  if (ui3MemoryViewMode === 'graph' && nodes.length > 0) {
+    const w = 560, h = 380, cx = w / 2, cy = h / 2;
+    const posMap = {};
+    const selfNode = nodes.find(n => n.kind === 'self') || nodes[0];
+    posMap[selfNode.id] = { x: cx, y: cy };
+    const others = nodes.filter(n => n.id !== selfNode.id);
+    others.forEach((n, idx) => {
+      const ring = n.kind === 'person' ? 95 : n.kind === 'motive' ? 135 : 155;
+      const angle = (-Math.PI / 2) + (idx * 2 * Math.PI / Math.max(1, others.length));
+      posMap[n.id] = {
+        x: cx + ring * Math.cos(angle),
+        y: cy + ring * Math.sin(angle),
+      };
+    });
+    const kindColor = {
+      self: '#b45638',
+      person: '#3f588c',
+      episode: '#2e6f5e',
+      gist: '#588157',
+      semantic: '#b87b28',
+      motive: '#78477a',
+    };
+    $('ui3MemoryGraphWrap').innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="记忆与关系关联网络图">
+      ${edges.map(e => {
+        const p1 = posMap[e.source], p2 = posMap[e.target];
+        if (!p1 || !p2) return '';
+        return `<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="rgba(128,120,105,0.32)" stroke-width="${Math.max(1, (e.strength || 0.4) * 2.5).toFixed(1)}" />`;
+      }).join('')}
+      ${nodes.map(n => {
+        const pt = posMap[n.id] || { x: cx, y: cy };
+        const r = n.kind === 'self' ? 22 : n.kind === 'person' ? 16 : 12;
+        const col = kindColor[n.kind] || '#2e6f5e';
+        const isSel = n.id === ui3SelectedGraphNodeId;
+        return `<g class="ui3-graph-node" data-ui3-graph-node="${esc(n.id)}">
+          <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="${r}" fill="${col}" stroke="${isSel ? '#1f1d1a' : '#fff'}" stroke-width="${isSel ? 3 : 1.8}" />
+          <text x="${pt.x.toFixed(1)}" y="${(pt.y + r + 13).toFixed(1)}" font-size="10.5" font-weight="600" text-anchor="middle" fill="currentColor">${esc(n.label)}</text>
+        </g>`;
+      }).join('')}
+    </svg>`;
+  } else {
+    $('ui3MemoryGraphWrap').innerHTML = `<div style="max-height:340px;overflow:auto;padding:8px">${nodes.map(n => `
+      <div class="ui3-trait-row" style="cursor:pointer" data-ui3-graph-node="${esc(n.id)}">
+        <span class="ui3-badge">${esc(n.kind)}</span> <strong>${esc(n.label)}</strong>
+        <p class="ui3-sub" style="font-size:12px;margin:4px 0 0">${esc(n.content || n.intended_goal || n.subtitle || '')}</p>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  const selNode = nodes.find(n => n.id === ui3SelectedGraphNodeId) || nodes[0];
+  $('ui3MemoryNodeDetail').innerHTML = selNode ? `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <span class="ui3-badge indigo">选中节点 · ${esc(selNode.kind)}</span>
+      <small style="color:var(--ui3-text-muted)"><code>${esc(selNode.id)}</code></small>
+    </div>
+    <h4 style="margin:6px 0 4px">${esc(selNode.label)}</h4>
+    <p class="ui3-sub" style="font-size:12.5px;margin:0">${esc(selNode.content || selNode.intended_goal || selNode.subtitle || `关联范围：${selNode.scope || '全局'}`)}</p>
+  ` : '<p class="ui3-sub">点击上方网络图中的任意节点可查看关联证据详情。</p>';
+
+  // 8.1 Memory Archive List
+  const mSearch = ($('ui3MemorySearchInput')?.value || '').trim().toLowerCase();
+  const mKind = $('ui3MemoryKindFilter')?.value || 'all';
+  const filteredMems = (memories || []).filter(m => {
+    if (mKind !== 'all' && m.kind !== mKind) return false;
+    if (mSearch && !String(m.content || '').toLowerCase().includes(mSearch) && !String(m.evidence || '').toLowerCase().includes(mSearch)) return false;
+    return true;
+  });
+  $('ui3MemoryArchiveList').innerHTML = filteredMems.length ? filteredMems.map(m => `
+    <div class="ui3-trait-row">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        <div>
+          <span class="ui3-badge ${m.kind === 'hypothesis' ? 'amber' : 'sage'}">${esc(m.kind === 'episode' ? '事实经历' : m.kind === 'gist' ? '要点归纳' : m.kind === 'hypothesis' ? '待核实推测' : m.kind)}</span>
+          <span class="ui3-badge">${esc(m.status || 'active')} · 重要度 ${Number(m.importance || 0.5).toFixed(2)}</span>
+        </div>
+        <small style="color:var(--ui3-text-muted)">${m.updated_at ? date(m.updated_at) : ''}</small>
+      </div>
+      <p style="font-size:13px;line-height:1.6;margin:6px 0;white-space:pre-wrap">${esc(m.content)}</p>
+      ${m.evidence ? `<p class="ui3-sub" style="font-size:11.5px;margin:4px 0">来源证据：「${esc(String(m.evidence).slice(0, 120))}」</p>` : ''}
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        <button type="button" class="ui3-pill-btn" style="padding:3px 10px;font-size:11px" data-ui3-mem-op="verify" data-ui3-mem-id="${esc(m.id)}">核实确认</button>
+        <button type="button" class="ui3-pill-btn" style="padding:3px 10px;font-size:11px" data-ui3-mem-op="correct" data-ui3-mem-id="${esc(m.id)}" data-ui3-mem-text="${esc(m.content)}">修改校正</button>
+        <button type="button" class="ui3-pill-btn" style="padding:3px 10px;font-size:11px" data-ui3-mem-op="delete" data-ui3-mem-id="${esc(m.id)}">删除</button>
+      </div>
+    </div>
+  `).join('') : '<p class="ui3-sub">没有匹配的记忆条目。</p>';
+
+  // 8.3 People & Dyads
+  const dyads = Object.entries(state.dyads || {});
+  const inters = state.interlocutors || {};
+  $('ui3PeopleAndDyadsList').innerHTML = dyads.length ? dyads.map(([dkey, d]) => {
+    const pid = d.person_id || d.target_id || dkey.split('|').pop();
+    const sc = d.context_id || dkey.split('|')[0];
+    const prof = inters[`${sc}|${pid}`] || inters[pid] || {};
+    return `<div class="ui3-card-compact" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <strong>${esc(prof.name || pid)} <small style="color:var(--ui3-text-muted)">(${esc(sc)})</small></strong>
+        <span class="ui3-badge indigo">互动 ${esc(d.interactions ?? 0)} 次</span>
+      </div>
+      <div class="ui3-grid-3" style="gap:8px;margin:8px 0">
+        <div class="ui3-trait-row" style="margin:0"><span class="ui3-sub">信任度 (Trust)</span><br><strong>${fmt(d.trust)}</strong></div>
+        <div class="ui3-trait-row" style="margin:0"><span class="ui3-sub">熟悉度 (Familiarity)</span><br><strong>${fmt(d.familiarity)}</strong></div>
+        <div class="ui3-trait-row" style="margin:0"><span class="ui3-sub">亲和度 (Affection)</span><br><strong>${fmt(d.affection ?? d.affiliation)}</strong></div>
+      </div>
+      <p class="ui3-sub" style="font-size:11.5px;margin:0">关系来源：${esc(d.source_type === 'manual' ? '主人手动设定' : '根据真实互动经历更新')} · 冲突记录 ${(d.conflict_history || []).length} 次</p>
+    </div>`;
+  }).join('') : '<p class="ui3-sub">尚无已记录的交谈对象与人际关系档案。</p>';
+
+  // 8.3 Boundaries
+  const hardBounds = state.profile?.boundaries || [];
+  const dynBounds = state.boundary_model?.boundaries || [];
+  $('ui3BoundariesPanel').innerHTML = `
+    <h4 style="font-size:13px;margin:0 0 8px">主人设定的硬边界规则 (${hardBounds.length})</h4>
+    ${hardBounds.map(b => `
+      <div class="ui3-trait-row">
+        <div class="ui3-trait-top">
+          <span><span class="ui3-badge accent">主人设定 (${esc(b.action)})</span> <strong>${esc(b.label)}</strong></span>
+          <span>${b.enabled ? '已启用' : '已停用'}</span>
+        </div>
+        <small style="color:var(--ui3-text-muted)">触发词：${esc((b.keywords || []).join('、') || '语义复核')}</small>
+      </div>
+    `).join('') || '<p class="ui3-sub">尚无硬边界规则。</p>'}
+    <h4 style="font-size:13px;margin:14px 0 8px">情境动态边界倾向 (${dynBounds.length})</h4>
+    ${dynBounds.map(b => `
+      <div class="ui3-trait-row">
+        <div class="ui3-trait-top">
+          <span><span class="ui3-badge indigo">${esc(b.domain)}</span> <strong>${esc(b.topic)}</strong></span>
+          <strong>敏感度 ${fmt(b.long_term_weight)}</strong>
+        </div>
+        <small style="color:var(--ui3-text-muted)">适用范围：${esc(b.scope)} · 对象：${esc(b.person)}</small>
+      </div>
+    `).join('') || '<p class="ui3-sub">尚无动态边界倾向。</p>'}
+  `;
+}
+
+function renderUI3Studio() {
+  if (!state) return;
+  const learn = state.learning_center || {};
+  const pol = learn.policy?.domains || {};
+  const domainNames = {
+    memory: ['记忆与经历 (Memory)', '提炼带原文引用的具体事件与归纳记忆'],
+    self: ['稳定人格倾向与价值 (Self Traits & Values)', '提炼 HEXACO 分面、价值优先级与自我经验候选'],
+    language: ['语言表达习惯 (Pragmatics & Style)', '统计分句、句长、标点与回应充足度习惯'],
+    other: ['交谈对象画像 (Interlocutor Model)', '更新对其他人物的认识，不写入 AI 自身人格'],
+    relationship: ['人际关系维度 (Relationships)', '更新熟悉度、信任度与亲和度证据'],
+  };
+
+  if ($('ui3StudioDomainsBox')) {
+    $('ui3StudioDomainsBox').innerHTML = Object.entries(domainNames).map(([k, [title, desc]]) => {
+      const dPol = pol[k] || { enabled: true, mode: k === 'memory' ? 'automatic' : 'candidate_only' };
+      return `<div class="ui3-trait-row">
+        <div class="ui3-trait-top">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" data-ui3-pol-enable="${esc(k)}" ${dPol.enabled !== false ? 'checked' : ''}>
+            <strong>${esc(title)}</strong>
+          </label>
+          <select data-ui3-pol-mode="${esc(k)}" class="ui3-pill-btn" style="padding:2px 8px;font-size:11.5px">
+            <option value="candidate_only" ${dPol.mode === 'candidate_only' ? 'selected' : ''}>仅生成待审核候选 (candidate_only)</option>
+            <option value="automatic" ${dPol.mode === 'automatic' ? 'selected' : ''}>有证据时自动应用 (automatic)</option>
+          </select>
+        </div>
+        <p class="ui3-sub" style="font-size:12px;margin:2px 0 0">${esc(desc)}</p>
+      </div>`;
+    }).join('');
+  }
+
+  // Step 4: Jobs & Progress
+  const activeJobs = state.active_jobs || [];
+  $('ui3StudioLiveProgressBox').innerHTML = activeJobs.length ? activeJobs.map(j => `
+    <div class="ui3-trait-row">
+      <span class="ui3-badge amber">运行中 · ${esc(j.kind)}</span>
+      <strong style="display:block;margin:6px 0">${esc(j.phase || '正在处理…')}</strong>
+    </div>
+  `).join('') : '<p class="ui3-sub">当前没有正在后台运行的蒸馏任务。点击上方按钮即可启动。</p>';
+
+  const jobsList = learn.jobs || [];
+  $('ui3StudioJobsList').innerHTML = jobsList.length ? jobsList.map(j => `
+    <div class="ui3-trait-row">
+      <div class="ui3-trait-top">
+        <span><span class="ui3-badge">${esc(j.status)}</span> <strong>${esc(j.target === 'other' ? '认识他人' : '角色学习')}</strong></span>
+        <small>${j.updated_at ? date(j.updated_at) : ''}</small>
+      </div>
+      <p class="ui3-sub" style="font-size:12px;margin:4px 0">进度：${esc(j.cursor ?? 0)} / ${esc(j.source_count ?? 0)} 条来源 · 范围 ${esc((j.scopes || []).join(', '))}</p>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        ${j.status !== 'completed' ? `<button type="button" class="ui3-pill-btn" style="padding:2px 8px;font-size:11px" data-ui3-run-ljob="${esc(j.id)}">继续执行批次</button>` : ''}
+      </div>
+    </div>
+  `).join('') : '<p class="ui3-sub">尚无历史学习批次记录。</p>';
+
+  // Step 5: Candidates Review
+  const tRev = state.trait_review || {};
+  const tCands = tRev.candidates || [];
+  $('ui3StudioTraitCandidatesBox').innerHTML = tCands.length ? tCands.map(c => `
+    <div class="ui3-trait-row">
+      <div class="ui3-trait-top">
+        <strong>${esc(c.feature_id)}</strong>
+        <span class="ui3-badge ${c.eligible ? 'ok' : 'amber'}">${c.eligible ? '满足晋升条件' : '待更多证据'}</span>
+      </div>
+      <p class="ui3-sub" style="font-size:12px;margin:4px 0">当前值 ${fmt(c.current)} → 候选估计 <strong>${fmt(c.proposed)}</strong> · 独立事件证据 ${esc(c.evidence_count ?? 0)} 条</p>
+    </div>
+  `).join('') : '<p class="ui3-sub">当前没有待审阅的长期人格倾向候选。</p>';
+
+  const pCands = state.pragmatics?.learning_candidates || [];
+  $('ui3StudioPragmaticCandidatesBox').innerHTML = pCands.length ? pCands.map(c => `
+    <div class="ui3-trait-row">
+      <div class="ui3-trait-top">
+        <strong>${esc(c.label || c.field)}</strong>
+        <span class="ui3-badge indigo">估计值 ${fmt(c.estimate)} (${esc(c.effective_events)} 次示范)</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button type="button" class="ui3-pill-btn primary" style="padding:2px 9px;font-size:11px" data-ui3-prag-review="${esc(c.id)}" data-ui3-prag-digest="${esc(c.evidence_digest)}" data-ui3-prag-act="apply">接受并应用</button>
+        <button type="button" class="ui3-pill-btn" style="padding:2px 9px;font-size:11px" data-ui3-prag-review="${esc(c.id)}" data-ui3-prag-digest="${esc(c.evidence_digest)}" data-ui3-prag-act="reject">拒绝</button>
+      </div>
+    </div>
+  `).join('') : '<p class="ui3-sub">当前没有待审阅的语言表达习惯候选。</p>';
+
+  // Step 6: Four-State Outcome Report
+  $('ui3StudioOutcomeReportBox').innerHTML = `
+    <div class="ui3-grid-4" style="margin-bottom:16px">
+      <div class="ui3-card-compact">
+        <span class="ui3-badge sage">状态 1 · 蒸馏与提炼任务</span>
+        <strong style="display:block;font-size:20px;margin:8px 0">${esc(learn.processed_sources ?? 0)} 条来源已处理</strong>
+        <span class="ui3-sub" style="font-size:12px">累计任务 ${esc(learn.total_jobs ?? 0)} 个（蒸馏完成不代表已直接修改人格参数）</span>
+      </div>
+      <div class="ui3-card-compact">
+        <span class="ui3-badge indigo">状态 2 · 记忆与经历入库</span>
+        <strong style="display:block;font-size:20px;margin:8px 0">${esc(state.memory_count ?? 0)} 条有效记忆</strong>
+        <span class="ui3-sub" style="font-size:12px">已入库记忆可立即用于对话检索与关联图展示</span>
+      </div>
+      <div class="ui3-card-compact">
+        <span class="ui3-badge accent">状态 3 · 长期人格参数更新</span>
+        <strong style="display:block;font-size:20px;margin:8px 0">长期特征版本 v${esc(state.profile?.trait_profile?.version ?? 0)}</strong>
+        <span class="ui3-sub" style="font-size:12px">已晋升历史 ${(state.profile?.trait_profile?.promotion_history || []).length} 次 · 待审候选 ${tCands.length} 项</span>
+      </div>
+      <div class="ui3-card-compact">
+        <span class="ui3-badge plum">状态 4 · 神经网络权重训练</span>
+        <strong style="display:block;font-size:20px;margin:8px 0">已训练 ${esc(state.model?.steps ?? 0)} 步</strong>
+        <span class="ui3-sub" style="font-size:12px">待训样本 ${esc(state.model?.pending_samples ?? 0)} 条 · 训练样本 ${esc(state.model?.train_samples ?? 0)} 条</span>
+        <button type="button" class="ui3-pill-btn" style="margin-top:8px" id="ui3TriggerPmmTrainBtn">执行 PMM 权重训练</button>
+      </div>
+    </div>
+  `;
+  const trainBtn = ui3ById('ui3TriggerPmmTrainBtn');
+  if (trainBtn) trainBtn.onclick = () => $('trainPmm')?.click();
+}
+
+function renderUI3Settings() {
+  if (!state || !state.config) return;
+  const p = state.profile;
+  const c = state.config;
+  const q = c.qq || {};
+  const s = c.social || {};
+
+  // 9.1 Persona Management
+  $('ui3SettingsPersonaBox').innerHTML = `
+    <div class="ui3-grid-2">
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">CHARACTER ROSTER · 角色列表与切换</span>
+            <h2>创建、切换、克隆或导入角色</h2>
+            <p class="ui3-sub">每个角色拥有完全独立的数据库、记忆、人际关系、情绪流与表达欲状态。</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="ui3-pill-btn primary" id="ui3SetNewPersonaBtn">＋ 创建新角色</button>
+            <button type="button" class="ui3-pill-btn" id="ui3SetImportPackBtn">导入人格包</button>
+          </div>
+        </div>
+        <div>
+          ${(state.personas?.items || []).map(item => {
+            const active = item.id === state.identity.id;
+            return `<div class="ui3-trait-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <div>
+                <strong>${esc(active ? p.name : item.name)}</strong>
+                ${active ? '<span class="ui3-badge ok" style="margin-left:6px">当前使用中</span>' : ''}
+                <div style="font-size:11.5px;color:var(--ui3-text-muted)">ID: <code>${esc(item.id)}</code></div>
+              </div>
+              ${active ? `<button type="button" class="ui3-pill-btn" id="ui3SetEditCurrentCharBtn">编辑基础设定</button>` : `<button type="button" class="ui3-pill-btn primary" data-ui3-switch-persona="${esc(item.id)}">切换到此角色</button>`}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">INITIAL SEED VS LEARNED STATE · 设定与习得分离</span>
+            <h2>当前角色基础设定与人格包导出</h2>
+            <p class="ui3-sub">修改基础文字设定或回复风格不会覆盖模型通过经历习得的长期人格权重。</p>
+          </div>
+        </div>
+        <div class="ui3-trait-row">
+          <span class="ui3-sub">角色名称与自称：</span><strong>${esc(p.name)}（自称：${esc(p.character?.self_reference || '我')}）</strong>
+        </div>
+        <div class="ui3-trait-row">
+          <span class="ui3-sub">用户设定的初始性格描述：</span>
+          <p style="font-size:13px;margin:4px 0 0;white-space:pre-wrap">${esc(p.character?.initial_personality || '未填写')}</p>
+        </div>
+        <div class="ui3-trait-row">
+          <span class="ui3-sub">基础背景资料 (Seed)：</span>
+          <p style="font-size:13px;margin:4px 0 0;white-space:pre-wrap">${esc((p.seed || '未填写').slice(0, 300))}</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button type="button" class="ui3-pill-btn primary" id="ui3SetOpenCharDialogBtn">修改角色基础设定</button>
+          <button type="button" class="ui3-pill-btn" id="ui3SetExportContinuityBtn">导出完整延续人格包 (.json)</button>
+          <button type="button" class="ui3-pill-btn" id="ui3SetSaveCheckpointBtn">保存当前恢复点</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 9.2 Model Configuration Center (General LLM strictly distinct from PMM!)
+  $('ui3SettingsModelsBox').innerHTML = `
+    <div class="ui3-grid-3">
+      <div class="ui3-card">
+        <span class="ui3-badge ok">独立通用语言层 · General LLM</span>
+        <h3 style="margin:10px 0 6px">1. 对话生成与理解模型</h3>
+        <p class="ui3-sub">负责自然语言理解与最终回复生成。General LLM 独立于 PMM，不作为 PMM 的内部心理层。</p>
+        <div class="ui3-trait-row" style="margin-top:12px">
+          <span class="ui3-sub">当前模型：</span><strong>${esc(c.model || '未配置')}</strong><br>
+          <span class="ui3-sub">协议类型：</span><code>${esc(c.protocol)}</code> · <span class="ui3-sub">服务地址：</span><code>${esc(c.base_url)}</code>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button type="button" class="ui3-pill-btn primary" id="ui3TestGeneralModelBtn">测试对话模型连接</button>
+          <button type="button" class="ui3-pill-btn" data-ui3-open-dev="connections">展开高级参数配置 →</button>
+        </div>
+      </div>
+
+      <div class="ui3-card">
+        <span class="ui3-badge indigo">人工心理核心 · PMM / PMM-A</span>
+        <h3 style="margin:10px 0 6px">2. 内部心理理解与推理模型</h3>
+        <p class="ui3-sub">负责事件情绪评价、表达欲计算、记忆检索排序与内在行动效用评估。</p>
+        <div class="ui3-trait-row" style="margin-top:12px">
+          <span class="ui3-sub">运行模式：</span><strong>${esc(modeName(state.model?.mode))} (${esc(c.pmm281?.mode === 'full' ? '完整 2.8.3 运行链' : '兼容模式')})</strong><br>
+          <span class="ui3-sub">PMM-A 模型：</span><strong>${esc(c.pmm?.api?.model || state.model?.architecture || '本地数值模型')}</strong>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button type="button" class="ui3-pill-btn primary" id="ui3TestPmmModelBtn">测试 PMM 连接</button>
+          <button type="button" class="ui3-pill-btn" id="ui3CopyGeneralToPmmBtn">复用 General 连接配置</button>
+        </div>
+      </div>
+
+      <div class="ui3-card">
+        <span class="ui3-badge plum">深度协商 · PMM-B &amp; 成本概览</span>
+        <h3 style="margin:10px 0 6px">3. 内部方案协商与 Token 账本</h3>
+        <p class="ui3-sub">在存在目标冲突或边界风险时按需激活多视角方案协商 (PMM-B)。</p>
+        <div class="ui3-trait-row" style="margin-top:12px">
+          <span class="ui3-sub">PMM-B 触发策略：</span><strong>${esc(c.pmm281?.b_policy || 'auto')}</strong> ·
+          <span class="ui3-sub">连接方式：</span><strong>${c.pmm281?.b?.share_a ? '共享 PMM-A 连接' : '独立配置'}</strong>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button type="button" class="ui3-pill-btn" data-ui3-open-dev="connections">管理 Token 价目与账本 →</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 9.3 QQ & Proactive Contact
+  $('ui3SettingsQQBox').innerHTML = `
+    <div class="ui3-grid-2">
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">QQ / ONEBOT BRIDGE · 外部交流渠道</span>
+            <h2>QQ 连接状态与白名单授权</h2>
+            <p class="ui3-sub">用户主要在 QQ 中与角色交流；仅允许白名单内的私聊号码与群号触发回复。</p>
+          </div>
+          <span class="ui3-badge ${q.enabled ? 'ok' : 'warn'}">${q.enabled ? 'QQ 自动回复已启用' : 'QQ 自动回复未启用'}</span>
+        </div>
+        <div class="ui3-trait-row">
+          <span class="ui3-sub">机器人自身 QQ 号：</span><strong>${esc(q.self_id || '未填写')}</strong><br>
+          <span class="ui3-sub">OneBot API 地址：</span><code>${esc(q.api_url || 'http://127.0.0.1:3000')}</code><br>
+          <span class="ui3-sub">允许私聊 QQ 号 (${(q.allowed_users || []).length})：</span><code>${esc((q.allowed_users || []).join(', ') || '无')}</code><br>
+          <span class="ui3-sub">允许群号 (${(q.allowed_groups || []).length})：</span><code>${esc((q.allowed_groups || []).join(', ') || '无')}</code>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button type="button" class="ui3-pill-btn primary" id="ui3TestQQBtn">测试 OneBot 连接</button>
+          <button type="button" class="ui3-pill-btn" data-ui3-open-dev="qqPage">编辑 QQ 号码与白名单 →</button>
+        </div>
+      </div>
+
+      <div class="ui3-card">
+        <div class="ui3-card-head">
+          <div>
+            <span class="ui3-kicker">PROACTIVE CONTACT · 表达欲驱动的主动联系</span>
+            <h2>主动联系权限、免打扰与冷却限制</h2>
+            <p class="ui3-sub">主动联系绝不是强制发言开关：必须同时满足授权白名单、非免打扰时段，且角色存在具体未完成表达动机 (has_concrete_motive)。</p>
+          </div>
+          <span class="ui3-badge ${s.enabled ? 'ok' : ''}">${s.enabled ? '主动联系已开启' : '主动联系默认关闭'}</span>
+        </div>
+        <div class="ui3-trait-row">
+          <span class="ui3-sub">授权主动联系对象：</span><code>${esc((s.recipients || []).join(', ') || '未授权任何对象')}</code><br>
+          <span class="ui3-sub">免打扰时段：</span><strong>${esc(s.quiet_start)} – ${esc(s.quiet_end)} (${esc(s.timezone)})</strong><br>
+          <span class="ui3-sub">静默等待 / 冷却间隔：</span><strong>${esc(s.idle_minutes)} 分钟 / ${esc(s.cooldown_minutes)} 分钟</strong> · 每日预算 ${esc(s.daily_budget)} 条
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button type="button" class="ui3-pill-btn" data-ui3-open-dev="qqPage">修改主动联系设置 →</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 9.4 Data Management & Developer Research Workbench Entry
+  $('ui3SettingsDataBox').innerHTML = `
+    <div class="ui3-grid-2">
+      <div class="ui3-card">
+        <span class="ui3-kicker">DATA &amp; PRIVACY · 数据目录与备份恢复</span>
+        <h2 style="margin:4px 0 8px">本地数据存储与安全导出</h2>
+        <p class="ui3-sub">所有聊天档案、记忆、人格参数与权重均保存在本地目录；支持完整快照备份与按范围清理个人数据。</p>
+        <div class="ui3-trait-row" style="margin-top:12px">
+          <span class="ui3-sub">当前角色数据目录：</span><code>${esc(state.data_dir)}</code><br>
+          <span class="ui3-sub">全局数据根目录：</span><code>${esc(state.data_status?.root || '')}</code>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <button type="button" class="ui3-pill-btn primary" id="ui3ExportSnapshotBtn">导出完整系统快照 (.json)</button>
+          <button type="button" class="ui3-pill-btn" id="ui3RestoreSnapshotBtn">从快照文件恢复</button>
+          <button type="button" class="ui3-pill-btn" id="ui3ExportSupportBtn">导出脱敏诊断报告</button>
+        </div>
+      </div>
+
+      <div class="ui3-card" style="border-color:var(--ui3-accent)">
+        <span class="ui3-kicker">RESEARCH WORKBENCH · 高级研究与开发者工作台</span>
+        <h2 style="margin:4px 0 8px">进入完整研发与调试视图</h2>
+        <p class="ui3-sub">面向研究者与开发者，完整保留 PMM-A/PMM-B 协商详情、Learned-PMM 权重训练、情绪动力学标定、Expressive Drive 矩阵贡献、CognitiveRouter、Token 账本、Outbox 事务恢复及全部 11 个原始研发子页面。</p>
+        <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+          <button type="button" class="ui3-pill-btn primary" id="ui3EnterDevWorkbenchBtn">🛠 切换到高级研究工作台</button>
+          <button type="button" class="ui3-pill-btn" data-ui3-open-dev="diagnostics">直接打开执行与诊断记录 →</button>
+          <button type="button" class="ui3-pill-btn" data-ui3-open-dev="modelTraining">直接打开模型训练与校准 →</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderUI3() {
+  if (!state || !state.profile) return;
+  try {
+    renderUI3Home();
+    renderUI3InnerWorld();
+    renderUI3Timeline();
+    renderUI3MemoryAndRelations();
+    renderUI3Studio();
+    renderUI3Settings();
+  } catch (err) {
+    console.error('UI3 render error:', err);
+  }
+}
+
+// Wire UI 3.0 interactive delegation
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', guard(async e => {
+    const btn = e.target?.closest?.('button, a, [data-ui3-select-construct], [data-ui3-graph-node]');
+    if (!btn) return;
+
+    if (btn.id === 'ui3PortSwitchBtn' || btn.id === 'ui3EnterDevWorkbenchBtn') {
+      switchUI3Port('developer');
+      return;
+    }
+    if (btn.id === 'ui3ReturnToUserBtn') {
+      switchUI3Port('user');
+      return;
+    }
+    if (btn.id === 'ui3ThemeToggle' || btn.id === 'ui3DevThemeBtn') {
+      toggleUI3Theme();
+      return;
+    }
+    if (btn.dataset?.ui3OpenDev) {
+      switchUI3Port('developer');
+      showPage(btn.dataset.ui3OpenDev);
+      return;
+    }
+    if (btn.dataset?.ui3Page) {
+      showUI3Page(btn.dataset.ui3Page);
+      return;
+    }
+    if (btn.dataset?.ui3Jump) {
+      showUI3Page(btn.dataset.ui3Jump, btn.dataset.ui3Subtab);
+      return;
+    }
+    if (btn.dataset?.ui3InnerTab) {
+      showUI3Page('ui3PageInner', btn.dataset.ui3InnerTab);
+      return;
+    }
+    if (btn.dataset?.ui3TimelineTab) {
+      showUI3Page('ui3PageTimeline', btn.dataset.ui3TimelineTab);
+      return;
+    }
+    if (btn.dataset?.ui3MemTab) {
+      showUI3Page('ui3PageMemory', btn.dataset.ui3MemTab);
+      return;
+    }
+    if (btn.dataset?.ui3SetTab) {
+      showUI3Page('ui3PageSettings', btn.dataset.ui3SetTab);
+      return;
+    }
+    if (btn.dataset?.ui3Step || btn.dataset?.ui3StepGoto) {
+      const stepNum = btn.dataset.ui3Step || btn.dataset.ui3StepGoto;
+      document.querySelectorAll('#ui3StudioStepper .ui3-step-btn').forEach(b => b.classList.toggle('active', b.dataset.ui3Step === String(stepNum)));
+      showUI3Page('ui3PageStudio', 'ui3StudioStep' + stepNum);
+      return;
+    }
+    if (btn.dataset?.ui3ChooseTarget) {
+      const t = btn.dataset.ui3ChooseTarget;
+      if ($('ui3StudioTargetMode')) $('ui3StudioTargetMode').value = t === 'other' ? 'other' : 'self';
+      document.querySelectorAll('#ui3StudioStepper .ui3-step-btn').forEach(b => b.classList.toggle('active', b.dataset.ui3Step === '2'));
+      showUI3Page('ui3PageStudio', 'ui3StudioStep2');
+      return;
+    }
+    if (btn.dataset?.ui3SelectConstruct) {
+      ui3SelectedConstructId = btn.dataset.ui3SelectConstruct;
+      renderUI3InnerWorld();
+      return;
+    }
+    if (btn.dataset?.ui3EditSeed) {
+      openTraitSeed(btn.dataset.ui3EditSeed);
+      return;
+    }
+    if (btn.id === 'ui3OpenTraitSeedBtn') {
+      openTraitSeed(ui3SelectedConstructId || 'hexaco.x.social_boldness');
+      return;
+    }
+    if (btn.id === 'ui3NewPersonaBtn' || btn.id === 'ui3SetNewPersonaBtn') {
+      $('newPersona')?.click();
+      return;
+    }
+    if (btn.id === 'ui3ClonePersonaBtn') {
+      $('cloneTemplate').checked = true;
+      $('personaDialog').showModal();
+      return;
+    }
+    if (btn.id === 'ui3SetImportPackBtn') {
+      $('importPack')?.click();
+      return;
+    }
+    if (btn.id === 'ui3SetEditCurrentCharBtn' || btn.id === 'ui3SetOpenCharDialogBtn') {
+      $('editCharacter')?.click();
+      return;
+    }
+    if (btn.id === 'ui3SetExportContinuityBtn') {
+      download('/api/persona/export?scope=continuity');
+      return;
+    }
+    if (btn.id === 'ui3SaveCheckpointBtn' || btn.id === 'ui3SetSaveCheckpointBtn') {
+      await api('/api/persona/checkpoint', { label: 'UI 3.0 手动恢复点' });
+      await refresh();
+      notice('已保存当前角色恢复点。');
+      return;
+    }
+    if (btn.dataset?.ui3RollbackRev) {
+      await api('/api/persona/rollback', { id: btn.dataset.ui3RollbackRev });
+      await refresh();
+      notice('已回滚到所选角色版本。');
+      return;
+    }
+    if (btn.dataset?.ui3SwitchPersona) {
+      await api('/api/persona/activate', { id: btn.dataset.ui3SwitchPersona });
+      await refresh();
+      notice('已切换当前角色。');
+      return;
+    }
+    if (btn.id === 'ui3HomeAdvanceIdleBtn' || btn.id === 'ui3InnerAdvanceIdleBtn') {
+      const curScope = state.sessions?.[0]?.scope || 'private:web:owner';
+      await api('/api/pmm283/expressive-drive/advance', { scope: curScope, commit: true });
+      await refresh();
+      notice('已按真实挂钟时间推进表达欲静默演化。');
+      return;
+    }
+    if (btn.id === 'ui3GraphViewBtn') {
+      ui3MemoryViewMode = 'graph';
+      $('ui3GraphViewBtn').classList.add('primary');
+      $('ui3ListViewBtn').classList.remove('primary');
+      renderUI3MemoryAndRelations();
+      return;
+    }
+    if (btn.id === 'ui3ListViewBtn') {
+      ui3MemoryViewMode = 'list';
+      $('ui3ListViewBtn').classList.add('primary');
+      $('ui3GraphViewBtn').classList.remove('primary');
+      renderUI3MemoryAndRelations();
+      return;
+    }
+    if (btn.dataset?.ui3GraphNode) {
+      ui3SelectedGraphNodeId = btn.dataset.ui3GraphNode;
+      renderUI3MemoryAndRelations();
+      return;
+    }
+    if (btn.dataset?.ui3MemOp) {
+      const op = btn.dataset.ui3MemOp, id = btn.dataset.ui3MemId;
+      if (op === 'correct') {
+        const nextText = prompt('修改记忆内容：', btn.dataset.ui3MemText || '');
+        if (!nextText) return;
+        await api('/api/memory', { id, op: 'correct', content: nextText });
+      } else {
+        await api('/api/memory', { id, op });
+      }
+      await refresh();
+      notice('记忆状态已更新。');
+      return;
+    }
+    if (btn.id === 'ui3RunMemoryGistBtn') {
+      const out = await api('/api/memory/consolidate', {});
+      if (out.job_id) await runJob(out, 'memory_gist');
+      await refresh();
+      return;
+    }
+    if (btn.id === 'ui3AddDynamicBoundaryBtn') {
+      editDynamicBoundary();
+      return;
+    }
+    if (btn.id === 'ui3NewLocalSessionBtn') {
+      const r = await api('/api/session', {});
+      sessionId = r.id;
+      await refresh();
+      notice('已创建新的本机测试会话。');
+      return;
+    }
+    if (btn.id === 'ui3TimelineClearFilterBtn') {
+      if ($('ui3TimelineSearchInput')) $('ui3TimelineSearchInput').value = '';
+      if ($('ui3TimelineDateInput')) $('ui3TimelineDateInput').value = '';
+      renderUI3Timeline();
+      return;
+    }
+    if (btn.id === 'ui3SandboxSendBtn') {
+      const txt = ($('ui3SandboxInput')?.value || '').trim();
+      if (!txt) throw new Error('请输入测试消息内容');
+      $('ui3SandboxInput').value = '';
+      const out = await api('/api/chat', { session_id: sessionId, text: txt, client_event_id: 'ui3_' + Date.now() });
+      if (out.job_id) await runJob(out, 'chat');
+      await refresh();
+      return;
+    }
+    if (btn.id === 'ui3StudioPreviewBtn') {
+      const raw = ($('ui3StudioRawText')?.value || '').trim();
+      if (!raw) throw new Error('请先粘贴聊天记录或选择本地文件');
+      const fmtVal = $('ui3StudioFormatSelect')?.value || 'auto';
+      const prev = await api('/api/import/preview', { content: raw, format: fmtVal });
+      ui3StudioPreviewData = prev;
+      const spkEntries = Object.entries(prev.speakers || {});
+      if ($('ui3StudioSpeakerSelect')) {
+        $('ui3StudioSpeakerSelect').innerHTML = spkEntries.map(([spk, cnt]) =>
+          `<option value="${esc(spk)}">${esc(spk)}（${cnt} 条消息）</option>`
+        ).join('') || '<option value="">未识别到说话人</option>';
+      }
+      if ($('ui3StudioPreviewSummary')) {
+        $('ui3StudioPreviewSummary').innerHTML = `<div class="ui3-trait-row"><span class="ui3-badge ok">格式检查通过 · 共 ${esc(prev.count)} 条记录</span><p class="ui3-sub" style="font-size:12px;margin-top:6px">识别到 ${spkEntries.length} 位说话人。预览首条：「${esc(prev.preview?.[0]?.text || '')}」</p></div>`;
+      }
+      notice(`已识别 ${prev.count} 条聊天记录，请选择目标说话人。`);
+      return;
+    }
+    if (btn.id === 'ui3SaveLearningPolicyBtn') {
+      const domains = {};
+      document.querySelectorAll('[data-ui3-pol-enable]').forEach(chk => {
+        const k = chk.dataset.ui3PolEnable;
+        const modeEl = document.querySelector(`[data-ui3-pol-mode="${k}"]`);
+        domains[k] = { enabled: chk.checked, mode: modeEl ? modeEl.value : 'candidate_only' };
+      });
+      await api('/api/learning/policy', { persona_id: state.identity.id, domains });
+      await refresh();
+      notice('学习与审核策略已保存。');
+      return;
+    }
+    if (btn.id === 'ui3StartDistillBtn') {
+      const content = ($('ui3StudioRawText')?.value || '').trim();
+      const speaker = $('ui3StudioSpeakerSelect')?.value || '';
+      if (!content || !speaker) throw new Error('请先在“步骤 2：选择数据”中输入记录并选择说话人');
+      const res = await api('/api/distill', {
+        content,
+        format: $('ui3StudioFormatSelect')?.value || 'auto',
+        speaker,
+        target: $('ui3StudioTargetMode')?.value || 'self',
+        person: $('ui3StudioPersonInput')?.value || 'web:owner',
+        scope: $('ui3StudioScopeInput')?.value || 'private:web:owner',
+      });
+      await runJob(res, 'distill');
+      await refresh();
+      return;
+    }
+    if (btn.id === 'ui3CreateLearningJobBtn') {
+      const created = await api('/api/learning/create', {
+        persona_id: state.identity.id,
+        target: $('ui3StudioTargetMode')?.value || 'self',
+        scopes: [$('ui3StudioScopeInput')?.value || 'private:web:owner'],
+        range: 'all',
+        intent: 'review',
+      });
+      if (created.job?.id) {
+        const started = await api('/api/learning/run', { persona_id: state.identity.id, id: created.job.id });
+        if (started.job_id) await runJob(started, 'learning');
+      }
+      await refresh();
+      return;
+    }
+    if (btn.dataset?.ui3RunLjob) {
+      const started = await api('/api/learning/run', { persona_id: state.identity.id, id: btn.dataset.ui3RunLjob });
+      if (started.job_id) await runJob(started, 'learning');
+      await refresh();
+      return;
+    }
+    if (btn.id === 'ui3RunConsolidationBtn') {
+      const out = await api('/api/consolidation/run', { retry: true });
+      if (out.job_id) await runJob(out, 'consolidation');
+      await refresh();
+      return;
+    }
+    if (btn.id === 'ui3ApplyTraitReviewBtn') {
+      await api('/api/traits/review', { persona_id: state.identity.id, apply: true });
+      await refresh();
+      notice('已审阅并应用合格的长期人格倾向候选。');
+      return;
+    }
+    if (btn.dataset?.ui3PragReview) {
+      await api('/api/pragmatics/review', {
+        persona_id: state.identity.id,
+        candidate_id: btn.dataset.ui3PragReview,
+        evidence_digest: btn.dataset.ui3PragDigest,
+        expected_version: state.pragmatics?.profile?.version ?? 0,
+        action: btn.dataset.ui3PragAct || 'apply',
+        note: 'UI 3.0 成长工作室人工审阅',
+      });
+      await refresh();
+      notice('已更新语言表达习惯候选审阅状态。');
+      return;
+    }
+    if (btn.id === 'ui3TestGeneralModelBtn') {
+      await testConnection('general');
+      return;
+    }
+    if (btn.id === 'ui3TestPmmModelBtn') {
+      await testConnection('pmm');
+      return;
+    }
+    if (btn.id === 'ui3CopyGeneralToPmmBtn') {
+      await api('/api/pmm/api/copy-general', {});
+      await refresh();
+      notice('已将对话生成模型的连接配置复制到 PMM。');
+      return;
+    }
+    if (btn.id === 'ui3TestQQBtn') {
+      const r = await api('/api/qq/test', {});
+      notice(`QQ 连接正常：${r.nickname || ''} (${r.user_id || ''})`);
+      return;
+    }
+    if (btn.id === 'ui3ExportSnapshotBtn') {
+      download('/api/export');
+      return;
+    }
+    if (btn.id === 'ui3RestoreSnapshotBtn') {
+      $('backupFile')?.click();
+      return;
+    }
+    if (btn.id === 'ui3ExportSupportBtn') {
+      download('/api/support');
+      return;
+    }
+  }));
+
+  if ($('ui3PersonaSelect')) {
+    $('ui3PersonaSelect').onchange = guard(async e => {
+      if (e.target.value && e.target.value !== state?.identity?.id) {
+        await api('/api/persona/activate', { id: e.target.value });
+        await refresh();
+      }
+    });
+  }
+  if ($('ui3ConstructGroupFilter')) $('ui3ConstructGroupFilter').onchange = () => renderUI3InnerWorld();
+  if ($('ui3EmotionHorizonFilter')) $('ui3EmotionHorizonFilter').onchange = () => renderUI3InnerWorld();
+  if ($('ui3TimelineSessionSelect')) {
+    $('ui3TimelineSessionSelect').onchange = guard(async e => {
+      sessionId = e.target.value;
+      messages = await api('/api/messages?session=' + encodeURIComponent(sessionId));
+      renderChat();
+      renderUI3Timeline();
+    });
+  }
+  if ($('ui3TimelineSearchInput')) $('ui3TimelineSearchInput').oninput = () => renderUI3Timeline();
+  if ($('ui3TimelineDateInput')) $('ui3TimelineDateInput').onchange = () => renderUI3Timeline();
+  if ($('ui3MemorySearchInput')) $('ui3MemorySearchInput').oninput = () => renderUI3MemoryAndRelations();
+  if ($('ui3MemoryKindFilter')) $('ui3MemoryKindFilter').onchange = () => renderUI3MemoryAndRelations();
+  if ($('ui3StudioFileInput')) {
+    $('ui3StudioFileInput').onchange = async e => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const txt = await f.text();
+      if ($('ui3StudioRawText')) $('ui3StudioRawText').value = txt;
+      notice(`已读取文件 ${f.name}（${txt.length} 字符），请点击“检查格式并识别说话人”。`);
+    };
+  }
+}

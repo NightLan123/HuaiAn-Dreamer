@@ -52,7 +52,7 @@ def ensure_profile(profile,scope='agent_self'):
     return ensure_traits(p,scope)
 
 def number(value,low=0,high=1):
-    if type(value) not in (int,float) or not math.isfinite(value) or not low<=value<=high:raise ValueError('心理字段数值越界')
+    if type(value) not in (int,float) or not low<=value<=high or not math.isfinite(value):raise ValueError('心理字段数值越界')
     return float(value)
 
 def validate_state(state,records,scope=None):

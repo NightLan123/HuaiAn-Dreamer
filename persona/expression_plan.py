@@ -85,7 +85,7 @@ def interaction_state(text, understanding, context, relationship):
             'uncertainty': None, 'source_type': 'engineering_fallback_uncalibrated'}
 
 
-def decide_expression(text, understanding, decision, context, relation, trait_ref, affect_ref, pragmatic, proposal=None):
+def decide_expression(text, understanding, decision, context, relation, trait_ref, affect_ref, pragmatic, proposal=None, expressive_drive=None):
     state = interaction_state(text, understanding, context, relation)
     proposal = proposal if isinstance(proposal, dict) else {}
     quote = proposal.get('evidence_quote')
@@ -129,8 +129,28 @@ def decide_expression(text, understanding, decision, context, relation, trait_re
     if learned_burst.get('effective_episodes',0)>=8 and learned_burst.get('estimate')==0:
         max_bubbles=1;split_reason='当前情境至少八个独立人类示范均为单条，暂优先合并表达（未校准规则）'
     goal = str(p.get('local_goal') or {'invitation':'回应邀请后让轮', 'tentative_interest':'回应当前兴趣，不擅自安排', 'complaint':'回应感受，不自动布置任务', 'closing':'自然结束交流', 'question':'充分回答当前问题'}.get(act, '完成当前回应，足够即停'))[:400]
+    ed = expressive_drive if isinstance(expressive_drive, dict) else understanding.get('expressive_drive_policy') if isinstance(understanding.get('expressive_drive_policy'), dict) else decision.get('expressive_drive') if isinstance(decision.get('expressive_drive'), dict) else None
+    ed_intent = ed.get('expressive_intent') if isinstance(ed, dict) else None
+    if isinstance(ed, dict) and decision['action'] == 'reply' and not complete and not grounded:
+        if ed_intent == 'BACKCHANNEL':
+            strategy = 'MINIMAL_REPLY'
+            max_bubbles = 1
+            allow = False
+            goal = ('简短自然附和或回应当前要点后让轮：' + goal)[:400]
+        elif ed_intent in ('CLOSE', 'LISTEN'):
+            strategy = 'MINIMAL_REPLY'
+            max_bubbles = 1
+            allow = False
+        elif ed_intent == 'DEFER':
+            strategy = 'MINIMAL_REPLY'
+            max_bubbles = 1
+            allow = False
+            goal = ('仅作必要简短回应，暂缓展开其余表达动机：' + goal)[:400]
     state.update(proposed_next_move=strategy, source_type='API_PMM_STRUCTURED' if grounded else 'engineering_fallback_uncalibrated')
     evaluation = p.get('evaluation') if isinstance(p.get('evaluation'), dict) else {}
+    eval_features = {k: number(evaluation.get(k)) for k in FEATURES}
+    if eval_features.get('spontaneous_motivation') is None and isinstance(ed, dict):
+        eval_features['spontaneous_motivation'] = number(ed.get('activation'))
     plan = {'schema': SCHEMA, 'plan_id': decision['decision_id'] + ':expression', 'decision_id': decision['decision_id'],
             'turn_id': context.get('execution_turn_id'), 'scope': context.get('scope'), 'context_version': context.get('version'),
             'selected_action': decision['action'].upper(), 'previous_act': act, 'response_obligation': state['pending_response_obligation'],
@@ -141,18 +161,58 @@ def decide_expression(text, understanding, decision, context, relation, trait_re
             'message_plan': {'delivery': 'single' if max_bubbles == 1 else 'single_or_burst', 'max_bubbles': max_bubbles, 'target_bubbles': None},
             'split_reason':split_reason,
             'yield_after_current_reply': True, 'continuation': 'new_input_only', 'interaction_state': state,
-            'evaluation': {k: number(evaluation.get(k)) for k in FEATURES},
+            'evaluation': eval_features,
             'candidate_comparison': [{'strategy': strategy, 'reason': goal}, {'strategy':'CLARIFY_IF_NEEDED', 'eligible': bool(state['unresolved_need']), 'reason':'只有真实信息缺口才增加回答义务'}],
             'trait_ref': trait_ref, 'affect_ref': affect_ref, 'pragmatic_condition': copy.deepcopy(pragmatic),
             'basis': {'source_event_ids': state['source_event_ids'], 'model_type': state['source_type'], 'calibrated': False, 'warnings': warnings},
             'stop_reason': '本轮完成当前应答即让轮；后续补充必须由真实新输入重新规划',
             'timing': {'mode':'bounded_transport_gap', 'gap_seconds':0.12, 'max_gap_seconds':0.35, 'automatic_followup':False}}
+    if isinstance(ed, dict):
+        plan['expressive_drive'] = {
+            k: copy.deepcopy(ed.get(k))
+            for k in ('schema', 'activation', 'urgency', 'persistence', 'expressive_intent', 'active_motive_id', 'status', 'resumed_motive')
+            if k in ed
+        }
     return plan
+
+
+def normalize_deferred_steps(value):
+    """Normalize deferred_user_reply_steps across new structured lists and legacy int counts."""
+    if isinstance(value, list):
+        out = []
+        for i, item in enumerate(value[:4]):
+            if isinstance(item, dict):
+                out.append({
+                    'step_id': str(item.get('step_id') or f'step_{i+1:02d}'),
+                    'act': item.get('act') if item.get('act') in ('acknowledge','accept','empathize','answer','clarify','share','repair','close') else 'unspecified',
+                    'purpose': str(item.get('purpose') or '等待用户补充信息后继续回应')[:300],
+                    'intended_point': str(item.get('intended_point') or item.get('text') or item.get('purpose') or '待用户回应后继续展开')[:240],
+                    'depends_on': 'user_reply',
+                    'status': str(item.get('status') or 'deferred'),
+                })
+        return out, len(out)
+    if type(value) is int and value > 0:
+        # Legacy integer compatibility: synthesize placeholder step descriptors without crashing
+        out = [
+            {
+                'step_id': f'legacy_deferred_{i+1:02d}',
+                'act': 'unspecified',
+                'purpose': '等待用户补充信息后继续回应（旧版整数格式兼容迁移）',
+                'intended_point': '等待用户回应后继续展开后续步骤',
+                'depends_on': 'user_reply',
+                'status': 'deferred',
+            }
+            for i in range(min(value, 4))
+        ]
+        return out, value
+    return [], 0
 
 
 def parse_message_parts(response, plan):
     if not isinstance(response, str) or not response.strip(): raise ValueError('回复正文为空')
     plan.pop('realization_steps',None)
+    plan.pop('deferred_user_reply_steps',None)
+    plan.pop('deferred_user_reply_step_count',None)
     text = response.strip()
     if text.startswith('```'):
         text = re.sub(r'^```(?:json)?\s*|\s*```$', '', text, flags=re.I).strip()
@@ -168,15 +228,29 @@ def parse_message_parts(response, plan):
             if any(not isinstance(r, dict) or not isinstance(r.get('text'), str) or not r['text'].strip() or not isinstance(r.get('step_id'), str) or not r['step_id'] for r in rows): raise ValueError('表达片段缺少 step_id 或正文')
             if len({r['step_id'] for r in rows}) != len(rows): raise ValueError('表达片段 step_id 重复')
             eligible=[]
-            for r in rows:
+            deferred_steps=[]
+            for idx_r, r in enumerate(rows):
                 dependency=r.get('depends_on','current_input')
-                if dependency=='user_reply':break
+                if dependency=='user_reply':
+                    for rem in rows[idx_r:]:
+                        deferred_steps.append({
+                            'step_id': str(rem['step_id']),
+                            'act': rem.get('act') if rem.get('act') in ('acknowledge','accept','empathize','answer','clarify','share','repair','close') else 'unspecified',
+                            'purpose': str(rem.get('purpose') or '等待用户补充信息后继续回应')[:300],
+                            'intended_point': str(rem.get('text', '')).strip()[:240],
+                            'depends_on': 'user_reply',
+                            'status': 'deferred',
+                        })
+                    break
                 if dependency!='current_input' and dependency not in {v['step_id'] for v in eligible}:raise ValueError('消息片段依赖未完成的步骤')
                 eligible.append(r)
             if not eligible:raise ValueError('当前没有可发送的表达步骤；不能代替尚未收到的回答')
             parts = [r['text'].strip() for r in eligible]; protocol = 'structured_parts'
             plan['realization_steps']=[{'step_id':r['step_id'],'act':r.get('act') if r.get('act') in ('acknowledge','accept','empathize','answer','clarify','share','repair','close') else 'unspecified',
                 'purpose':str(r.get('purpose',''))[:300],'depends_on':r.get('depends_on','current_input')} for r in eligible]
+            if deferred_steps:
+                plan['deferred_user_reply_steps'] = deferred_steps
+                plan['deferred_user_reply_step_count'] = len(deferred_steps)
         else: parts = [text]
     else:
         parts = [s.strip() for s in text.split(BREAK)]; protocol = 'h2_marker_compat' if len(parts) > 1 else 'plain_text'

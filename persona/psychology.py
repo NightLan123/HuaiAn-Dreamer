@@ -208,6 +208,9 @@ def context_profile(profile,scope):
     Aggregate numeric style statistics remain portable; private utterances do not.
     """
     p=copy.deepcopy(profile)
+    if 'role_development' in p:
+        from .role_development import active
+        p['role_development']=active(p,scope)
     records=[r for r in p['source_records'] if r.get('scope')==scope or (not r.get('scope') and r.get('source')=='imported')]
     ids={r['id'] for r in records};p['source_records']=records
     p['examples']=[e for e in p['examples'] if e['record_id'] in ids]
@@ -240,6 +243,8 @@ def profile_condition(p):
 
 def validate_profile(p):
     if not isinstance(p,dict) or p.get('format')!='psychological-profile/1':raise ValueError('人格包格式不兼容')
+    from .role_development import validate as validate_role_development
+    validate_role_development(p)
     if not re.fullmatch(r'[0-9a-f]{32}',str(p.get('id',''))):raise ValueError('人格 ID 无效')
     if not isinstance(p.get('name'),str) or not 1<=len(p['name'])<=60:raise ValueError('人格名称无效')
     if not isinstance(p.get('seed'),str) or len(p['seed'])>8000:raise ValueError('人格描述无效')
